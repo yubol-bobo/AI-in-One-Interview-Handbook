@@ -407,6 +407,42 @@
 
 
 ### Q&A System 
+#### Types of QA Systems
+- Factoid (simple answer, extractive)
+- Non-factoid (explanatory, abstractive)
+- Open-domain vs Closed-domain Q&A
+- Traditional Q&A vs RAG vs LLM-based Q&A
+
+#### Components of QA Systems
+- Question Processing
+    - Question type classification (factoid, procedural, descriptive)
+    - Query parsing and expansion
+
+- Document/Passage Retrieval
+    - Dense retrieval (embedding-based retrieval)
+    - Sparse retrieval (BM25, TF-IDF)
+    - Hybrid approaches
+    - Re-ranking of retrieved passages
+
+- Answer Extraction/Generation
+    - Extractive Q&A (span-based)
+    - Generative Q&A (abstractive, using LLMs)
+
+- Answer Post-processing
+    - Summarization, filtering irrelevant answers
+    - Confidence scoring and answer ranking
+
+
+#### Evaluation
+- Extractive Q&A Evaluation
+    - Exact Match
+    - F1-score
+- Generative Q&A Evalution
+    - ROUGE
+    - BLEU
+    - METEOR score
+    - Human evaluation
+
 
 ### Reasoning
 - Information seeking
