@@ -4,10 +4,15 @@
 
 - [Machine Learning](#Machine-Learning)
     - [ML Basic](#ML-Basic)
-    - [ML Algorithms](#ML-Algorithms)     
+    - [ML Algorithms](#ML-Algorithms)
+        - [Algorithm Categories](#Algorithm-Categories)  
+        - [Supervised Learning](#supervised-Learning)  
+        - [Unsupervised Learning](#Unsupervised-Learning)  
 - [Deep Learning](#Deep-Learning-Breadth)
+    - [DL Basic](#dl-basic)
+    - [DL Algorithms](#dl-algorithm)
 - [Large Language Models](#Large-Language-Models)
-    - [Instruction Following Tasks](#instruction-following-tasks)
+
 
  
 
