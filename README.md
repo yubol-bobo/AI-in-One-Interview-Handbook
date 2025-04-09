@@ -133,7 +133,6 @@
 
   
 
-
 ### DL Algorithm
 - CNN
 - RNN
@@ -141,8 +140,54 @@
 - GAN
 - Transformer
     - Attention
+        - details
         - Self-attention
         - Cross-attention
-        -   
+    - BERT
+    - RoBERTa
+
+
 
 ## Large Language Models
+
+### NLP Basic
+
+
+### Large Language Model
+- Embedding
+    - how to train    
+    - word embedding: Word2Vec/Glove
+    - positional embedding
+        - when it's not that important
+    - Tokenization
+- Architecture
+    - Encoder-decoder vs encoder-only vs decoder-only
+    - 123
+- Recent interesting papers   
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
