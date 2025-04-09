@@ -3,6 +3,8 @@
 ## Table of Contents
 
 - [Machine Learning](#Machine-Learning)
+    - [ML Basic](#ML-Basic)
+    - [ML Algorithms](#ML-Algorithms)     
 - [Deep Learning](#Deep-Learning-Breadth)
 - [Large Language Models](#Large-Language-Models)
     - [Instruction Following Tasks](#instruction-following-tasks)
@@ -153,7 +155,7 @@
 ### NLP Basic
 
 
-### Large Language Model
+### Large Language Model Basic
 - Embedding
     - how to train    
     - word embedding: Word2Vec/Glove
@@ -163,10 +165,49 @@
 - Architecture
     - Encoder-decoder vs encoder-only vs decoder-only
     - 123
-- Recent interesting papers   
-      
+- Stages
+    - Pre training
+    - post training
+    - select high quality data
+    - LLM training stages and 作用
+    - SFT vs IFT, data selection
+    - RLHF
+        - Why RLHF with SFT existed?
+        - Related metrics
+        - PPO
+        - DPO
+            - How DPO augment human feedbacks
+        - KPO
+    - RLAIF
+        - RLHF vs RLAIF
+
+### LLM Engineering
+
+- Distributed training
+    - Parallel
+    - Parallel
+    - Parallel
+    - Parallel
+ 
+
+- Fine-Tuning
 
 
+
+
+
+
+### RAG
+
+
+### Q&A System 
+
+### Reasoning
+- Information seeking
+
+### Personalized Rec-system
+
+### Recent interesting papers
 
 
 
