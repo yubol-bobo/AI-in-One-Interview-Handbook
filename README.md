@@ -17,12 +17,24 @@
 ### ML Basic
 
 ### ML Algorithms
+#### Algorithm Categories
+- Supervised, unsupervised, and semi-supervised learning (with examples)
+    - Classification vs regression vs clustering
+- Parametric vs non-parametric algorithms
+- Linear vs Nonlinear algorithms
+#### Linear/Logistic Regression
+
+####
 
 
 
 
 
-----
+
+
+
+
+
 ## Deep Learning 
 
 ## Large Language Models
