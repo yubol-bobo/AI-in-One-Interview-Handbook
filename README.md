@@ -188,9 +188,10 @@
 
 ### LLM Engineering
 
+
 - Distributed training
 
-### Quick Summary of Key Terms:
+Quick Summary of Key Terms:
 
 | Method                     | What is Split?                  | Type of Parallelism             |
 |----------------------------|---------------------------------|---------------------------------|
@@ -201,7 +202,7 @@
 | **ZeRO Parallelism**       | Parameters, optimizer states    | Parameter sharding (special case)|
 
 
----
+
     - Data parallel
     - Pipeline parallel
     - Tensor parallel
