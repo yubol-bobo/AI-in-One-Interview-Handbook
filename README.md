@@ -65,6 +65,7 @@
         - Distribution shifts
     - Sampling
         - Uniform sampling
+        - Negative sampling
         - Reservoir sampling
         - Stratified sampling
     - Model selection
@@ -290,7 +291,6 @@
             - PPO
             - DPO (How DPO augments human feedback effectively)
             - KPO
-        - Related metrics
 
     - RLAIF
         - Differences from RLHF
@@ -330,13 +330,80 @@
 - Full fine-tuning vs Parameter-efficient fine-tuning
 - When and why to freeze layers
 - Layer-wise learning rates & layer freezing strategies
+- SFT Data Construction 
+
 - Catastrophic forgetting mitigation
+    - add general domain data as well 1:5 - 1:10
+- LoRA/QLoRA
+- GPT Fine-tuning
+
+
+#### Optimization and Efficiency
+- Mixed precision training (FP16, BF16)
+- Gradient accumulation
+- Memory optimization technique (activation checkpointing, grading checkpointing)
+
+
+#### Evaluation and Monitoring
+- Evaluation metrics
+    - Perplexity
+    - Human-evaluated metrics (helpfulness, harmlessness, alignment)
+    - Automated evaluation metrics (ROUGE, BLEU, BERTScore)
+- Monitoring and Logging 
+    - wandb
+    - TensorBoard
+
 
 
 
 
 
 ### RAG
+#### Retrieval
+- Sparse retrieval (BM25, TF-IDF based retrival)
+- Dense retrieval (Embedding-based retrieval)
+- Hybrid retrieval
+
+#### Embedding models
+- Open-source models (SentenceTransformers, E5, GTE)
+- Commericial APIs (OpenAI Embedding, Cohere embedding)
+- How to choose embedding models
+    - Semantic vs lexical relevance
+    - Embedding dimension, speed, accuracy trade-offs
+- Evaluation 
+    - Retrieval accuracy metrics(Recall@k, MRR)
+    - Semantic similarity tasks (STS benchmarks)
+
+#### Chunking and Vectorization
+- Importance of chunking
+    - Optimal chunk size
+    - Overlapping vs non-overlapping chunking
+- Chunking strategies
+    - Semantic chunking vs fixed-size chunking
+    - Recursive chunking methods
+- Impact of chunking strategy on retrieval quality and generation accuracy
+
+#### Re-ranking
+- Importance
+- Methods of re-ranking
+    - Cross-encoders (dense re-rankers)
+    - Traditional re-ranking (score normalization ,query expansion)
+    - Learned re-ranking (supervised methods)
+- Evaluation
+    - MAP
+    - MRR
+    - Precision @k
+
+#### Generation
+- Incorporating retrieved context into generation
+    - prompt engineering for RAG
+    - context window management
+- Handling large contexts effectively
+    - Fusion-in-Decoder
+    - Long-context Transformers
+- Mitigating hallucinations through retrieval context management
+
+
 
 
 ### Q&A System 
