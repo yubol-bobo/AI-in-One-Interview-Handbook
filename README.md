@@ -245,6 +245,13 @@
 
 
 
+## Reference
+1. [Machine Learning/Data Science Interview Cheat sheets by Aqeel Anwar](https://www.rivista.ai/wp-content/uploads/2024/05/ML_cheatsheets.pdf)
+
+
+
+
+
 
 
 
