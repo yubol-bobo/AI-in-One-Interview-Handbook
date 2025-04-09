@@ -22,7 +22,26 @@
     - Classification vs regression vs clustering
 - Parametric vs non-parametric algorithms
 - Linear vs Nonlinear algorithms
-#### Linear/Logistic Regression
+
+
+#### Supervised Learning
+- Linear Algorithms
+    - Linear Regression
+        - Least squares, residuals, linear vs multivariate regression 
+    - Logistic Regression
+        - Cost function(equation, code), sigmoid function, cross entropy
+    - Support Vector Machines
+    - Linear discriminant analysis
+      
+- Decision Trees
+    - Logits
+    - Leaves
+    - Training algorithm+stop criteria
+    - Inference
+    - Pruning
+
+- Ensemble methods
+- 
 
 ####
 
