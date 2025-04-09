@@ -14,6 +14,10 @@
 
 ## Machine Learning
 
+### ML Basic
+
+### ML Algorithms
+
 
 ## Deep Learning 
 
