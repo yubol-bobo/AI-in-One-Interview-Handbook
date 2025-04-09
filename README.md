@@ -15,6 +15,51 @@
 ## Machine Learning
 
 ### ML Basic
+- Optimization
+    - Gradient descent
+        - concept
+        - formula
+        - code
+    - SGD
+    - Momentum
+    - RMSprop
+    - Adam
+    - AdamW
+    - Muon (Recent)
+
+      
+- Loss functions
+    - Logistic loss function
+    - Cross Entropy
+    - Hinge loss (SVM)
+
+- Model evaluation and selection
+    - Evaluation
+        - TP, FP, TN, FN
+        - Accuracy, precision, recall/sensitivity, specificity, F1-score
+            - how do you choose among these? (imbalanced data)
+            - precision vs TPR (why precision)
+        - ROC curve (TPR vs FPR, threshold selection)
+        - AUC (model comparison)
+        - Extension of the above to multi-class classification
+        - Confusion matrix
+ 
+    - Bias/Variance
+        - Concept
+        - Underfitting/overfitting
+        - Regularization
+        - L0,L1,L2,L_infinity    
+    - Feature selection
+    - Data
+        - Missing data
+        - Imbalanced data
+        - Distribution shifts
+    - Sampling
+        - Uniform sampling
+        - Reservoir sampling
+        - Stratified sampling
+    - Model selection
+        - K-fold cross validation (good k?)
 
 ### ML Algorithms
 #### Algorithm Categories
@@ -41,9 +86,31 @@
     - Pruning
 
 - Ensemble methods
-- 
+    - Bagging vs Boosting
+    - Random Forest
+    - Boosting
+        - Adaboost
+        - GBM
+        - XGBoost
 
-####
+          
+   
+
+#### Unsupervised Learning
+- Clustering
+    - Centroid models: k-means clustering
+    - Connectivity models: Hierarchical clustering
+    - Density models: DBSCAN
+- Gaussian mixture models
+- Latent Mixture Models
+- Hidden Markov Models(HMMs)
+    - Markov processes
+    - Transition probability and emission probability
+    - Viterbi algorithm
+- Dimension reduction techniques
+    - PCA
+    - Independent Component Analysis (ICA)
+    - T-SNE       
 
 
 
@@ -55,5 +122,27 @@
 
 
 ## Deep Learning 
+
+### DL Basic
+- Feedforward NNs
+- Backpropagation
+- Dropout
+    - How to apply dropout to LSTM
+- Vanishing/exploding gradient problem
+- Activation functions
+
+  
+
+
+### DL Algorithm
+- CNN
+- RNN
+- LSTM
+- GAN
+- Transformer
+    - Attention
+        - Self-attention
+        - Cross-attention
+        -   
 
 ## Large Language Models
