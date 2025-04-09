@@ -190,8 +190,14 @@
 
 
 - Distributed training
+    - Data parallel
+    - Pipeline parallel
+    - Tensor parallel
+    - Sequence(Activation) parallel
+    - ZeRO (Zero Redundancy Optimizer) parallel
+    - Expert (MoE) parallel
+    - Hybrid parallel
 
-Quick Summary of Key Terms:
 
 | Method                     | What is Split?                  | Type of Parallelism             |
 |----------------------------|---------------------------------|---------------------------------|
@@ -203,13 +209,7 @@ Quick Summary of Key Terms:
 
 
 
-    - Data parallel
-    - Pipeline parallel
-    - Tensor parallel
-    - Sequence(Activation) parallel
-    - ZeRO (Zero Redundancy Optimizer) parallel
-    - Expert (MoE) parallel
-    - Hybrid parallel
+
  
 
 - Fine-Tuning
