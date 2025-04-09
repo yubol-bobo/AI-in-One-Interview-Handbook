@@ -189,10 +189,13 @@
 ### LLM Engineering
 
 - Distributed training
-    - Parallel
-    - Parallel
-    - Parallel
-    - Parallel
+    - Data parallel
+    - Pipeline parallel
+    - Tensor parallel
+    - Sequence(Activation) parallel
+    - ZeRO (Zero Redundancy Optimizer) parallel
+    - Expert (MoE) parallel
+    - Hybrid parallel
  
 
 - Fine-Tuning
