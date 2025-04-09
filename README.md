@@ -8,9 +8,11 @@
         - [Algorithm Categories](#Algorithm-Categories)  
         - [Supervised Learning](#supervised-Learning)  
         - [Unsupervised Learning](#Unsupervised-Learning)  
+
 - [Deep Learning](#Deep-Learning-Breadth)
     - [DL Basic](#dl-basic)
     - [DL Algorithms](#dl-algorithm)
+
 - [Large Language Models](#Large-Language-Models)
 
 
@@ -141,17 +143,17 @@
   
 
 ### DL Algorithm
-- CNN
-- RNN
-- LSTM
-- GAN
-- Transformer
-    - Attention
-        - details
-        - Self-attention
-        - Cross-attention
-    - BERT
-    - RoBERTa
+#### CNN
+#### RNN
+#### LSTM
+#### GAN
+#### Transformer
+- Attention
+    - details
+    - Self-attention
+    - Cross-attention
+- BERT
+- RoBERTa
 
 
 
@@ -161,42 +163,50 @@
 
 
 ### Large Language Model Basic
-- Embedding
-    - how to train    
-    - word embedding: Word2Vec/Glove
-    - positional embedding
-        - when it's not that important
-    - Tokenization
-- Architecture
-    - Encoder-decoder vs encoder-only vs decoder-only
-    - 123
-- Stages
-    - Pre training
-    - post training
-    - select high quality data
-    - LLM training stages and 作用
-    - SFT vs IFT, data selection
-    - RLHF
-        - Why RLHF with SFT existed?
-        - Related metrics
-        - PPO
-        - DPO
-            - How DPO augment human feedbacks
-        - KPO
-    - RLAIF
-        - RLHF vs RLAIF
+#### Embedding
+- how to train    
+- word embedding: Word2Vec/Glove
+- positional embedding
+    - when it's not that important
+
+#### Tokenization
+
+
+#### Architecture
+- Encoder-decoder vs encoder-only vs decoder-only
+- 123
+
+
+#### Stages
+- Pre training
+- post training
+- select high quality data
+- LLM training stages and 作用
+- SFT vs IFT, data selection
+- RLHF
+    - Why RLHF with SFT existed?
+    - Related metrics
+    - PPO
+    - DPO
+        - How DPO augment human feedbacks
+    - KPO
+- RLAIF
+    - RLHF vs RLAIF
+
+
+
 
 ### LLM Engineering
 
 
-- Distributed training
-    - Data parallel
-    - Pipeline parallel
-    - Tensor parallel
-    - Sequence(Activation) parallel
-    - ZeRO (Zero Redundancy Optimizer) parallel
-    - Expert (MoE) parallel
-    - Hybrid parallel
+#### Distributed training
+- Data parallel
+- Pipeline parallel
+- Tensor parallel
+- Sequence(Activation) parallel
+- ZeRO (Zero Redundancy Optimizer) parallel
+- Expert (MoE) parallel
+- Hybrid parallel
 
 
 | Method                     | What is Split?                  | Type of Parallelism             |
@@ -210,9 +220,9 @@
 
 
 
- 
 
-- Fine-Tuning
+
+#### Fine-Tuning
 
 
 
