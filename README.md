@@ -201,7 +201,7 @@
 | **ZeRO Parallelism**       | Parameters, optimizer states    | Parameter sharding (special case)|
 
 
-
+---
     - Data parallel
     - Pipeline parallel
     - Tensor parallel
