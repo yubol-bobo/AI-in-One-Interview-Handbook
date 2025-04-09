@@ -189,6 +189,18 @@
 ### LLM Engineering
 
 - Distributed training
+
+### Quick Summary of Key Terms:
+
+| Method                     | What is Split?                  | Type of Parallelism             |
+|----------------------------|---------------------------------|---------------------------------|
+| **Tensor Parallelism**     | Weights/tensors                 | Model parallelism               |
+| **Pipeline Parallelism**   | Layers                          | Model parallelism               |
+| **Expert Parallelism (MoE)** | Experts (modules)               | Model parallelism (MoE)         |
+| **Data Parallelism**       | Input data batches              | **NOT** model parallelism       |
+| **ZeRO Parallelism**       | Parameters, optimizer states    | Parameter sharding (special case)|
+
+
     - Data parallel
     - Pipeline parallel
     - Tensor parallel
