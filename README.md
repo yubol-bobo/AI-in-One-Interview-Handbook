@@ -171,6 +171,10 @@
     - Whey k-fold CV might not be ideal? Cross-validation isn’t always ideal because it can become computationally expensive, particularly with complex models or very large datasets. It's also unsuitable for time-series data due to temporal dependencies that violate the assumption of independence.
 
 - Hyper-Parameter Tuning
+    - Grid search: Exhaustively evaluates all possible combinations of hyper-parameters provided in a predefined grid.
+    - Random search: Randomly samples hyper-parameter values within predefined ranges.
+    - Bayesian optimization: Uses past evaluation results to model the hyper-parameter space.
+        - Popular libraries: `Hyperopt`, `Optuna`, `BayesSearchCV`
 
 
 
