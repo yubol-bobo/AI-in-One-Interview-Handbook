@@ -54,7 +54,9 @@ All following advanced optimization algorithms improve parameter updates by adju
     $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
 
     - RMSprop (moving average):
-    $$\begin{gathered} E\left[g^2\right]_t=\beta E\left[g^2\right]_{t-1}+(1-\beta)\left(\nabla_\theta J(\theta)\right)^2 \\ \theta=\theta-\frac{\alpha}{\sqrt{E\left[g^2\right]_t+\epsilon}} \nabla_\theta J(\theta) \end{gathered} $$
+        $$E[g^2]_t = \beta E[g^2]_{t-1} + (1 - \beta)(\nabla_\theta J(\theta))^2$$
+
+        $$\theta = \theta - \frac{\alpha}{\sqrt{E[g^2]_t + \epsilon}} \nabla_\theta J(\theta)$$
 
     - $\beta \approx 0.9$ : Exponential decay rate controlling the moving average.
 
