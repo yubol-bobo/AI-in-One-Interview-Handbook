@@ -25,17 +25,30 @@
 
 ### ML Basic
 #### Gradient descent
-- Gradient descent [[ref](https://machinelearningmastery.com/gradient-descent-for-machine-learning/)]
+- (Batch) Gradient descent [[ref](https://machinelearningmastery.com/gradient-descent-for-machine-learning/)] [[B站](https://www.bilibili.com/video/BV1jh4y1q7ua/?spm_id_from=333.337.search-card.all.click&vd_source=c86f14ec33e79f08f7e2278747a071e8)]
+    - The gradient $\left(\nabla_\theta J(\theta)\right)$ represents the direction of steepest ascent-the direction where the function increases the fastest. To minimize the function, you want to move in the opposite direction, i.e., the direction of steepest descent.
     - Gradient descent is an optimization algorithm used to find the values of parameters (coefficients) of a function (f) that minimizes a cost function (cost).
     - formula: $$\theta = \theta - \alpha \nabla_\theta J(\theta)$$, where $\theta:$ Parameters to be optimized. $\alpha$ : Learning rate (step size). $\nabla_\theta J(\theta)$ : Gradient of the cost function w.r.t. parameters.
-    - code
+
 - GD Variants
-    - Batch GD: All data points at once
+    - (Batch) GD: All data points at once
     - SGD: one data point per iteration
         - Updates parameters using only one randomly chosen training example at each step.
         - Formula: $$\theta=\theta-\alpha \nabla_\theta J\left(\theta ; x^{(i)}, y^{(i)}\right)$$.
-    - Mini-batch GD: Small subset per iteration
-- Momentum
+    - Mini-batch GD: Small subset per iteration.
+    - Cons:
+        - Sensitivity to learning rate
+        - Risk of getting stuck at saddle points
+        - Premature convergence in flat regions: local minimum.
+
+All following advanced optimization algorithms improve parameter updates by adjusting both the **gradient calculation (gc)** and the **learning rate strategy (lr)**.
+
+- **Momentum (gc)** enhances standard gradient descent by adding a velocity term that accumulates past gradients. This velocity term smooths the updates, reducing oscillations and accelerating convergence, particularly in scenarios with noisy gradients or ill-conditioned optimization surfaces.
+    - Pros: faster, jump out of local minimum, stable training.
+
+- **Adagrad (lr)** uses adaptive learning rates for each parameter, automatically adjusting LR during training. Larger learning rates for infrequent parameters, smaller rates for frequent parameters.
+    - Formula: $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
+
 - RMSprop
 - Adam
 - AdamW
