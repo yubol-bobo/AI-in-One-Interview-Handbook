@@ -63,13 +63,11 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
     Step 2: Correct bias (since initial values are zero):
-
-        $$\hat{m}_t=\frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t=\frac{v_t}{1-\beta_2^t}$$
+    - $$\hat{m}_t=\frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t=\frac{v_t}{1-\beta_2^t}$$
 
 
     Step 3: Parameter update:
-
-        $$\theta=\theta-\frac{\alpha}{\sqrt{\hat{v}_t}+\epsilon} \hat{m}_t$$
+    - $$\theta=\theta-\frac{\alpha}{\sqrt{\hat{v}_t}+\epsilon} \hat{m}_t$$
 
 
         Typical default values:
