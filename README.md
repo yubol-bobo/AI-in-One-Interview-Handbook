@@ -47,9 +47,24 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Pros: faster, jump out of local minimum, stable training.
 
 - **Adagrad (lr)** uses adaptive learning rates for each parameter, automatically adjusting LR during training. Larger learning rates for infrequent parameters, smaller rates for frequent parameters.
-    - Formula: $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
+    - Formula:  $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
 
-- RMSprop
+- **RMSprop (lr)**: Adagrad adapts the learning rate individually for each parameter, but its main drawback is the continual accumulation of squared gradients. Over time, this causes the learning rate to shrink excessively, sometimes stopping learning prematurely. RMSprop addresses this limitation by introducing an exponential decay factor. Instead of continuously accumulating all past squared gradients, it maintains a moving average of recent squared gradients.
+
+Adagrad (accumulates indefinitely):
+
+$$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
+
+
+RMSprop (moving average):
+
+$$\begin{aligned}
+& E\left[g^2\right]_t=\beta E\left[g^2\right]_{t-1}+(1-\beta)\left(\nabla_\theta J(\theta)\right)^2 \\
+& \theta=\theta-\frac{\alpha}{\sqrt{E\left[g^2\right]_t+\epsilon}} \nabla_\theta J(\theta)
+\end{aligned}$$
+
+- $\beta \approx 0.9$ : Exponential decay rate controlling the moving average.
+
 - Adam
 - AdamW
 - Muon (Recent)
@@ -292,7 +307,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 ## Deep Learning 
 
 ### DL Basic
-- Loss functions in dl
+- Loss functions in DL
     - Cross entropy
     - Mean Squared Error
 - Feedforward NNs
