@@ -140,7 +140,7 @@
         - Concept Drift (f changed): The conditional distribution $P(y \mid x)$ itself changes. Example: A recommendation model may degrade as user preferences evolve.
 
 - Sampling
-    - Uniform sampling
+    - Uniform sampling selects items from a dataset with equal probability for all elements.  Code: random.sample(data,k).  Time Complexity: $O(k)$
     - Negative sampling
     - Reservoir sampling
     - Stratified sampling
