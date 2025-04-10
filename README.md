@@ -55,27 +55,27 @@ All following advanced optimization algorithms improve parameter updates by adju
     Step 1: Calculate biased moments
     - First moment estimate (mean of gradients):
 
-    $$m_t=\beta_1 m_{t-1}+\left(1-\beta_1\right) \nabla_\theta J(\theta)$$
+        $$m_t=\beta_1 m_{t-1}+\left(1-\beta_1\right) \nabla_\theta J(\theta)$$
 
     - Second moment estimate (mean of squared gradients):
 
-    $$v_t=\beta_2 v_{t-1}+\left(1-\beta_2\right)\left(\nabla_\theta J(\theta)\right)^2$$
+        $$v_t=\beta_2 v_{t-1}+\left(1-\beta_2\right)\left(\nabla_\theta J(\theta)\right)^2$$
 
 
     Step 2: Correct bias (since initial values are zero):
 
-    $$\hat{m}_t=\frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t=\frac{v_t}{1-\beta_2^t}$$
+        $$\hat{m}_t=\frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t=\frac{v_t}{1-\beta_2^t}$$
 
 
     Step 3: Parameter update:
 
-    $$\theta=\theta-\frac{\alpha}{\sqrt{\hat{v}_t}+\epsilon} \hat{m}_t$$
+        $$\theta=\theta-\frac{\alpha}{\sqrt{\hat{v}_t}+\epsilon} \hat{m}_t$$
 
 
-    Typical default values:
-    - $\beta_1=0.9, \beta_2=0.999, \epsilon=10^{-8}$
-    - AdamW
-    - Muon (Recent)
+        Typical default values:
+        - $\beta_1=0.9, \beta_2=0.999, \epsilon=10^{-8}$
+        - AdamW
+        - Muon (Recent)
 
 | Method | Adaptive LR | Momentum | Memory | Stability | Typical Use |
 |--------|-------------|----------|--------|-----------|-------------|
