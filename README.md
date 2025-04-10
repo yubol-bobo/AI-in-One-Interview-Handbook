@@ -101,8 +101,10 @@
             Encourages sparsity through geometry.
         
         - L2 penalizes **square magnitude** of weights:
-        
-            $R(w)=\|w\|_2^2=\sum_{i=1}^n w_i^2$
+
+        $$
+        R(w) = \|w\|_2^2 = \sum_{i=1}^n w_i^2
+        $$
 
             Penalizes large weights heavily, encourges smaller, diffuse weigths. Handles correlated features better.
 
