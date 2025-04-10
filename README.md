@@ -51,15 +51,6 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 - **RMSprop (lr)**: Adagrad adapts the learning rate individually for each parameter, but its main drawback is the continual accumulation of squared gradients. Over time, this causes the learning rate to shrink excessively, sometimes stopping learning prematurely. RMSprop addresses this limitation by introducing an exponential moving average of squared gradients instead of a cumulative sum. This prevents the learning rate from becoming excessively small over time, making RMSprop better at handling non-stationary problems and maintaining stable and efficient convergence.
 
-    - Adagrad (accumulates indefinitely):
-    $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
-
-    RMSprop (moving average):
-    - $$E[g^2]_t = \beta E[g^2]_{t-1} + (1 - \beta)(\nabla_\theta J(\theta))^2$$
-
-    - $$\theta = \theta - \frac{\alpha}{\sqrt{E[g^2]_t + \epsilon}} \nabla_\theta J(\theta)$$
-
-        - $\beta \approx 0.9$ : Exponential decay rate controlling the moving average.
 
 - **Adam**: Adam combines the advantages of (1)Momentum (first-order moment): Helps smooth updates, and (2) RMSprop (second-order moment): Provides adaptive per-parameter learning rates.
     Step 1: Calculate biased moments
@@ -82,8 +73,11 @@ All following advanced optimization algorithms improve parameter updates by adju
 
         Typical default values:
         - $\beta_1=0.9, \beta_2=0.999, \epsilon=10^{-8}$
-        - AdamW
-        - Muon (Recent)
+
+
+- AdamW: Adam combines adaptive learning rates (like RMSprop) with momentum, leading to fast, efficient convergence. However, its implicit handling of weight decay can hurt generalization. AdamW improves upon Adam by explicitly decoupling weight decay from gradient-based updates, resulting in better regularization and improved generalization—making AdamW particularly beneficial for training large, modern models like transformers.
+
+- Muon (Recent): Muon is an optimizer tailored for optimizing the hidden layers of neural networks, specifically focusing on 2D weight matrices (e.g., those in linear and convolutional layers). It operates by applying a Newton-Schulz iteration to the momentum-based gradient updates, effectively orthogonalizing them before applying to the weights. This orthogonalization helps in maintaining diverse directions in the parameter updates, which can lead to better convergence properties. [[GitHub](https://github.com/KellerJordan/Muon?utm_source=chatgpt.com)]
 
 | Method | Adaptive LR | Momentum | Memory | Stability | Typical Use |
 |--------|-------------|----------|--------|-----------|-------------|
