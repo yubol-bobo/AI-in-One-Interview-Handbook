@@ -27,9 +27,14 @@
 #### Gradient descent
 - Gradient descent [[ref](https://machinelearningmastery.com/gradient-descent-for-machine-learning/)]
     - Gradient descent is an optimization algorithm used to find the values of parameters (coefficients) of a function (f) that minimizes a cost function (cost).
-    - formula: $$\theta = \theta - \alpha \nabla_\theta J(\theta)$$
+    - formula: $$\theta = \theta - \alpha \nabla_\theta J(\theta)$$, where $\theta:$ Parameters to be optimized. $\alpha$ : Learning rate (step size). $\nabla_\theta J(\theta)$ : Gradient of the cost function w.r.t. parameters.
     - code
-- SGD
+- GD Variants
+    - Batch GD: All data points at once
+    - SGD: one data point per iteration
+        - Updates parameters using only one randomly chosen training example at each step.
+        - Formula: $$\theta=\theta-\alpha \nabla_\theta J\left(\theta ; x^{(i)}, y^{(i)}\right)$$
+    - Mini-batch GD: Small subset per iteration
 - Momentum
 - RMSprop
 - Adam
