@@ -52,30 +52,30 @@ All following advanced optimization algorithms improve parameter updates by adju
 - **RMSprop (lr)**: Adagrad adapts the learning rate individually for each parameter, but its main drawback is the continual accumulation of squared gradients. Over time, this causes the learning rate to shrink excessively, sometimes stopping learning prematurely. RMSprop addresses this limitation by introducing an exponential moving average of squared gradients instead of a cumulative sum. This prevents the learning rate from becoming excessively small over time, making RMSprop better at handling non-stationary problems and maintaining stable and efficient convergence.
 
 - Adam: Adam combines the advantages of (1)Momentum (first-order moment): Helps smooth updates, and (2) RMSprop (second-order moment): Provides adaptive per-parameter learning rates.
-Step 1: Calculate biased moments
-- First moment estimate (mean of gradients):
+    Step 1: Calculate biased moments
+    - First moment estimate (mean of gradients):
 
-$$m_t=\beta_1 m_{t-1}+\left(1-\beta_1\right) \nabla_\theta J(\theta)$$
+    $$m_t=\beta_1 m_{t-1}+\left(1-\beta_1\right) \nabla_\theta J(\theta)$$
 
-- Second moment estimate (mean of squared gradients):
+    - Second moment estimate (mean of squared gradients):
 
-$$v_t=\beta_2 v_{t-1}+\left(1-\beta_2\right)\left(\nabla_\theta J(\theta)\right)^2$$
-
-
-Step 2: Correct bias (since initial values are zero):
-
-$$\hat{m}_t=\frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t=\frac{v_t}{1-\beta_2^t}$$
+    $$v_t=\beta_2 v_{t-1}+\left(1-\beta_2\right)\left(\nabla_\theta J(\theta)\right)^2$$
 
 
-Step 3: Parameter update:
+    Step 2: Correct bias (since initial values are zero):
 
-$$\theta=\theta-\frac{\alpha}{\sqrt{\hat{v}_t}+\epsilon} \hat{m}_t$$
+    $$\hat{m}_t=\frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t=\frac{v_t}{1-\beta_2^t}$$
 
 
-Typical default values:
-- $\beta_1=0.9, \beta_2=0.999, \epsilon=10^{-8}$
-- AdamW
-- Muon (Recent)
+    Step 3: Parameter update:
+
+    $$\theta=\theta-\frac{\alpha}{\sqrt{\hat{v}_t}+\epsilon} \hat{m}_t$$
+
+
+    Typical default values:
+    - $\beta_1=0.9, \beta_2=0.999, \epsilon=10^{-8}$
+    - AdamW
+    - Muon (Recent)
 
 | Method | Adaptive LR | Momentum | Memory | Stability | Typical Use |
 |--------|-------------|----------|--------|-----------|-------------|
