@@ -87,16 +87,13 @@
 
 
         - L0 is a technique in ML to encourage sparsity in a model's parameters. It penalizes the number of **non-zero parameters** in a model.
-            $$
-            R(w)=\|w\|_0=\sum_{i=1}^n \mathbb{I}\left(w_i \neq 0\right)
-            $$
+            ![L0 Formula](https://latex.codecogs.com/svg.latex?R%28w%29%3D%5C%7Cw%5C%7C_2%5E2%3D%5Csum_%7Bi%3D1%7D%5En%20w_i%5E2)
 
             Use case: Feature Selection: L0 regularization is particularly useful in scenarios where the number of features is large, and only a small subset is expected to be relevant. It helps to automatically select a subset of features that contribute significantly to the model's performance.
 
         - L1 penalizes **absolute magnitude** of weight: 
-            $$
-            R(w)=\|w\|_1=\sum_{i=1}^n\left|w_i\right|
-            $$
+
+            ![L1 Formula](https://latex.codecogs.com/svg.latex?R%28w%29%3D%5C%7Cw%5C%7C_2%5E2%3D%5Csum_%7Bi%3D1%7D%5En%20w_i%5E2)
 
             Encourages sparsity through geometry.
         
@@ -108,9 +105,7 @@
 
         - L-infinity penalizes the **largest absolute weight** (maximum norm):
 
-            $
-            R(w)=\|w\|_{\infty}=\max _i\left|w_i\right|
-            $
+            ![Linfinity Formula](https://latex.codecogs.com/svg.latex?R%28w%29%3D%5C%7Cw%5C%7C_2%5E2%3D%5Csum_%7Bi%3D1%7D%5En%20w_i%5E2)
 
             Constrains the maximum coefficient magnitude, balancing all weights' magnitudes uniformly
 
