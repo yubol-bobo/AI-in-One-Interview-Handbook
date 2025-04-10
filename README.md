@@ -66,19 +66,62 @@
         <img src="figs/confusion_matrix.png" width="50%">
     </div>
 
-- Bias/Variance
-    - Bias: The bias is the simplifying assumption made by the model to make the target function easy to learn. Low bias suggests fewer assumptions made about the form of the target function. High bias suggests more assumptions made about the form of the target data. The smaller the bias error the better the model is. If, however, it is high, this means that the model is underfitting the training data. 
-    - Variance: Variance is the amount that the estimate of the target function will change if different training data was used. The target function is estimated from the training data, so we should expect the algorithm to have some variance. Ideally, it should not change too much from one training dataset to the next. This means that the algorithm is good at picking out the hidden underlying mapping between the inputs and the output variables. If the variance error is high this indicates that the model overfits the training data.
+- Bias/Variance [[ref](https://traintestsplit.com/bias-vs-variance-in-machine-learning/)]
+    - Bias: The bias is the simplifying assumption made by the model to make the target function easy to learn. Low bias suggests fewer assumptions made about the form of the target function. High bias suggests more assumptions made about the form of the target data. The smaller the bias error the better the model is. If, however, it is high, this means that the model is **underfitting** the training data. 
+    - Variance: Variance is the amount that the estimate of the target function will change if different training data was used. The target function is estimated from the training data, so we should expect the algorithm to have some variance. Ideally, it should not change too much from one training dataset to the next. This means that the algorithm is good at picking out the hidden underlying mapping between the inputs and the output variables. If the variance error is high this indicates that the model **overfits** the training data.
     - If our model is too simple and has very few parameters then it may have high bias and low variance. On the other hand if our model has large number of parameters then it’s going to have high variance and low bias. So we need to find the right/good balance without overfitting and underfitting the data. 
+
     <div align="center">
         <img src="figs/bias-vs-variance.png" width="60%">
     </div>
-    
-    - Underfitting/overfitting
-    - Regularization
-    - L0,L1,L2,L_infinity   
 
-- Feature selection
+    - Underfitting/overfitting
+        - Underfitting occurs when the model is too simple to capture underlying data trends. Solution:Increase model complexity (e.g., add features, use more complex models, reduce regularization).
+        - Overfitting occurs when the model captures noise or random fluctuations (memorize every single detail) in training data. Solution: Reduce model complexity (e.g., remove features, apply regularization, use simpler models); Increase training data size; Early stopping.
+    - Regularization: Regularization, such as L1 (LASSO) or L2 (Ridge), can be used to control model complexity to prevent overfitting and tackle high variance. They work by adding a penalty term to the magnitude of the coefficients.
+        General form of regularized loss function:
+
+        $$
+        \operatorname{Loss}(w)=\operatorname{Loss}_{\text {original }}(w)+\lambda \cdot R(w)
+        $$
+
+
+        - L0 is a technique in ML to encourage sparsity in a model's parameters. It penalizes the number of **non-zero parameters** in a model.
+            $$
+            R(w)=\|w\|_0=\sum_{i=1}^n \mathbb{I}\left(w_i \neq 0\right)
+            $$
+
+            Use case: Feature Selection: L0 regularization is particularly useful in scenarios where the number of features is large, and only a small subset is expected to be relevant. It helps to automatically select a subset of features that contribute significantly to the model's performance.
+
+        - L1 penalizes **absolute magnitude** of weight: 
+            $$
+            R(w)=\|w\|_1=\sum_{i=1}^n\left|w_i\right|
+            $$
+
+            Encourages sparsity through geometry.
+        
+        - L2 penalizes **square magnitude** of weights:
+            $$
+            R(w)=\|w\|_2^2=\sum_{i=1}^n w_i^2
+            $$
+
+            Penalizes large weights heavily, encourges smaller, diffuse weigths. Handles correlated features better.
+
+        - L-infinity penalizes the **largest absolute weight** (maximum norm):
+            $$
+            R(w)=\|w\|_{\infty}=\max _i\left|w_i\right|
+            $$
+
+            Constrains the maximum coefficient magnitude, balancing all weights' magnitudes uniformly
+
+        - When prefer L1 over L2? For explicit feature selection or interpretability
+        - What happens as $\lambda \rightarrow \infty$ for L1 and L2?  For both: parameters approach zero; L1 produces exact zeros faster.
+        - Is L0 convex? Why does it matter? No, it's non-convex. This matters due to optimization difficulty and computational complexity.
+
+
+
+
+    - Feature selection: Proper Feature Selection removes irrelevant features thereby reducing both bias and variance. It can be done through various methods like backward elimination, forward selection, and recursive feature elimination.
 
 - Data
     - Missing data
