@@ -25,9 +25,9 @@
 
 ### ML Basic
 #### Gradient descent
-- Gradient descent
-    - concept
-    - formula
+- Gradient descent [[ref](https://machinelearningmastery.com/gradient-descent-for-machine-learning/)]
+    - Gradient descent is an optimization algorithm used to find the values of parameters (coefficients) of a function (f) that minimizes a cost function (cost).
+    - formula: $$\theta = \theta - \alpha \nabla_\theta J(\theta)$$
     - code
 - SGD
 - Momentum
@@ -174,7 +174,8 @@
     - Grid search: Exhaustively evaluates all possible combinations of hyper-parameters provided in a predefined grid.
     - Random search: Randomly samples hyper-parameter values within predefined ranges.
     - Bayesian optimization: Uses past evaluation results to model the hyper-parameter space.
-        - Popular libraries: `Hyperopt`, `Optuna`, `BayesSearchCV`
+        - Popular libraries: `Hyperopt`, `Optuna`, `BayesSearchCV`. 
+    - Other autoML packages: `Auto-skearn`, `h2o`.
 
 
 
