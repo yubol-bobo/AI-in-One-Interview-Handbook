@@ -33,13 +33,22 @@
     - Batch GD: All data points at once
     - SGD: one data point per iteration
         - Updates parameters using only one randomly chosen training example at each step.
-        - Formula: $$\theta=\theta-\alpha \nabla_\theta J\left(\theta ; x^{(i)}, y^{(i)}\right)$$
+        - Formula: $$\theta=\theta-\alpha \nabla_\theta J\left(\theta ; x^{(i)}, y^{(i)}\right)$$.
     - Mini-batch GD: Small subset per iteration
 - Momentum
 - RMSprop
 - Adam
 - AdamW
 - Muon (Recent)
+
+| Method | Adaptive LR | Momentum | Memory | Stability | Typical Use |
+|--------|-------------|----------|--------|-----------|-------------|
+| SGD | ❌ No | ❌ No | Low | Medium | Fast updates |
+| Momentum | ❌ No | ✅ Yes | Low | Medium | Reduces oscillations |
+| RMSprop | ✅ Yes | ❌ No | Medium | High | Adaptive LR |
+| Adam | ✅ Yes | ✅ Yes | Medium | High | Most popular default |
+| AdamW | ✅ Yes | ✅ Yes | Medium | High | Improved regularization |
+| Muon | ✅ Yes | ✅ Yes | Low | High | Recent advancement |
 
       
 #### Loss functions
