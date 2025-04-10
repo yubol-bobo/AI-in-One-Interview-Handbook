@@ -85,6 +85,7 @@
 
 
         - L0 is a technique in ML to encourage sparsity in a model's parameters. It penalizes the number of **non-zero parameters** in a model.
+
             ![L0 Formula](https://latex.codecogs.com/svg.latex?\|w\|_0=\sum_{i=1}^n\mathbb{I}(w_i\neq0))
 
             Use case: Feature Selection: L0 regularization is particularly useful in scenarios where the number of features is large, and only a small subset is expected to be relevant. It helps to automatically select a subset of features that contribute significantly to the model's performance.
@@ -108,6 +109,7 @@
             Constrains the maximum coefficient magnitude, balancing all weights' magnitudes uniformly
 
         - When prefer L1 over L2? For explicit feature selection or interpretability
+        - When prefer L2 over L1? L2 (Ridge) shrinks correlated features toward each other, effectively managing correlated features.
         - What happens as $\lambda \rightarrow \infty$ for L1 and L2?  For both: parameters approach zero; L1 produces exact zeros faster.
         - Is L0 convex? Why does it matter? No, it's non-convex. This matters due to optimization difficulty and computational complexity.
 
@@ -115,11 +117,28 @@
 
 
     - Feature selection: Proper Feature Selection removes irrelevant features thereby reducing both bias and variance. It can be done through various methods like backward elimination, forward selection, and recursive feature elimination.
+        - Backward Elimination: Start with all features, then iteratively remove the least significant feature.
+        - Forward Selection: Start with no features, then teratively add the most significant feature until no improvement.
+        - Recursive Feature Elimination (RFE): Iteratively fits a model and removes least important features based on coefficients or importance metrics.
+        - Embedded Methods (L1 Regularization / Lasso):
+            - Feature selection happens simultaneously with model fitting
 
 - Data
     - Missing data
-    - Imbalanced data
-    - Distribution shifts
+        - MICE (Multiple Imputation by Chained Equations): It's an iterative method of imputing missing data where each missing feature is repeatedly modeled and filled based on other features. It creates multiple datasets to capture uncertainty properly.
+    - Imbalanced data: Imbalanced data occurs when one class significantly outnumbers the other(s), causing biased models toward the majority class.
+        - Oversampling: Duplicate minority examples 
+            - SMOTE (Synthetic Minority Oversampling Technique): 1. Chooses a random minority instance; 2. Finds k nearest minority neighbors; 3. Creates synthetic points along the line segments joining neighbors.
+            - ADASYN (Adaptive Synthetic Sampling): Generates more synthetic data for harder-to-classify minority instances (closer to majority class boundary).
+        - Undersampling: Remove majority examples strategically.
+            - ENN (Edited Nearest Neighbor): Removes majority samples misclassified by a k-NN classifier (noisy or ambiguous instances).
+
+    - Distribution shifts: A distribution shift happens when the data seen during training differs from the data encountered during deployment or testing. It breaks the core assumption that train and test data come from the same distribution.
+        - Covariate Shift: This occurs when the input distribution $P(x)$ changes, but the conditional distribution $P(y \mid x)$ stays the same. Example: A spam detection model trained on emails from last year might see different phrasing this year, even if what qualifies as spam hasn’t changed.
+
+        - Label Shift: Here, the label distribution $P(y)$ changes, but the distribution of features given the label $P(x \mid y)$ remains the same. Example: In medical data, the proportion of patients with a certain condition may increase in a new population.
+        - Concept Drift: The conditional distribution $P(y \mid x)$ itself changes. Example: A recommendation model may degrade as user preferences evolve.
+
 - Sampling
     - Uniform sampling
     - Negative sampling
