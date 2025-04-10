@@ -73,10 +73,26 @@
 
 ### ML Algorithms
 #### Algorithm Categories
-- Supervised, unsupervised, and semi-supervised learning (with examples)
-    - Classification vs regression vs clustering
-- Parametric vs non-parametric algorithms
+- Types by (labeled) data
+    - **Supervised Learning** learn from labeled training data. Each training example consists of input features and the output label.
+        - Classification: Predicts categorical outputs (e.g., spam detection, image recognition). Algorithms: Logistic regression, Decision tree, RF,KNN, SVM.
+        - Regression: Predicts continuous numerial outputs. (e.g., house price prediction, stock market forecasting). Algorithms: Linear regression, RF.
+    - **Unsupervised Learning** learn patterns from unlabeled data. They explore structures, clusters, or features without labels. (e.g., Customer segmentation, dimensionality reduction)
+        - Clustering: K-means, DBSCAN, Hierarchical clustering.
+        - Dimensionality  Reduction: PCA, t-SNE.
+    - **Semi-supervised Learning** combines small amounts of labeled data with large amounts of unlabeled data. Useful when labeling data is expensive or difficult. The model leverages labeled data to guide learning, while also making use of unlabeled data to generalize better and improve performance.
+    - **Reinforcement Learning** learn through trial-and-error, reward-based systems. Gaining feedback from interactive environment instead of given data.
+    - **Self-supervised Learning** involves creating "pseudo-labels" from the unlabeled data itself. The model learns a meaningful representation of the data by predicting parts of the input or generating transformations of the input. (BERT)
+
+- Parametric vs non-parametric algorithms (if we assume a fixed functional form or not) 
+
+(Functional form = Mathematical shape or structure that the model assumes to represent how the input relates to the output.)
+    - **Parametric Algorithms**(e.g., Logistic Regression, Naive Bayes, Neural Networks) assume a fixed functional form with a finite set of parameters. They are computationally efficient and often easier to interpret, but less flexible.
+    - **Non-parametric methods** (e.g., KNN, Decision Trees, Random Forests) make fewer assumptions, allowing more flexibility. Their complexity grows with the data, making them suitable for capturing complex patterns.
+
 - Linear vs Nonlinear algorithms
+    - Linear algorithms (Linear Regression, Logistic Regression, Linear SVM) assume a linear relationship and provide simplicity and interpretability.
+    - Nonlinear algorithms (Decision Trees, Random Forest, Neural Networks, Kernel SVM) capture more complex patterns and relationships, offering flexibility but potentially at the cost of interpretability and efficiency.
 
 
 #### Supervised Learning
