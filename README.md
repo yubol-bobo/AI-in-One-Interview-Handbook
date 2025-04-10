@@ -141,11 +141,40 @@
 
 - Sampling
     - Uniform sampling selects items from a dataset with equal probability for all elements.  Code: random.sample(data,k).  Time Complexity: $O(k)$
-    - Negative sampling
-    - Reservoir sampling
-    - Stratified sampling
-- Model selection
-    - K-fold cross validation (good k?)
+    - Negative sampling primarily used in recommendation systems and NLP (Word2Vec) to train efficiently on sparse data. It reduce computational cost by sampling a subset of negative examples (items not interacted with or words not co-occurring). (Word2Vec)  Time Complexity: Reduces computation from $O(N)$ (all negatives) to $O(k)$ (sampled negatives).
+    - Reservoir sampling: Technique to uniformly sample $k$ items from a stream or large unknown-size dataset in one pass.
+        - Use Cases: Sampling from streaming data or very large files/databases.
+        - Algorithm: Maintain a reservoir of size $k$. For first $k$ items: directly fill reservoir. For each subsequent item $i>k$ : With probability $k / i$, randomly replace an item in the reservoir.
+        - Time: $O(N)$, single pass.
+        - Memory: $O(k)$, fixed space.
+    - Stratified sampling: Technique where the dataset is divided into distinct subgroups (strata) based on certain attributes (e.g., age, gender, class), and samples are drawn from each subgroup proportionally or with specific representation.
+        - Code: df.groupby(stratify_col, group_keys=False).apply(lambda x: x.sample(frac=frac))
+    - Questions
+        - When would you prefer reservoir sampling over uniform random sampling? If you're sampling tweets from a live Twitter stream (which is continuously updating and has unknown total size), reservoir sampling is the ideal method to guarantee uniformity while using fixed memory.
+        - How does stratified sampling reduce variance? If you're conducting a survey on voting preferences and you stratify by age groups (young, middle-aged, elderly), each subgroup's responses tend to be more similar internally than across the entire population. This homogeneity decreases the variance of estimates significantly compared to simple random sampling.
+
+
+
+
+- Model Selection
+    - K-fold Cross-validation is a resampling procedure used to evaluate machine learning models and tune hyperparameters.
+    - $K=5$ or $K=10$ are most common.
+    - Trade-off (Bias vs. Variance):
+        - Large $K$ :
+            - Pros: Low bias, more accurate estimates.
+            - Cons: Higher variance, computationally expensive.
+        - Small $K$ :
+            - Pros: Faster computation, lower variance in estimates.
+            - Cons: Higher bias, less stable estimates.
+    - How to handle imbalanced datasets in K-fold CV? Use Stratified K-fold, ensuring each fold maintains the proportion of classes from the original dataset.
+    - Does K-fold cross-validation prevent overfitting? No, it helps evaluate and select models accurately but doesn't inherently prevent overfitting. Use regularization, early stopping, or simpler models to control overfitting.
+    - Whey k-fold CV might not be ideal? Cross-validation isn’t always ideal because it can become computationally expensive, particularly with complex models or very large datasets. It's also unsuitable for time-series data due to temporal dependencies that violate the assumption of independence.
+
+- Hyper-Parameter Tuning
+
+
+
+
 
 
 ### ML Algorithms
