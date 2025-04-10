@@ -45,13 +45,24 @@
 #### Model evaluation and selection
 - Evaluation
     - TP, FP, TN, FN
-    - Accuracy, precision($\frac{T P}{T P+F P}$), recall/sensitivity, specificity, F1-score
-        - how do you choose among these? (imbalanced data)
-        - precision vs TPR (why precision)
-    - ROC curve (TPR vs FPR, threshold selection)
+
+    - Metrics:
+        - Accuracy: Overall correctness
+        - Precision ($\frac{T P}{T P+F P}$): Out of predicted positives, how many were actually positive?
+        - Recall/sensitivity/TPR ($\frac{T P}{T P+F N}$): 	Out of actual positives, how many were predicted correctly?
+        - Specificity/TNR ($\frac{T N}{T N+F P}$): Out of actual negatives, how many were correctly predicted negative?
+        - F1-score ($2 \times \frac{\text { Precision } \times \text { Recall }}{\text { Precision }+ \text { Recall }}$): Harmonic mean balancing precision and recall
+        - **How to choose**: Accuracy is misleading with imbalanced data. Precision, if avoiding false positives is crucial (e.g., spam detection). Recall (Sensitivity), if missing a positive case is costly (e.g., cancer detection, fraud detection). F1-score, if both precision and recall matter equally. Specificity, if correctly identifying negative cases is essential (medical tests).
+        - Precision vs Recall: Precision clearly matters when the cost of a FP is high. (e.g., classifying email as spam—high precision avoids wrongly marking important emails). Recall (TPR) clearly matters when the cost of missing positives (FN) is very high (e.g., disease diagnosis—high recall ensures positive cases aren't missed).
+
+    - ROC (Receiver Operating Characteristic) curve (TPR vs FPR, threshold selection)
+        - ROC curve plots TPR (Recall) vs FPR (1 - Specificity) at various threshold levels.Y-axis (TPR/Recall): Correctly identified positives; X-axis (FPR): Incorrectly identified positives (False Alarms). Choose threshold clearly to maximize TPR and minimize FPR.
     - AUC (model comparison)
-    - Extension of the above to multi-class classification
-    - Confusion matrix
+        - AUC clearly measures the model’s overall capability to distinguish classes irrespective of threshold. Model with higher AUC is generally better at distinguishing classes clearly.
+        - Range [0.5, 1]
+    - Confusion matrix: Confusion matrix clearly visualizes all predictions vs actual classes:
+
+    ![](figs/confusion_matrix.png)
 
 - Bias/Variance
     - Concept
