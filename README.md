@@ -24,52 +24,53 @@
 ## Machine Learning
 
 ### ML Basic
-- Optimization
-    - Gradient descent
-        - concept
-        - formula
-        - code
-    - SGD
-    - Momentum
-    - RMSprop
-    - Adam
-    - AdamW
-    - Muon (Recent)
+#### Gradient descent
+- Gradient descent
+    - concept
+    - formula
+    - code
+- SGD
+- Momentum
+- RMSprop
+- Adam
+- AdamW
+- Muon (Recent)
 
       
-- Loss functions
-    - Logistic loss function
-    - Cross Entropy
-    - Hinge loss (SVM)
+#### Loss functions
+- Logistic loss function
+- Cross Entropy
+- Hinge loss (SVM)
 
-- Model evaluation and selection
-    - Evaluation
-        - TP, FP, TN, FN
-        - Accuracy, precision, recall/sensitivity, specificity, F1-score
-            - how do you choose among these? (imbalanced data)
-            - precision vs TPR (why precision)
-        - ROC curve (TPR vs FPR, threshold selection)
-        - AUC (model comparison)
-        - Extension of the above to multi-class classification
-        - Confusion matrix
- 
-    - Bias/Variance
-        - Concept
-        - Underfitting/overfitting
-        - Regularization
-        - L0,L1,L2,L_infinity    
-    - Feature selection
-    - Data
-        - Missing data
-        - Imbalanced data
-        - Distribution shifts
-    - Sampling
-        - Uniform sampling
-        - Negative sampling
-        - Reservoir sampling
-        - Stratified sampling
-    - Model selection
-        - K-fold cross validation (good k?)
+#### Model evaluation and selection
+- Evaluation
+    - TP, FP, TN, FN
+    - Accuracy, precision($\frac{T P}{T P+F P}$), recall/sensitivity, specificity, F1-score
+        - how do you choose among these? (imbalanced data)
+        - precision vs TPR (why precision)
+    - ROC curve (TPR vs FPR, threshold selection)
+    - AUC (model comparison)
+    - Extension of the above to multi-class classification
+    - Confusion matrix
+
+- Bias/Variance
+    - Concept
+    - Underfitting/overfitting
+    - Regularization
+    - L0,L1,L2,L_infinity    
+- Feature selection
+- Data
+    - Missing data
+    - Imbalanced data
+    - Distribution shifts
+- Sampling
+    - Uniform sampling
+    - Negative sampling
+    - Reservoir sampling
+    - Stratified sampling
+- Model selection
+    - K-fold cross validation (good k?)
+
 
 ### ML Algorithms
 #### Algorithm Categories
