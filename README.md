@@ -81,13 +81,11 @@
     - Regularization: Regularization, such as L1 (LASSO) or L2 (Ridge), can be used to control model complexity to prevent overfitting and tackle high variance. They work by adding a penalty term to the magnitude of the coefficients.
         General form of regularized loss function:
 
-        $$
-        \operatorname{Loss}(w)=\operatorname{Loss}_{\text {original }}(w)+\lambda \cdot R(w)
-        $$
+        ![Regularized Loss Formula](https://latex.codecogs.com/svg.latex?\operatorname{Loss}(w)=\operatorname{Loss}_{\text{original}}(w)+\lambda\cdot{R}(w))
 
 
         - L0 is a technique in ML to encourage sparsity in a model's parameters. It penalizes the number of **non-zero parameters** in a model.
-            ![L0 Formula](https://latex.codecogs.com/svg.latex?R%28w%29%3D%5C%7Cw%5C%7C_2%5E2%3D%5Csum_%7Bi%3D1%7D%5En%20w_i%5E2)
+            ![L0 Formula](https://latex.codecogs.com/svg.latex?\|w\|_0=\sum_{i=1}^n\mathbb{I}(w_i\neq0))
 
             Use case: Feature Selection: L0 regularization is particularly useful in scenarios where the number of features is large, and only a small subset is expected to be relevant. It helps to automatically select a subset of features that contribute significantly to the model's performance.
 
@@ -105,7 +103,7 @@
 
         - L-infinity penalizes the **largest absolute weight** (maximum norm):
 
-            ![Linfinity Formula](https://latex.codecogs.com/svg.latex?R%28w%29%3D%5C%7Cw%5C%7C_2%5E2%3D%5Csum_%7Bi%3D1%7D%5En%20w_i%5E2)
+            ![L-infinity Formula](https://latex.codecogs.com/svg.latex?\|w\|_\infty=\max_{i}|w_i|)
 
             Constrains the maximum coefficient magnitude, balancing all weights' magnitudes uniformly
 
