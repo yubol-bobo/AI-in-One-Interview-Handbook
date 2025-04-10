@@ -62,7 +62,9 @@
         - Range [0.5, 1]
     - Confusion matrix: Confusion matrix clearly visualizes all predictions vs actual classes:
 
-    <img src="figs/confusion_matrix.png" width="60%">
+    <div align="center">
+        <img src="figs/confusion_matrix.png" width="50%">
+    </div>
 
 - Bias/Variance
     - Concept
