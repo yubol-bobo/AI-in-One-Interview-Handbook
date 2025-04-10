@@ -49,20 +49,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 - **Adagrad (lr)** uses adaptive learning rates for each parameter, automatically adjusting LR during training. Larger learning rates for infrequent parameters, smaller rates for frequent parameters.
     - Formula:  $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
 
-- **RMSprop (lr)**: Adagrad adapts the learning rate individually for each parameter, but its main drawback is the continual accumulation of squared gradients. Over time, this causes the learning rate to shrink excessively, sometimes stopping learning prematurely. RMSprop addresses this limitation by introducing an exponential decay factor. Instead of continuously accumulating all past squared gradients, it maintains a moving average of recent squared gradients.
-
-Adagrad (accumulates indefinitely):
-
-$$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
-
-
-- RMSprop (moving average):
-
-  $$E[g^2]_t = \beta E[g^2]_{t-1} + (1 - \beta)(\nabla_\theta J(\theta))^2$$
-
-  $$\theta = \theta - \frac{\alpha}{\sqrt{E[g^2]_t + \epsilon}} \nabla_\theta J(\theta)$$
-
-  - $\beta \approx 0.9$: Exponential decay rate controlling the moving average.
+- **RMSprop (lr)**: Adagrad adapts the learning rate individually for each parameter, but its main drawback is the continual accumulation of squared gradients. Over time, this causes the learning rate to shrink excessively, sometimes stopping learning prematurely. RMSprop addresses this limitation by introducing an exponential moving average of squared gradients instead of a cumulative sum. This prevents the learning rate from becoming excessively small over time, making RMSprop better at handling non-stationary problems and maintaining stable and efficient convergence.
 
 - Adam
 - AdamW
