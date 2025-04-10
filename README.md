@@ -102,9 +102,7 @@
         
         - L2 penalizes **square magnitude** of weights:
 
-        $$
-        R(w) = \|w\|_2^2 = \sum_{i=1}^n w_i^2
-        $$
+            ![L2 Formula](https://latex.codecogs.com/svg.latex?R%28w%29%3D%5C%7Cw%5C%7C_2%5E2%3D%5Csum_%7Bi%3D1%7D%5En%20w_i%5E2)
 
             Penalizes large weights heavily, encourges smaller, diffuse weigths. Handles correlated features better.
 
