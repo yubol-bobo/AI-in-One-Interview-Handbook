@@ -58,9 +58,11 @@ $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{
 
 RMSprop (moving average):
 
-$$ \begin{aligned} E[g^2]_t = \beta E[g^2]_{t-1} + (1-\beta)(\nabla_\theta J(\theta))^2 , \quad \theta = \theta - \frac{\alpha}{\sqrt{E[g^2]_t + \epsilon}} \nabla_\theta J(\theta)\end{aligned} $$
+$$E[g^2]_t = \beta E[g^2]_{t-1} + (1 - \beta)(\nabla_\theta J(\theta))^2$$
 
-- $\beta \approx 0.9$ : Exponential decay rate controlling the moving average.
+$$\theta = \theta - \frac{\alpha}{\sqrt{E[g^2]_t + \epsilon}} \nabla_\theta J(\theta)$$
+
+- $\beta \approx 0.9$: Exponential decay rate controlling the moving average.
 
 - Adam
 - AdamW
