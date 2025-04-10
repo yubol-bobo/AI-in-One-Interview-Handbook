@@ -50,8 +50,13 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Formula:  $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
 
 - **RMSprop (lr)**: Adagrad adapts the learning rate individually for each parameter, but its main drawback is the continual accumulation of squared gradients. Over time, this causes the learning rate to shrink excessively, sometimes stopping learning prematurely. RMSprop addresses this limitation by introducing an exponential moving average of squared gradients instead of a cumulative sum. This prevents the learning rate from becoming excessively small over time, making RMSprop better at handling non-stationary problems and maintaining stable and efficient convergence.
+    - Adagrad (accumulates indefinitely):$$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
 
-- Adam: Adam combines the advantages of (1)Momentum (first-order moment): Helps smooth updates, and (2) RMSprop (second-order moment): Provides adaptive per-parameter learning rates.
+    - RMSprop (moving average):$$\begin{gathered} E\left[g^2\right]_t=\beta E\left[g^2\right]_{t-1}+(1-\beta)\left(\nabla_\theta J(\theta)\right)^2 \\ \theta=\theta-\frac{\alpha}{\sqrt{E\left[g^2\right]_t+\epsilon}} \nabla_\theta J(\theta) \end{gathered} $$
+
+    - $\beta \approx 0.9$ : Exponential decay rate controlling the moving average.
+
+- **Adam**: Adam combines the advantages of (1)Momentum (first-order moment): Helps smooth updates, and (2) RMSprop (second-order moment): Provides adaptive per-parameter learning rates.
     Step 1: Calculate biased moments
     - First moment estimate (mean of gradients):
 
