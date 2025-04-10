@@ -108,10 +108,10 @@
             Penalizes large weights heavily, encourges smaller, diffuse weigths. Handles correlated features better.
 
         - L-infinity penalizes the **largest absolute weight** (maximum norm):
-        
-            $$
+
+            $
             R(w)=\|w\|_{\infty}=\max _i\left|w_i\right|
-            $$
+            $
 
             Constrains the maximum coefficient magnitude, balancing all weights' magnitudes uniformly
 
