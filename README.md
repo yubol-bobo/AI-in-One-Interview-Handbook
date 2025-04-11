@@ -394,6 +394,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 - Weight initialization
+
 Weight initialization is a critical aspect of neural network training that can significantly impact convergence speed and overall performance.
     - Random initialization strategies
     - Xavier/Glorot initialization
