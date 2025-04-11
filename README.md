@@ -8,11 +8,14 @@
         - [Algorithm Categories](#Algorithm-Categories)  
         - [Supervised Learning](#supervised-Learning)  
         - [Unsupervised Learning](#Unsupervised-Learning)  
+    - [XAI](#xai)
 
 - [Deep Learning](#Deep-Learning-Breadth)
     - [DL Basic](#dl-basic)
     - [DL Algorithms](#dl-algorithm)
-- [natural Language Processing](#nlp)
+
+- [Natural Language Processing](#nlp)
+
 - [Large Language Models](#Large-Language-Models)
 
 
@@ -311,6 +314,9 @@ All following advanced optimization algorithms improve parameter updates by adju
     - T-SNE   
     - UMAP    
 
+### XAI
+#### Feature importance
+#### SHAP
 
 
 
@@ -327,11 +333,13 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Cross entropy
     - Mean Squared Error
 - Feedforward NNs
+    - Architecture design basics and fully connected layers
+- Activation functions
 - Backpropagation
 - Dropout
     - How to apply dropout to LSTM
 - Vanishing/exploding gradient problem
-- Activation functions
+
 - Regularization/ Normalization
     - Batch normalization
     - Layer normalization
@@ -358,6 +366,8 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Variational autoencoders (VAE)
     - Reconstruction loss, KL-divergence
 #### VAE
+
+
 #### Transformer
 - Attention
     - details
