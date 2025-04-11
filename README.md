@@ -88,11 +88,6 @@ All following advanced optimization algorithms improve parameter updates by adju
 | AdamW | ✅ Yes | ✅ Yes | Medium | High | Improved regularization |
 | Muon | ✅ Yes | ✅ Yes | Low | High | Recent advancement |
 
-      
-#### Loss functions
-- Logistic loss function
-- Cross Entropy
-- Hinge loss (SVM)
 
 #### Model evaluation and selection
 - Evaluation
@@ -239,11 +234,22 @@ All following advanced optimization algorithms improve parameter updates by adju
 - Types by (labeled) data
     - **Supervised Learning** learn from labeled training data. Each training example consists of input features and the output label.
         - Classification: Predicts categorical outputs (e.g., spam detection, image recognition). Algorithms: Logistic regression, Decision tree, RF,KNN, SVM.
+            - Loss function: These losses measure how correctly and confidently a model classifies examples into categories.
+                - logistic loss
+                - cross entropy
+                - KL divergence
+                - hinge loss
         - Regression: Predicts continuous numerial outputs. (e.g., house price prediction, stock market forecasting). Algorithms: Linear regression, RF.
-    - **Unsupervised Learning** learn patterns from unlabeled data. They explore structures, clusters, or features without labels. (e.g., Customer segmentation, dimensionality reduction)
+            - Loss function:These losses measure how close predicted values are to true values numerically.
+                - MSE
+                - RMSE
+                - MAE
+                - Huber Loss
+                - Log-Cosh Loss
+    - **Unsupervised Learning** learn patterns from unlabeled data. They explore structures, clusters, or features without labels. (e.g., Customer segmentation, dimensionality reduction). Unsupervised learning can be a goal in itself (discovering hidden patterns in data) or a means towards an end (feature learning).
         - Clustering: K-means, DBSCAN, Hierarchical clustering.
         - Dimensionality  Reduction: PCA, t-SNE.
-    - **Semi-supervised Learning** combines small amounts of labeled data with large amounts of unlabeled data. Useful when labeling data is expensive or difficult. The model leverages labeled data to guide learning, while also making use of unlabeled data to generalize better and improve performance.
+    - **Semi-supervised Learning** falls between  unsupervised learning (without any labeled training data) and supervised learning (with completely labeled training data). It combines small amounts of labeled data with large amounts of unlabeled data. Useful when labeling data is expensive or difficult. The model leverages labeled data to guide learning, while also making use of unlabeled data to generalize better and improve performance.
     - **Reinforcement Learning** learn through trial-and-error, reward-based systems. Gaining feedback from interactive environment instead of given data.
     - **Self-supervised Learning** involves creating "pseudo-labels" from the unlabeled data itself. The model learns a meaningful representation of the data by predicting parts of the input or generating transformations of the input. (BERT)
 
@@ -506,7 +512,19 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 #### Fine-Tuning
-- Full fine-tuning vs Parameter-efficient fine-tuning
+- Types
+
+    - Full fine-tuning vs Parameter-efficient fine-tuning
+    - Parameter-efficient fine-tuning (PEFT) [[paper](https://arxiv.org/pdf/2110.04366)]
+        - Adapters
+        - Prefix Tuning
+        - LORA
+        - Q-LoRA
+        - BitFit
+    - Quantization
+
+    - Deepspeed Zero
+    - TRL
 - When and why to freeze layers
 - Layer-wise learning rates & layer freezing strategies
 - SFT Data Construction 
