@@ -357,7 +357,8 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Limitations
             - Vanishing Gradients: In regions where the input is very positive or very negative, the output saturates close to 1 or 0. This can lead to extremely small gradients, slowing or even halting the training process in deep networks.
             - Non Zero-Centered: The sigmoid function’s outputs being always positive can lead to inefficient gradient updates, as the activations are not centered around zero.
-    - Tanh: Produces outputs in the range (-1, 1) and tends to center the data better compared to the sigmoid.
+    - Tanh (The hyperbolic tangent): $\tanh (x)=\frac{e^x-e^{-x}}{e^x+e^{-x}}$.
+        - It produces outputs in the range (-1, 1) and tends to center the data better compared to the sigmoid.
     - ReLU family (Rectified Linear Unit) (ReLU, Leaky ReLU, PReLU, ELU, SELU): Outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
         - Dying issue: In some cases during training, a significant number of neurons can end up outputting zero for all inputs. This happens when the weights and biases of these neurons adjust in such a way that the input to ReLU is consistently negative. Once a neuron falls into this state, its gradient becomes zero for any input value (since the derivative of ReLU is zero for negative inputs). And Because it outputs zero consistently, the neuron effectively "dies," meaning it no longer contributes to the learning process.
         - Solution-Leaky ReLU:Instead of outputting zero for negative inputs, Leaky ReLU allows a small, non-zero gradient (e.g., $f(x)=\alpha x$ for $x<0$ with $\alpha$ being a small constant such as 0.01 ). This helps prevent neurons from dying.
@@ -367,6 +368,7 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Mish
     - Softmax
     - Properties and selection criteria
+
 
     <div align="center">
         <img src="figs/activations.png" width="85%">
