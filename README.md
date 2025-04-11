@@ -10,9 +10,14 @@
         - [Unsupervised Learning](#Unsupervised-Learning)  
     - [XAI](#xai)
 
-- [Deep Learning](#Deep-Learning-Breadth)
+- [Deep Learning](#Deep-Learning)
     - [DL Basic](#dl-basic)
-    - [DL Algorithms](#dl-algorithm)
+    - [DL Algorithms](#dl-algorithms)
+        - [CNN](#cnn)
+        - [RNN](#rnn)
+        - [LSTM & GRU](#lstm--gru)
+        - [Generative Models](#generative-models-gans--autoencoders)
+        - [Transformers](#transformer)
 
 - [Natural Language Processing](#nlp)
 
@@ -425,7 +430,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
   
 
-### DL Algorithm
+### DL Algorithms
 #### CNN
 #### RNN
 #### LSTM & GRU
