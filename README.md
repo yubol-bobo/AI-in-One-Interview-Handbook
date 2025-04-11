@@ -332,15 +332,24 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 ### DL Basic
 
-- Feedforward NNs
-    - Architecture design basics and fully connected layers
-    
+- Feedforward NNs [[Youtube](https://www.youtube.com/watch?v=AsyPA69QBks)]
+    - Feedforward Neural Networks are the simplest form of artificial neural networks where data flows only in one direction—from the input layer, through one or more hidden layers, to the output layer. They are typically used for tasks where the mapping from input to output is straightforward and static (e.g., classification or regression).
+    - Architecture: Input layer + hidden layers + output layer in only one direction - forward - with no cycles or loops.
+        - For each neuron,  output = activation(weights inputs + bias).
+        - For each layer, $\mathbf{y}=f(\mathbf{W} \mathbf{x}+\mathbf{b})$.
+        - If we use linear activations for hidden layers, the hidden layers do nothing!
+    - Depth vs width
+        - Deeper networks can learn more complex hierarchical representations. But face challenges like vanishing gradients and increased computational cost.
+        - Wider layers can capture more information per layer. May require more training data to avoid overfitting.
+
+
 - Activation functions
     - Sigmoid and its limitations
     - Tanh
     - ReLU family (ReLU, Leaky ReLU, PReLU, ELU, SELU)
     - GELU
     - Swish/SiLU
+    - SwiGLU (Swish with Gating)
     - Mish
     - Softmax
     - Properties and selection criteria
