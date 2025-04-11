@@ -49,6 +49,8 @@ All following advanced optimization algorithms improve parameter updates by adju
 - **Momentum (gc)** enhances standard gradient descent by adding a velocity term that accumulates past gradients. This velocity term smooths the updates, reducing oscillations and accelerating convergence, particularly in scenarios with noisy gradients or ill-conditioned optimization surfaces.
     - Pros: faster, jump out of local minimum, stable training.
 
+- Nesterov Accelerated Gradient (TBD)
+
 - **Adagrad (lr)** uses adaptive learning rates for each parameter, automatically adjusting LR during training. Larger learning rates for infrequent parameters, smaller rates for frequent parameters.
     - Formula:  $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
 
@@ -329,54 +331,133 @@ All following advanced optimization algorithms improve parameter updates by adju
 ## Deep Learning 
 
 ### DL Basic
-- Loss functions in DL
-    - Cross entropy
-    - Mean Squared Error
+
 - Feedforward NNs
     - Architecture design basics and fully connected layers
+    
 - Activation functions
-- Backpropagation
-- Dropout
-    - How to apply dropout to LSTM
-- Vanishing/exploding gradient problem
+    - Sigmoid and its limitations
+    - Tanh
+    - ReLU family (ReLU, Leaky ReLU, PReLU, ELU, SELU)
+    - GELU
+    - Swish/SiLU
+    - Mish
+    - Softmax
+    - Properties and selection criteria
 
-- Regularization/ Normalization
-    - Batch normalization
-    - Layer normalization
-    - Early stopping
-- Learning Rate
-    - step decay
-    - exponential decay
-    - consine annealing
+- Weight initialization
+    - Random initialization strategies
+    - Xavier/Glorot initialization
+    - He initialization
+    - Orthogonal initialization
+
+- Loss functions in DL
+    - Classification: Cross Entropy (both binary and categorical)
+    - Regression: Mean Squared Error (MSE), Mean Absolute Error (MAE)
+    - Other losses (e.g., Hinge Loss for SVM-style margins)
+
+
+
+- Backpropagation
+    - Chain rule and computational graphs
+    - Forward vs. backward pass
+    - Gradient flow
+    - Automatic differentiation and computational graphs
+    - Vanishing/exploding gradient problems
+        - Root causes
+        - Detection methods
+        - Solutions (proper initialization, skip connections, etc.)
+
+
+
+- Learning Rate Strategies
+    - Fixed and adaptive learning rates
+    - Scheduling strategies
+        - step decay
+        - exponential decay
+        - cosine annealing
+        - cyclical learning rates
+        - warm restarts
+
+- Gradient Clipping
+    - Techniques to manage exploding gradients
+
+- Regualization and Normalization
+    - Besides ML methods
+        - Label smoothing
+        - Dropout
+            - How to apply dropout to LSTM
+        - Normalization
+            - Batch normalization
+            - Layer normalization
+            - Group normalization
+            - Instance normalization
+            - Weight normalization
+            - Spectral normalization
+        - Early stopping
+        - Mixup and CutMix
+        - Weight constraints
+
+- Training Challenges
+    - Vanishing/Exploding Gradient Problem
+        - Causes and solutions (such as proper activation function choice, gradient clipping, and careful weight initialization)
+    - Activation Saturation
+    - Loss Surface Challenges
+        - Presence of saddle points and local minima in high-dimensional spaces
+
+
+
 
   
 
 ### DL Algorithm
 #### CNN
 #### RNN
-#### LSTM
+#### LSTM & GRU
 - Bi-LSTM
 - GRU vs LSTM
-#### GAN & Autoencoders
-- Generative adversarial networks details
-    - Generator vs discriminator
-    - Common issues (model collapse, vanishing gradients)
+
+
+#### Generative Models: GANs & Autoencoders
+- Generative Adversarial Networks (GAN)
+    - Fundamental Concepts
+        - Architecture: Generator vs. Discriminator
+        - Game theory perspective: adversarial training process
+    - Key Components & Dynamics
+        - Loss formulations for both generator and discriminator
+        - Training challenges (e.g., mode collapse, vanishing gradients)
+        - Strategies to stabilize training (e.g., feature matching, Wasserstein GAN)
+        
 - Autoencoders
-    - Basic
+    - Basic Autoencoders
+        - Encoder and decoder structure
+        - Applications: dimensionality reduction, noise reduction
     - Variational autoencoders (VAE)
-    - Reconstruction loss, KL-divergence
-#### VAE
+        - Theory: probabilistic generative modeling, latent variable models
+        - Loss components: Reconstruction loss and KL-divergence
+        - Extensions such as Beta-VAE for disentanglement
+
 
 
 #### Transformer
 - Attention
-    - details
-    - Self-attention
-    - Cross-attention
-- BERT
+    - Scaled Dot-Product Attention: Mathematics and intuition behind scaling
+    - Self-Attention: Mechanism to capture dependencies within the same sequence
+    - Cross-Attention: How encoder-decoder attention enables sequence-to-sequence tasks
+    - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features
+
+- BERT (Bidirectional Encoder Representations from Transformers)
+    - Architecture: transformer encoder stack, masked language modeling, and next sentence prediction.
+    - Applications in NLP tasks (e.g., question answering, sentiment analysis).
 - RoBERTa
-- GPT-2,GPT-3, GPT-4
-- T5, XLNet
+    - Improvements over BERT (training strategies, data size, no NSP)
+- GPT Series (Generative Pre-trained Transformer)
+    - GPT-2, GPT-3, GPT-4: Architecture and scaling, autoregressive language modeling
+    - Use cases: text generation, few-shot learning, API-based applications
+
+- Other Architectures
+     - T5 (Text-To-Text Transfer Transformer): Unified text-to-text paradigm (encoder-decoder architecture)
+     - XLNet: Permutation-based language modeling: advantages over BERT in capturing bidirectional context
 
 
 
