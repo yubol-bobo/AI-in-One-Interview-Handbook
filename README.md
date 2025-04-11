@@ -342,11 +342,17 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Deeper networks can learn more complex hierarchical representations. But face challenges like vanishing gradients and increased computational cost.
         - Wider layers can capture more information per layer. May require more training data to avoid overfitting.
 
+    - Why we need bias parameters? By incorporating a bias, each neuron can adjust its threshold independently of the input data. This means that even if the inputs are all zero or symmetrically distributed, the network can still make non-trivial predictions. The bias allows the network to represent a wider range of functions.
+
+
+
 
 - Activation functions
-    - Sigmoid and its limitations
-    - Tanh
-    - ReLU family (ReLU, Leaky ReLU, PReLU, ELU, SELU)
+    - Sigmoid and its limitations:  outputs to the range (0, 1) and is useful for probabilistic interpretations.
+    - Tanh: Produces outputs in the range (-1, 1) and tends to center the data better compared to the sigmoid.
+    - ReLU family (Rectified Linear Unit) (ReLU, Leaky ReLU, PReLU, ELU, SELU): Outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
+        - Dying issue: In some cases during training, a significant number of neurons can end up outputting zero for all inputs. This happens when the weights and biases of these neurons adjust in such a way that the input to ReLU is consistently negative. Once a neuron falls into this state, its gradient becomes zero for any input value (since the derivative of ReLU is zero for negative inputs). And Because it outputs zero consistently, the neuron effectively "dies," meaning it no longer contributes to the learning process.
+        - Solution -- Leaky ReLU
     - GELU
     - Swish/SiLU
     - SwiGLU (Swish with Gating)
