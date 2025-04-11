@@ -353,32 +353,32 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 - Activation functions [[ref](https://www.v7labs.com/blog/neural-networks-activation-functions)]
-    - Sigmoid and its limitations: $\sigma(x)=\frac{1}{1+e^{-x}}$, which outputs to the range (0, 1) and is useful for probabilistic interpretations.
+    - **Sigmoid** and its limitations: $\sigma(x)=\frac{1}{1+e^{-x}}$, which outputs to the range (0, 1) and is useful for probabilistic interpretations.
         - Limitations
             - Vanishing Gradients: In regions where the input is very positive or very negative, the output saturates close to 1 or 0. This can lead to extremely small gradients, slowing or even halting the training process in deep networks.
             - Non Zero-Centered: The sigmoid function’s outputs being always positive can lead to inefficient gradient updates, as the activations are not centered around zero.
-    - Tanh (The hyperbolic tangent): $\tanh (x)=\frac{e^x-e^{-x}}{e^x+e^{-x}}$.
+    - **Tanh (The hyperbolic tangent)**: $\tanh (x)=\frac{e^x-e^{-x}}{e^x+e^{-x}}$.
         - It produces outputs in the range (-1, 1) and tends to center the data better compared to the sigmoid.
-    - ReLU family (Rectified Linear Unit) (ReLU, Leaky ReLU, PReLU, ELU, SELU): $f(x)=\max (0, x)$ ReLU outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
+    - **ReLU family (Rectified Linear Unit) (ReLU, Leaky ReLU, PReLU, ELU, SELU)**: $f(x)=\max (0, x)$ ReLU outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
         - Dying issue: In some cases during training, a significant number of neurons can end up outputting zero for all inputs. This happens when the weights and biases of these neurons adjust in such a way that the input to ReLU is consistently negative. Once a neuron falls into this state, its gradient becomes zero for any input value (since the derivative of ReLU is zero for negative inputs). And Because it outputs zero consistently, the neuron effectively "dies," meaning it no longer contributes to the learning process.
         - Solution-Leaky ReLU: Instead of outputting zero for negative inputs, Leaky ReLU allows a small, non-zero gradient (e.g., $f(x)=\alpha x$ for $x<0$ with $\alpha$ being a small constant such as 0.01 ). This helps prevent neurons from dying.
         - Parametric ReLU (PReLU): Similar to Leaky ReLU, but the coefficient $\alpha$ is learned during training.
         - ELU (Exponential Linear Unit) and SELU (Scaled ELU): These functions introduce an exponential factor for negative inputs which can improve learning dynamics and sometimes contribute to self-normalizing properties in deeper networks.
 
-    - GELU: GELU uses the Gaussian cumulative distribution function to weight the inputs, often defined approximately as: $f(x)=0.5 x\left(1+\tanh \left[\sqrt{\frac{2}{\pi}}\left(x+0.044715 x^3\right)\right]\right)$.
+    - **GELU** uses the Gaussian cumulative distribution function to weight the inputs, often defined approximately as: $f(x)=0.5 x\left(1+\tanh \left[\sqrt{\frac{2}{\pi}}\left(x+0.044715 x^3\right)\right]\right)$.
         - GELU provides a smooth output which can help gradient flow.
         - It considers the probability that a neuron will be activated, which has shown benefits in several state-of-the-art architectures, especially in natural language processing.
-    - Swish/SiLU (2017): The Swish, also known as SiLU (Sigmoid-weighted Linear Unit), is defined as: $f(x)=x \cdot \sigma(x)$, where $\sigma(x)$ is the sigmoid function.
+    - **Swish/SiLU (2017)**: The Swish, also known as SiLU (Sigmoid-weighted Linear Unit), is defined as: $f(x)=x \cdot \sigma(x)$, where $\sigma(x)$ is the sigmoid function.
         - The function is differentiable everywhere and its non-monotonicity can sometimes lead to better performance in deep networks.
         - Swish has been shown to outperform ReLU on deeper models in certain cases, due to its ability to maintain non-zero gradients across a wider range of inputs.
 
-    - SwiGLU (Swish with Gating): SwiGLU combines the Swish activation with a gating mechanism, which allows the network to control the flow of information dynamically.
+    - **SwiGLU (Swish with Gating)**: SwiGLU combines the Swish activation with a gating mechanism, which allows the network to control the flow of information dynamically.
         - By incorporating gating, SwiGLU can further improve the representation power and stability of gradient propagation.
         - Often applied in transformer and language models, where dynamic control over activations can benefit deeper network architectures.
-    - Mish (2019): Mish is defined as: $f(x)=x \cdot \tanh (\text{softplus}(x))$, where $\text{softplus}(x)=\ln \left(1+e^x\right)$.
+    - **Mish (2019)**: Mish is defined as: $f(x)=x \cdot \tanh (\text{softplus}(x))$, where $\text{softplus}(x)=\ln \left(1+e^x\right)$.
         - Mish provides a smooth activation that has continuous derivatives, aiding optimization.
         - It has been reported to offer improvements in generalization and training stability compared to ReLU and some of its variants.
-    - Softmax: The softmax function converts a vector of raw scores (logits) into a probability distribution: $\text{Softmax}\left(z_i\right)=\frac{e^{z_i}}{\sum_j e^{z_j}}$
+    - **Softmax**: The softmax function converts a vector of raw scores (logits) into a probability distribution: $\text{Softmax}\left(z_i\right)=\frac{e^{z_i}}{\sum_j e^{z_j}}$
     - Properties and selection criteria
 
 
