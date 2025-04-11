@@ -375,10 +375,10 @@ All following advanced optimization algorithms improve parameter updates by adju
     - SwiGLU (Swish with Gating): SwiGLU combines the Swish activation with a gating mechanism, which allows the network to control the flow of information dynamically.
         - By incorporating gating, SwiGLU can further improve the representation power and stability of gradient propagation.
         - Often applied in transformer and language models, where dynamic control over activations can benefit deeper network architectures.
-    - Mish (2019): Mish is defined as: $f(x)=x \cdot \tanh (\operatorname{softplus}(x))$, where $\operatorname{softplus}(x)=\ln \left(1+e^x\right)$.
+    - Mish (2019): Mish is defined as: $f(x)=x \cdot \tanh (\text{softplus}(x))$, where $\text{softplus}(x)=\ln \left(1+e^x\right)$.
         - Mish provides a smooth activation that has continuous derivatives, aiding optimization.
         - It has been reported to offer improvements in generalization and training stability compared to ReLU and some of its variants.
-    - Softmax: The softmax function converts a vector of raw scores (logits) into a probability distribution: $\operatorname{Softmax}\left(z_i\right)=\frac{e^{z_i}}{\sum_j e^{z_j}}$
+    - Softmax: The softmax function converts a vector of raw scores (logits) into a probability distribution: $\text{Softmax}\left(z_i\right)=\frac{e^{z_i}}{\sum_j e^{z_j}}$
     - Properties and selection criteria
 
 
