@@ -379,7 +379,13 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Mish provides a smooth activation that has continuous derivatives, aiding optimization.
         - It has been reported to offer improvements in generalization and training stability compared to ReLU and some of its variants.
     - **Softmax**: The softmax function converts a vector of raw scores (logits) into a probability distribution: $\text{Softmax}\left(z_i\right)=\frac{e^{z_i}}{\sum_j e^{z_j}}$
+        - Each output value represents a probability (all outputs sum to 1), making it ideal for multi-class classification tasks.
+        - Typically used in the output layer of classification networks where interpretability of class probabilities is important.
+
     - Properties and selection criteria
+        - Computational Efficiency: Functions like ReLU are extremely efficient compared to those that require computing exponentials, such as sigmoid or tanh.
+        - Gradient Propagation: Avoid functions prone to vanishing or exploding gradients. For example, while sigmoid and tanh can suffer from gradient saturation, variants like ReLU, Leaky ReLU, and GELU help preserve gradient flow.
+        - Output Range and Interpretability: Functions like sigmoid and softmax are helpful when outputs need a probabilistic interpretation, while others are more suited for hidden layers.
 
 
     <div align="center">
