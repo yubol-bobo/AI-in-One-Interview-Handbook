@@ -364,12 +364,21 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Solution-Leaky ReLU: Instead of outputting zero for negative inputs, Leaky ReLU allows a small, non-zero gradient (e.g., $f(x)=\alpha x$ for $x<0$ with $\alpha$ being a small constant such as 0.01 ). This helps prevent neurons from dying.
         - Parametric ReLU (PReLU): Similar to Leaky ReLU, but the coefficient $\alpha$ is learned during training.
         - ELU (Exponential Linear Unit) and SELU (Scaled ELU): These functions introduce an exponential factor for negative inputs which can improve learning dynamics and sometimes contribute to self-normalizing properties in deeper networks.
-        
-    - GELU
-    - Swish/SiLU
-    - SwiGLU (Swish with Gating)
-    - Mish
-    - Softmax
+
+    - GELU: GELU uses the Gaussian cumulative distribution function to weight the inputs, often defined approximately as: $f(x)=0.5 x\left(1+\tanh \left[\sqrt{\frac{2}{\pi}}\left(x+0.044715 x^3\right)\right]\right)$.
+        - GELU provides a smooth output which can help gradient flow.
+        - It considers the probability that a neuron will be activated, which has shown benefits in several state-of-the-art architectures, especially in natural language processing.
+    - Swish/SiLU (2017): The Swish, also known as SiLU (Sigmoid-weighted Linear Unit), is defined as: $f(x)=x \cdot \sigma(x)$, where $\sigma(x)$ is the sigmoid function.
+        - The function is differentiable everywhere and its non-monotonicity can sometimes lead to better performance in deep networks.
+        - Swish has been shown to outperform ReLU on deeper models in certain cases, due to its ability to maintain non-zero gradients across a wider range of inputs.
+
+    - SwiGLU (Swish with Gating): SwiGLU combines the Swish activation with a gating mechanism, which allows the network to control the flow of information dynamically.
+        - By incorporating gating, SwiGLU can further improve the representation power and stability of gradient propagation.
+        - Often applied in transformer and language models, where dynamic control over activations can benefit deeper network architectures.
+    - Mish (2019): Mish is defined as: $f(x)=x \cdot \tanh (\operatorname{softplus}(x))$, where $\operatorname{softplus}(x)=\ln \left(1+e^x\right)$.
+        - Mish provides a smooth activation that has continuous derivatives, aiding optimization.
+        - It has been reported to offer improvements in generalization and training stability compared to ReLU and some of its variants.
+    - Softmax: The softmax function converts a vector of raw scores (logits) into a probability distribution: $\operatorname{Softmax}\left(z_i\right)=\frac{e^{z_i}}{\sum_j e^{z_j}}$
     - Properties and selection criteria
 
 
@@ -573,6 +582,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 - Encoder-Decoder (e.g., original Transformer, T5, BART)
 - Encoder-only (e.g., BERT, RoBERTa)
 - Decoder-only (e.g., GPT series)
+- LLaMa [[Youtube](https://www.youtube.com/watch?v=Mn_9W1nCFLo)]
 - Comparison & use-cases for each architecture type
 
 
