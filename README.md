@@ -584,7 +584,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 - GRU vs LSTM
 
 
-#### Generative Models: GANs & Autoencoders
+#### (Generative Models: GANs & Autoencoders)
 - Generative Adversarial Networks (GAN)
     - Fundamental Concepts
         - Architecture: Generator vs. Discriminator
