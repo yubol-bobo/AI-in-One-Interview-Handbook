@@ -432,7 +432,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
     - **He initialization**, proposed by Kaiming He et al., is tailored for networks that use **ReLU** or its variants. ReLU activations are not symmetric and have a different behavior, particularly because they zero out negative inputs.
-        - Weights are drawn from a normal distribution: $W \sim \mathcal{N}\left(0, \frac{2}{\text{fan\_in}}\right)$.
+        - Weights are drawn from a normal distribution: $W \sim \mathcal{N}\left(0, \frac{2}{\text { fan } \_ \text {in }}\right)$.
         - Purpose: Compensates for the halving of the signal due to the ReLU activation (or its variants), maintaining signal variance by effectively “doubling” the variance contribution during initialization.
 
     - **LeCun initialization** is a weight initialization strategy designed to help maintain a consistent variance of activations as data flows through a network. 
