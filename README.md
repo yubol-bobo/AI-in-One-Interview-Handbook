@@ -530,16 +530,19 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 - Learning Rate Strategies
-    - Fixed and adaptive learning rates: A fixed learning rate remains constant during the entire training process.
+    - Fixed learning rates: A fixed learning rate remains constant during the entire training process.
+    - Power/exponential scheduling
+    - Piecewise constant scheduling
     - Adaptive learning rates
         - Adaptive methods automatically adjust the learning rate during training, often on a per-parameter basis.
         - AdaGrad, RMSprop, Adam.
     - Scheduling strategies
         - step decay
         - exponential decay
+        - power scheduling
         - cosine annealing
         - cyclical learning rates
-        - warm restarts
+
 
 
 - Regualization and Normalization [[YouTube-Regualization](https://www.youtube.com/watch?v=EehRcPo1M-Q)]
@@ -564,12 +567,6 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Mixup and CutMix
         - Weight constraints
 
-- Training Challenges
-    - Vanishing/Exploding Gradient Problem
-        - Causes and solutions (such as proper activation function choice, gradient clipping, and careful weight initialization)
-    - Activation Saturation: In deep learning, saturation refers to regions in an activation function where its output changes very little despite large changes in its input.
-    - Loss Surface Challenges
-        - Presence of saddle points and local minima in high-dimensional spaces
 
 
 
