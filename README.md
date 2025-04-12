@@ -572,7 +572,9 @@ All following advanced optimization algorithms improve parameter updates by adju
         - **Group normalization** normalizes over group of channels for each training examples. We can say that, Group Norm is in between Instance Norm and Layer Norm. When we put all the channels into a single group, group normalization becomes Layer normalization. And, when we put each channel into different groups it becomes Instance normalization.
         - (**Spectral normalization**: for GAN)
 
-
+        <div align="center">
+            <img src="figs/normalizations.png" width="90%">
+        </div>
 
   
 
