@@ -550,24 +550,22 @@ All following advanced optimization algorithms improve parameter updates by adju
     Lower the weights: an extremely high weight on a specific neuron or data point can exaggerate its importance, leading to overfitting.
 
     - Solutions: L1/L2 regularization (Alpha: how much attention to pay to this penalty), dropout, early stopping; Data augmentation(adding more info)
-    -  
 
-    - Besides ML methods
-        - Label smoothing
+    - Beyond traditional methods
+        - Label smoothing: Modifies the hard target labels(0,1) to soften the output probabilities $(\varepsilon / 1-\varepsilon)$. Encourages the model to be less confident, reduces overfitting, and helps smooth the decision boundaries. (effective in image classification)
         - Dropout
             - How to apply dropout to LSTM
-        - Normalization
-            - Batch normalization [[YouTube](https://www.youtube.com/watch?v=yXOMHOpbon8)]
-            - Layer normalization [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)]
-            - Group normalization
-            - Instance normalization
-            - Weight normalization
-            - Spectral normalization
         - Early stopping
-        - Mixup and CutMix
-        - Weight constraints
+        - Mixup and CutMix: Data augmentation techniques that form new training samples by combining pairs of images (and their labels) either through interpolation (Mixup) or by cutting and pasting regions (CutMix).
+        - Weight constraints: Imposes restrictions (e.g., max-norm constraints) on the weights, ensuring they do not become too large during training.
 
-
+    - Normalization
+        - Batch normalization [[YouTube](https://www.youtube.com/watch?v=yXOMHOpbon8)]
+        - Layer normalization [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)]
+        - Group normalization
+        - Instance normalization
+        - Weight normalization
+        - Spectral normalization
 
 
 
@@ -602,14 +600,14 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 
-#### Transformer [[YouTube](https://www.youtube.com/watch?v=GGLr-TtKguA)] [[ANLP](https://www.youtube.com/watch?v=vlAIa1eZVR4&list=PL8PYTP1V4I8D4BeyjwWczukWq9d8PNyZp&index=4)]
+#### Transformer [[YouTube](https://www.youtube.com/watch?v=GGLr-TtKguA)] [[ANLP](https://www.youtube.com/watch?v=vlAIa1eZVR4&list=PL8PYTP1V4I8D4BeyjwWczukWq9d8PNyZp&index=4)] [[李沐](https://www.youtube.com/watch?v=nzqlFIcCSWQ)]
 - Attention
     - Scaled Dot-Product Attention: Mathematics and intuition behind scaling
     - Self-Attention: Mechanism to capture dependencies within the same sequence
     - Cross-Attention: How encoder-decoder attention enables sequence-to-sequence tasks
     - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features
 
-- BERT (Bidirectional Encoder Representations from Transformers) [[李沐](https://www.youtube.com/watch?v=ULD3uIb2MHQ)]
+- BERT (Bidirectional Encoder Representations from Transformers) [[李沐](https://www.youtube.com/watch?v=ULD3uIb2MHQ)] [[arXiv](https://arxiv.org/abs/1810.04805)]
     - Architecture: transformer encoder stack, masked language modeling, and next sentence prediction.
     - Applications in NLP tasks (e.g., question answering, sentiment analysis).
     - Fine-tuning BERT implementation [[YouTube](https://www.youtube.com/watch?v=4QHg8Ix8WWQ&t=19s)]
