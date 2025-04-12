@@ -34,7 +34,7 @@
 ### ML Basic
 #### Gradient descent
 - (Batch) Gradient descent [[ref](https://machinelearningmastery.com/gradient-descent-for-machine-learning/)] [[B站](https://www.bilibili.com/video/BV1jh4y1q7ua/?spm_id_from=333.337.search-card.all.click&vd_source=c86f14ec33e79f08f7e2278747a071e8)]
-    - The gradient $\left(\nabla_\theta J(\theta)\right)$ represents the direction of steepest ascent-the direction where the function increases the fastest. To minimize the function, you want to move in the opposite direction, i.e., the direction of steepest descent.
+    - The gradient $\left(\nabla_\theta J(\theta)\right)$ represents the direction of steepest ascent-the direction where the function increases the fastest. Gradient gives the direction of steepest ascend. So to minimize the function, take steps in the opposite direction.
     - Gradient descent is an optimization algorithm used to find the values of parameters (coefficients) of a function (f) that minimizes a cost function (cost).
     - formula: $$\theta = \theta - \alpha \nabla_\theta J(\theta)$$, where $\theta:$ Parameters to be optimized. $\alpha$ : Learning rate (step size). $\nabla_\theta J(\theta)$ : Gradient of the cost function w.r.t. parameters.
 
@@ -450,22 +450,82 @@ All following advanced optimization algorithms improve parameter updates by adju
     </div>
 
 
-- Loss functions in DL
-    - Classification: Cross Entropy (both binary and categorical)
-    - Regression: Mean Squared Error (MSE), Mean Absolute Error (MAE)
-    - Other losses (e.g., Hinge Loss for SVM-style margins)
 
-
-
-- Backpropagation
-    - Chain rule and computational graphs
+- Backpropagation [[YouTube](https://www.youtube.com/watch?v=SmZmBKc7Lrs)]
+    - The chain rule in calculus is a method for computing the derivative of a composite function. If you have a function defined as a composition of several functions, for example:$z=f(g(h(x)))$, then the derivative with respect to $x$ is computed as: $\frac{d z}{d x}=\frac{d z}{d f} \cdot \frac{d f}{d g} \cdot \frac{d g}{d h} \cdot \frac{d h}{d x}$. This principle is essential in backpropagation because deep neural networks are, by nature, compositions of many nested functions.
     - Forward vs. backward pass
-    - Gradient flow
-    - Automatic differentiation and computational graphs
+        - Forward pass: The forward pass is the process of feeding input data through the network and computing the output. Here, each node (or layer) processes the input it receives and passes on its output to subsequent nodes according to the network’s architecture. During this pass, the computational graph is effectively created, and intermediate values (activations) are stored because they will be needed during backpropagation.
+        ```python
+        def forward_pass(X, W1, b1, W2, b2):
+            # Hidden layer
+            Z1 = np.dot(W1, X) + b1  # Pre-activation
+            A1 = np.maximum(0, Z1)   # ReLU activation
+            
+            # Output layer
+            Z2 = np.dot(W2, A1) + b2
+            A2 = 1 / (1 + np.exp(-Z2))  # Sigmoid activation
+            
+            # Store intermediate values for backprop
+            cache = {"Z1": Z1, "A1": A1, "Z2": Z2, "A2": A2}
+            
+            return A2, cache
+
+        def compute_loss(A2, Y):
+            m = Y.shape[1]
+            loss = -1/m * np.sum(Y * np.log(A2) + (1 - Y) * np.log(1 - A2))
+            return loss
+        ```
+
+        - Backward Pass: The backward pass begins once the loss is computed by comparing the network’s output to the ground truth. This phase involves: Computing Gradients: Using the chain rule, the algorithm calculates how the loss function changes with respect to each parameter in the network. Traversing in Reverse: The computation moves backward through the network (or computational graph), propagating derivatives from the output layer back to the input layer. Weight Updates: The gradients are then used to update the network’s weights (often via gradient descent or one of its variants) to minimize the loss.
+
+        ```python
+        def backward_pass(X, Y, cache, W1, W2):
+            m = X.shape[1]
+            A1 = cache["A1"]
+            A2 = cache["A2"]
+            Z1 = cache["Z1"]
+            
+            # Output layer gradients
+            dZ2 = A2 - Y
+            dW2 = 1/m * np.dot(dZ2, A1.T)
+            db2 = 1/m * np.sum(dZ2, axis=1, keepdims=True)
+            
+            # Hidden layer gradients
+            dA1 = np.dot(W2.T, dZ2)
+            dZ1 = dA1 * (Z1 > 0)  # ReLU derivative
+            dW1 = 1/m * np.dot(dZ1, X.T)
+            db1 = 1/m * np.sum(dZ1, axis=1, keepdims=True)
+            
+            return {"dW1": dW1, "db1": db1, "dW2": dW2, "db2": db2}
+
+        def update_parameters(W1, b1, W2, b2, grads, learning_rate):
+            W1 = W1 - learning_rate * grads["dW1"]
+            b1 = b1 - learning_rate * grads["db1"]
+            W2 = W2 - learning_rate * grads["dW2"]
+            b2 = b2 - learning_rate * grads["db2"]
+            
+            return W1, b1, W2, b2
+        ```
+        - This two-phase process (forward and backward) ensures that each weight update is informed by the contribution of every parameter to the overall error.
+    - Gradient flow refers to how error gradients propagate backward through the network during training. Effective gradient flow is essential because:
+        - It ensures that all layers—regardless of depth—receive meaningful updates.
+        - It affects how quickly and effectively the network converges to a minimum of the loss function.
+    - Automatic differentiation [[YouTube-DL System](https://www.youtube.com/watch?v=56WUlMEeAuA)]: Automatic differentiation is a set of techniques to compute derivatives automatically and efficiently. Deep learning frameworks (e.g., TensorFlow, PyTorch) rely on autodiff to handle the complexities of differentiating networks with millions of parameters without manual intervention.
     - Vanishing/exploding gradient problems
         - Root causes
+            - Deep Architectures:In networks with many layers, the product of a large number of derivative terms (each typically less than or greater than one) can lead to vanishing or exploding gradients.
+            - Activation Functions: Functions such as sigmoid or tanh saturate (i.e., their gradients approach zero) for extreme values, contributing to vanishing gradients.
+            - Improper Weight Initialization: Weights that are too small or too large can respectively dampen or amplify gradients during backpropagation.
         - Detection methods
-        - Solutions (proper initialization, skip connections, etc.)
+            - Monitoring Gradient Norms: By tracking the norm (or magnitude) of the gradients during training, you can detect when they are trending toward zero or growing uncontrollably.
+            - Layer-wise Analysis: Evaluating the gradient distribution across layers can help diagnose whether early layers receive significantly diminished signals compared to later layers.
+            - Activation distribution visualization: Histograms of activations approaching zero indicate vanishing; Histograms with extreme values indicate explosion.
+            - Training curve inspection: Loss plateaus early → potential vanishing gradients; Loss becomes NaN/Inf → exploding gradients.
+        - Solutions
+            - Proper Weight Initialization.
+            - Normalization Techniques
+            - Residual Connections: Introduce shortcuts that allow gradients to flow more directly through the network. This helps mitigate the vanishing gradient problem, particularly in very deep networks.
+            - Gradient Clipping: Helps control exploding gradients by capping the gradients’ magnitude during backpropagation.
 
 
 
@@ -685,7 +745,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 ### LLM Engineering
 
-#### Distributed training
+#### Distributed training [[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)]
 - Data parallel
 - Pipeline parallel
 - Tensor parallel
