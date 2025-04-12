@@ -244,7 +244,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 - Types by (labeled) data
     - **Supervised Learning** learn from labeled training data. Each training example consists of input features and the output label.
         - Classification: Predicts categorical outputs (e.g., spam detection, image recognition). Algorithms: Logistic regression, Decision tree, RF,KNN, SVM.
-            - Loss function: These losses measure how correctly and confidently a model classifies examples into categories.
+            - Loss function [[YouTube](https://www.youtube.com/watch?v=v_ueBW_5dLg)]: These losses measure how correctly and confidently a model classifies examples into categories.
                 - logistic loss/ binary cross entropy: Used for binary classification problems. For a predicted probability $p$ and ground truth label $y \in\{0,1\}$ : $\mathrm{BCE}=-[y \log (p)+(1-y) \log (1-p)]$.
                     - Outputs probabilities between 0 and 1.
                     - Penalizes confident but wrong predictions heavily.
@@ -255,7 +255,7 @@ All following advanced optimization algorithms improve parameter updates by adju
                     - Encourages the model to assign high probability to the correct class.
 
                 - KL divergence
-                
+
                 - hinge loss: Commonly used for Support Vector Machines (SVMs) and for certain deep learning tasks that involve margin-based classification. For a prediction score $s$ and a true label $y \in\{-1,1\}$ : $\text { Hinge Loss }=\max (0,1-y \cdot s)$.
                     - Focuses on the margin between classes.
                     - Can also be adapted for multi-class classification with variations like multi-class hinge loss.
@@ -544,16 +544,17 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 
-#### Transformer
+#### Transformer [[YouTube](https://www.youtube.com/watch?v=GGLr-TtKguA)] [[ANLP](https://www.youtube.com/watch?v=vlAIa1eZVR4&list=PL8PYTP1V4I8D4BeyjwWczukWq9d8PNyZp&index=4)]
 - Attention
     - Scaled Dot-Product Attention: Mathematics and intuition behind scaling
     - Self-Attention: Mechanism to capture dependencies within the same sequence
     - Cross-Attention: How encoder-decoder attention enables sequence-to-sequence tasks
     - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features
 
-- BERT (Bidirectional Encoder Representations from Transformers)
+- BERT (Bidirectional Encoder Representations from Transformers) [[李沐](https://www.youtube.com/watch?v=ULD3uIb2MHQ)]
     - Architecture: transformer encoder stack, masked language modeling, and next sentence prediction.
     - Applications in NLP tasks (e.g., question answering, sentiment analysis).
+    - Fine-tuning BERT implementation [[YouTube](https://www.youtube.com/watch?v=4QHg8Ix8WWQ&t=19s)]
 - RoBERTa
     - Improvements over BERT (training strategies, data size, no NSP)
 - GPT Series (Generative Pre-trained Transformer)
@@ -715,7 +716,7 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Parameter-efficient fine-tuning (PEFT) [[paper](https://arxiv.org/pdf/2110.04366)]
         - Adapters
         - Prefix Tuning
-        - LORA
+        - LORA [[YouTube](https://www.youtube.com/watch?v=eC6Hd1hFvos&t=959s)]
         - Q-LoRA
         - BitFit
     - Quantization
