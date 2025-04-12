@@ -240,9 +240,9 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 ### ML Algorithms
-#### Algorithm Categories
+#### Algorithm Categories [[Super Quick Overview](https://www.youtube.com/watch?v=E0Hmnixke2g)]
 - Types by (labeled) data
-    - **Supervised Learning** learn from labeled training data. Each training example consists of input features and the output label.
+    - **Supervised Learning** is a type of machine learning where the algorithm is trained on a labeled dataset. Labeled data consists of input-output pairs, meaning the algorithm learns to map input data to corresponding output labels. The goal is for the algorithm to generalize from the training data and make accurate predictions on new, unseen data.
         - Classification: Predicts categorical outputs (e.g., spam detection, image recognition). Algorithms: Logistic regression, Decision tree, RF,KNN, SVM.
             - Loss function [[YouTube](https://www.youtube.com/watch?v=v_ueBW_5dLg)]: These losses measure how correctly and confidently a model classifies examples into categories.
                 - logistic loss/ binary cross entropy: Used for binary classification problems. For a predicted probability $p$ and ground truth label $y \in\{0,1\}$ : $\mathrm{BCE}=-[y \log (p)+(1-y) \log (1-p)]$.
@@ -267,9 +267,23 @@ All following advanced optimization algorithms improve parameter updates by adju
                 - MAE
                 - Huber Loss
                 - Log-Cosh Loss
-    - **Unsupervised Learning** learn patterns from unlabeled data. They explore structures, clusters, or features without labels. (e.g., Customer segmentation, dimensionality reduction). Unsupervised learning can be a goal in itself (discovering hidden patterns in data) or a means towards an end (feature learning).
-        - Clustering: K-means, DBSCAN, Hierarchical clustering.
-        - Dimensionality  Reduction: PCA, t-SNE.
+
+    - **Unsupervised Learning** is a type of machine learning that learns from data without human supervision. Unlike supervised learning, unsupervised machine learning models are given unlabeled data and allowed to discover patterns and insights without any explicit guidance or instruction. (e.g., Customer segmentation, dimensionality reduction)
+        - **Clustering** is a technique for exploring raw, unlabeled data and breaking it down into groups (or clusters) based on similarities or differences. It is used in a variety of applications, including customer segmentation, fraud detection, and image analysis. Clustering algorithms split data into natural groups by finding similar structures or patterns in uncategorized data. 
+            - K-means
+            - DBSCAN
+            - Hierarchical clustering.
+        - Association rule mining is a rule-based approach to reveal interesting relationships between data points in large datasets. Unsupervised learning algorithms search for frequent if-then associations—also called rules—to discover correlations and co-occurrences within the data and the different connections between data objects. 
+        
+        It is most commonly used to analyze retail baskets or transactional datasets to represent how often certain items are purchased together. These algorithms uncover customer purchasing patterns and previously hidden relationships between products that help inform recommendation engines or other cross-selling opportunities. You might be most familiar with these rules from the “Frequently bought together” and “People who bought this item also bought” sections on your favorite online retail shop. 
+
+        Association rules are also often used to organize medical datasets for clinical diagnoses. Using unsupervised machine learning and association rules can help doctors identify the probability of a specific diagnosis by comparing relationships between symptoms from past patient cases. 
+
+        Typically, Apriori algorithms are the most widely used for association rule learning to identify related collections of items or sets of items. However, other types are used, such as Eclat and FP-growth algorithms.
+
+        - Dimensionality  Reduction is an unsupervised learning technique that reduces the number of features, or dimensions, in a dataset. 
+            - PCA
+            - t-SNE
     - **Semi-supervised Learning** falls between  unsupervised learning (without any labeled training data) and supervised learning (with completely labeled training data). It combines small amounts of labeled data with large amounts of unlabeled data. Useful when labeling data is expensive or difficult. The model leverages labeled data to guide learning, while also making use of unlabeled data to generalize better and improve performance.
     - **Reinforcement Learning** learn through trial-and-error, reward-based systems. Gaining feedback from interactive environment instead of given data.
     - **Self-supervised Learning** involves creating "pseudo-labels" from the unlabeled data itself. The model learns a meaningful representation of the data by predicting parts of the input or generating transformations of the input. (BERT)
@@ -748,13 +762,20 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 ### LLM Engineering
 
-#### Distributed training [[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)]
-- Data parallel
-- Pipeline parallel
-- Tensor parallel
-- Sequence(Activation) parallel
-- ZeRO (Zero Redundancy Optimizer) parallel
-- Expert (MoE) parallel
+#### Distributed training [[Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)][[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)] [[ANLP-Parallelism and Scaling](https://www.youtube.com/watch?v=Mpg1YJfAEH0)]
+- Data parallel [[Distributed Data Parallel (DDP) using Pytorch] (https://www.youtube.com/watch?v=-K3bZYHYHEA&list=PL_lsbAsL_o2CSuhUhJIiW0IkdT5C2wGWj&index=1)]
+    - Replicate model on several GPUs. Run forward/backward passes on different micro-batches in parallel for each GPU. Average the gradients across the GPUs.
+    - ZeRO (Zero Redundancy Optimizer)
+- Model parallel
+    - Tensor parallel
+        - Sequence(Activation) parallel
+    - Pipeline parallel: split layers across multi-GPUs when model is too large.
+        - bubble issue: deepseek design - one forward one-backward
+    - Expert (MoE) parallel
+
+- Memory optimization
+
+
 - Hybrid parallel
 - Choosing the right parallelism strategy (memory, efficiency, complexity trade-offs)
 
@@ -799,7 +820,13 @@ All following advanced optimization algorithms improve parameter updates by adju
 #### Optimization and Efficiency
 - Mixed precision training (FP16, BF16)
 - Gradient accumulation
-- Memory optimization technique (activation checkpointing, grading checkpointing)
+- Memory optimization technique (activation checkpointing, )
+    - Activation checkpointing/ Activation recomputation: Recompute some activations during the backward pass. Store some activations during the forward pass as checkpoints. Discard other activations and recompute them during the backward pass.
+        - Save memory but take longer to compute.
+    - Gradient accumulation: Split batch into micro-batches, do forward/backward passes on each micro-batch, average the gradients: $b s=g b s=m b s \cdot g r a d \_a c c$.
+        - could be combined with multi-GPU techniques.
+        - Overlap + bucketing
+
 
 
 #### Evaluation and Monitoring
