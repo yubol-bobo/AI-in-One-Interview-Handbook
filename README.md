@@ -525,12 +525,15 @@ All following advanced optimization algorithms improve parameter updates by adju
             - Proper Weight Initialization.
             - Normalization Techniques
             - Residual Connections: Introduce shortcuts that allow gradients to flow more directly through the network. This helps mitigate the vanishing gradient problem, particularly in very deep networks.
-            - Gradient Clipping: Helps control exploding gradients by capping the gradients’ magnitude during backpropagation.
+            - Gradient Clipping[[YouTube](https://www.youtube.com/watch?v=KrQp1TxTCUY)]: Helps control exploding gradients by capping the gradients’ magnitude during backpropagation.
 
 
 
 - Learning Rate Strategies
-    - Fixed and adaptive learning rates
+    - Fixed and adaptive learning rates: A fixed learning rate remains constant during the entire training process.
+    - Adaptive learning rates
+        - Adaptive methods automatically adjust the learning rate during training, often on a per-parameter basis.
+        - AdaGrad, RMSprop, Adam.
     - Scheduling strategies
         - step decay
         - exponential decay
@@ -538,8 +541,6 @@ All following advanced optimization algorithms improve parameter updates by adju
         - cyclical learning rates
         - warm restarts
 
-- Gradient Clipping [[YouTube](https://www.youtube.com/watch?v=KrQp1TxTCUY)]
-    - Techniques to manage exploding gradients
 
 - Regualization and Normalization [[YouTube-Regualization](https://www.youtube.com/watch?v=EehRcPo1M-Q)]
 
