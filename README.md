@@ -451,7 +451,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 
-- Backpropagation [[YouTube](https://www.youtube.com/watch?v=SmZmBKc7Lrs)]
+- Backpropagation [[YouTube](https://www.youtube.com/watch?v=SmZmBKc7Lrs)] [[YouTube](https://www.youtube.com/watch?v=1GnfvhBUs_E&list=PLgPbN3w-ia_PeT1_c5jiLW3RJdR7853b9&index=8)]
     - The chain rule in calculus is a method for computing the derivative of a composite function. If you have a function defined as a composition of several functions, for example:$z=f(g(h(x)))$, then the derivative with respect to $x$ is computed as: $\frac{d z}{d x}=\frac{d z}{d f} \cdot \frac{d f}{d g} \cdot \frac{d g}{d h} \cdot \frac{d h}{d x}$. This principle is essential in backpropagation because deep neural networks are, by nature, compositions of many nested functions.
     - Forward vs. backward pass
         - Forward pass: The forward pass is the process of feeding input data through the network and computing the output. Here, each node (or layer) processes the input it receives and passes on its output to subsequent nodes according to the network’s architecture. During this pass, the computational graph is effectively created, and intermediate values (activations) are stored because they will be needed during backpropagation.
@@ -560,9 +560,9 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Weight constraints: Imposes restrictions (e.g., max-norm constraints) on the weights, ensuring they do not become too large during training.
 
     - Normalization
-        - Batch normalization [[YouTube](https://www.youtube.com/watch?v=yXOMHOpbon8)]
-        - Layer normalization [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)]
-        - Group normalization
+        - Batch normalization [[YouTube](https://www.youtube.com/watch?v=yXOMHOpbon8)]: Normalizes layer inputs across the mini-batch. (CNN)
+        - Layer normalization [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)]: Normalizes across the features in a single data sample rather than across the batch. (RNN)
+        - Group normalization: Normalizes across groups of channels.
         - Instance normalization
         - Weight normalization
         - Spectral normalization
