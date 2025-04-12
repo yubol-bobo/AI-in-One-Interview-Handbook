@@ -432,12 +432,12 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
     - **He initialization**, proposed by Kaiming He et al., is tailored for networks that use **ReLU** or its variants. ReLU activations are not symmetric and have a different behavior, particularly because they zero out negative inputs.
-        - Weights are drawn from a normal distribution: $W \sim \mathcal{N}\left(0, \frac{2}{\text { fan_in }}\right)$.
+        - Weights are drawn from a normal distribution: $W \sim \mathcal{N}\left(0, \frac{2}{\text{fan\_in}}\right)$.
         - Purpose: Compensates for the halving of the signal due to the ReLU activation (or its variants), maintaining signal variance by effectively “doubling” the variance contribution during initialization.
 
     - **LeCun initialization** is a weight initialization strategy designed to help maintain a consistent variance of activations as data flows through a network. 
         - It is particularly useful for networks utilizing activation functions that naturally preserve variance, such as tanh, sigmoid, and more recently, self-normalizing networks with SELU activations.
-        - weights can be drawn from a normal distribution with: $W_{i j} \sim \mathcal{N}\left(0, \frac{1}{\text { fan_in }}\right)$
+        - weights can be drawn from a normal distribution with: $W_{i j} \sim \mathcal{N}\left(0, \frac{1}{\text { fan\_in }}\right)$
 
     - **Orthogonal initialization** is another powerful technique especially beneficial for deep networks, including **RNNs**. It initializes weight matrices to be orthogonal ($W^T W=I$, where $I$ is the identity matrix. This property ensures that the transformations performed by the layer are norm-preserving.), which helps with gradient flow in very deep networks.
 
