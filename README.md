@@ -245,10 +245,21 @@ All following advanced optimization algorithms improve parameter updates by adju
     - **Supervised Learning** learn from labeled training data. Each training example consists of input features and the output label.
         - Classification: Predicts categorical outputs (e.g., spam detection, image recognition). Algorithms: Logistic regression, Decision tree, RF,KNN, SVM.
             - Loss function: These losses measure how correctly and confidently a model classifies examples into categories.
-                - logistic loss
-                - cross entropy
+                - logistic loss/ binary cross entropy: Used for binary classification problems. For a predicted probability $p$ and ground truth label $y \in\{0,1\}$ : $\mathrm{BCE}=-[y \log (p)+(1-y) \log (1-p)]$.
+                    - Outputs probabilities between 0 and 1.
+                    - Penalizes confident but wrong predictions heavily.
+                    - Works well when used with sigmoid activation in the output layer.
+
+                - categorial cross entropy: Extends cross-entropy loss to multi-class classification problems. For a ground truth one-hot encoded vector $\mathbf{y}$ and a prediction vector $\hat{\mathbf{y}}$ : $\mathrm{CCE}=-\sum_{c=1}^C y_c \log \left(\hat{y}_c\right)$.
+                    - Used together with a softmax activation in the output layer.
+                    - Encourages the model to assign high probability to the correct class.
+
                 - KL divergence
-                - hinge loss
+                
+                - hinge loss: Commonly used for Support Vector Machines (SVMs) and for certain deep learning tasks that involve margin-based classification. For a prediction score $s$ and a true label $y \in\{-1,1\}$ : $\text { Hinge Loss }=\max (0,1-y \cdot s)$.
+                    - Focuses on the margin between classes.
+                    - Can also be adapted for multi-class classification with variations like multi-class hinge loss.
+
         - Regression: Predicts continuous numerial outputs. (e.g., house price prediction, stock market forecasting). Algorithms: Linear regression, RF.
             - Loss function:These losses measure how close predicted values are to true values numerically.
                 - MSE
@@ -404,7 +415,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Convergence Speed: Appropriate weight initialization can help reduce the number of training iterations needed for the loss to converge by starting the optimization process in a "good" region of the parameter space.
         - Avoiding saturation: Keep neurons in active regions of their activation functions
 
-    - Random initialization strategies
+    - **Random initialization**
 
         The simplest form of weight initialization involves drawing weights from a random distribution.
         - Uniform Distribution: Weights are sampled uniformly from an interval $[-a, a]$. The choice of $a$ is critical—a too-large range can lead to activations exploding, whereas a too-small range can stall learning.
@@ -412,20 +423,32 @@ All following advanced optimization algorithms improve parameter updates by adju
 
         Regardless of the distribution, it is important that the initialization breaks symmetry and starts the network in a regime where the gradients are neither too large nor too small.
 
-    - Xavier/Glorot initialization
-        Xavier initialization, also known as Glorot initialization (after Xavier Glorot), was designed to keep the scale of the gradients roughly the same in all layers. It is especially effective for networks using sigmoidal activation functions (like tanh) or the logistic sigmoid.
+    - **Xavier/Glorot initialization** (by Xavier Glorot and Yoshua Bengio in 2010)
+
+        Xavier initialization was designed to keep the scale of the gradients roughly the same in all layers. 
         - The initialization maintains the variance of the activations across layers. For a weight matrix $W$ connecting layers with fan_in (number of input units) and fan_out (number of output units), the variance is balanced by considering both quantities.
-        - When to use? Xavier initialization is most appropriate when using activation functions that are symmetric around zero (like tanh) or where the derivative saturates (sigmoid).
+        - When to use? Xavier initialization is most appropriate when using activation functions that are symmetric around zero (like **tanh**) or where the derivative saturates (**sigmoid**).
+        - weights can be drawn from a normal distribution with: $W \sim \mathcal{N}\left(0, \frac{2}{\text { fan } \_ \text {in }+ \text { fan } \_ \text {out }}\right)$.
 
-    - He initialization
 
-    - Lecun Initialization
+    - **He initialization**, proposed by Kaiming He et al., is tailored for networks that use **ReLU** or its variants. ReLU activations are not symmetric and have a different behavior, particularly because they zero out negative inputs.
+        - Weights are drawn from a normal distribution: $W \sim \mathcal{N}\left(0, \frac{2}{\text { fan_in }}\right)$.
+        - Purpose: Compensates for the halving of the signal due to the ReLU activation (or its variants), maintaining signal variance by effectively “doubling” the variance contribution during initialization.
 
-    - Orthogonal initialization
+    - **LeCun initialization** is a weight initialization strategy designed to help maintain a consistent variance of activations as data flows through a network. 
+        - It is particularly useful for networks utilizing activation functions that naturally preserve variance, such as tanh, sigmoid, and more recently, self-normalizing networks with SELU activations.
+        - weights can be drawn from a normal distribution with: $W_{i j} \sim \mathcal{N}\left(0, \frac{1}{\text { fan_in }}\right)$
+
+    - **Orthogonal initialization** is another powerful technique especially beneficial for deep networks, including **RNNs**. It initializes weight matrices to be orthogonal ($W^T W=I$, where $I$ is the identity matrix. This property ensures that the transformations performed by the layer are norm-preserving.), which helps with gradient flow in very deep networks.
+
+    - Implementations
+
+
 
     <div align="center">
         <img src="figs/initializations.png" width="85%">
     </div>
+
 
 - Loss functions in DL
     - Classification: Cross Entropy (both binary and categorical)
@@ -455,7 +478,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - cyclical learning rates
         - warm restarts
 
-- Gradient Clipping
+- Gradient Clipping [[YouTube](https://www.youtube.com/watch?v=KrQp1TxTCUY)]
     - Techniques to manage exploding gradients
 
 - Regualization and Normalization [[YouTube-Regualization](https://www.youtube.com/watch?v=EehRcPo1M-Q)]
@@ -463,6 +486,7 @@ All following advanced optimization algorithms improve parameter updates by adju
     Lower the weights: an extremely high weight on a specific neuron or data point can exaggerate its importance, leading to overfitting.
 
     - Solutions: L1/L2 regularization (Alpha: how much attention to pay to this penalty), dropout, early stopping; Data augmentation(adding more info)
+    -  
 
     - Besides ML methods
         - Label smoothing
@@ -470,7 +494,7 @@ All following advanced optimization algorithms improve parameter updates by adju
             - How to apply dropout to LSTM
         - Normalization
             - Batch normalization [[YouTube](https://www.youtube.com/watch?v=yXOMHOpbon8)]
-            - Layer normalization
+            - Layer normalization [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)]
             - Group normalization
             - Instance normalization
             - Weight normalization
