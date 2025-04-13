@@ -630,7 +630,12 @@ The number of these layers can increase depending on the complexity of the data 
         - Hidden State $\left(h_t\right)$ : Carries output information.
         - Gates: Three principal gates control the flow of information:
             - Forget Gate $\left(f_t\right)$ : Decides what information to discard. $f_t=\sigma\left(W_f \cdot\left[h_{t-1}, x_t\right]+b_f\right)$
-            - Input Gate $\left(i_t\right)$ and Candidate Update $\left(\tilde{C}_t\right)$ : Decide what new information to store in the cell. $i_t=\sigma\left(W_i \cdot\left[h_{t-1}, x_t\right]+b_i\right)$, $ \quad \tilde{C}_t=\tanh \left(W_C \cdot\left[h_{t-1}, x_t\right]+b_C\right)$
+            - Input Gate $\left(i_t\right)$ and Candidate Update $\left(\tilde{C}_t\right)$ : Decide what new information to store in the cell.
+
+$$
+i_t=\sigma\left(W_i \cdot\left[h_{t-1}, x_t\right]+b_i\right) \quad, \quad \tilde{C}_t=\tanh \left(W_C \cdot\left[h_{t-1}, x_t\right]+b_C\right)
+$$
+
             - Output Gate $\left(o_t\right)$ : Determines what to output. $o_t=\sigma\left(W_o \cdot\left[h_{t-1}, x_t\right]+b_o\right)$
         - Update Equations:
             - Cell State Update: $C_t=f_t \odot C_{t-1}+i_t \odot \tilde{C}_t$
