@@ -612,9 +612,9 @@ The number of these layers can increase depending on the complexity of the data 
 - Max pooling: it takes the max number of window 2×2 as an example and represents this window by using the max number in it then slides on the image to make the same operation.
 - Average pooling: it is the same as max-pooling but takes the average of the window.
 
-        <div align="center">
-            <img src="figs/cnn.png" width="80%">
-        </div>
+    <div align="center">
+        <img src="figs/cnn.png" width="80%">
+    </div>
 
 #### RNN
 #### LSTM & GRU
