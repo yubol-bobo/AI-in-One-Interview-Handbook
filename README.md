@@ -629,7 +629,7 @@ The number of these layers can increase depending on the complexity of the data 
         - Cell State $\left(C_t\right)$ : Acts as the "memory" of the network.
         - Hidden State $\left(h_t\right)$ : Carries output information.
         <div align="center">
-            <img src="figs/lstm_gates.png" width="70%">
+            <img src="figs/lstm_gates.png" width="80%">
         </div>
 
             - Output Gate $\left(o_t\right)$ : Determines what to output. $o_t=\sigma\left(W_o \cdot\left[h_{t-1}, x_t\right]+b_o\right)$
