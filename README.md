@@ -344,19 +344,43 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Applications: Particularly effective when the Gaussian assumption holds and when class covariances are similar.
       
 - Decision Trees
-    - Logits
+
+    - Structure: Decision trees recursively partition the input feature space by selecting splits that maximize a certain criterion (e.g., information gain, Gini impurity for classification, or mean squared error reduction for regression).
+    - Algorithm details
+        - Recursive Partitioning: At each node, the algorithm selects the feature and threshold that best “purifies” the subsets.
+        - Stopping Criteria & Pruning: Trees can easily overfit; thus, criteria such as maximum depth, minimum samples per leaf, or post-pruning (e.g., cost-complexity pruning) are essential.
+        - Interpretability: Decision trees produce models that are easily interpretable; however, their hierarchical nature can also be sensitive to small changes in data (high variance).
+    - Decision trees are highly flexible non-parametric models. Their analysis often involves bias–variance trade-offs: while they are low bias (fit complex relationships well), they can suffer from high variance if unpruned.
+
     - Leaves
     - Training algorithm+stop criteria
     - Inference
     - Pruning
 
-- Ensemble methods
-    - Bagging vs Boosting
-    - Random Forest
+
+- Ensemble methods [[Wiki](https://en.wikipedia.org/wiki/Ensemble_learning)] [[Document](https://scikit-learn.org/stable/modules/ensemble.html)]
+    - Definition: Ensemble methods aim to combine the predictions of multiple base learners to achieve improved generalization performance and robustness compared to single models.
+
+    - Bagging (Bootstrap Aggregating)
+        - Concept: A set of base learners (often decision trees) is trained on different bootstrap samples of the data. Their predictions are then aggregated (by averaging or voting).
+        - Impact on Variance: Bagging substantially reduces variance and improves stability without increasing bias significantly.
+        - **Random Forest**
     - Boosting
-        - Adaboost
-        - GBM
-        - XGBoost
+        - Concept: Boosting sequentially trains weak learners, where each learner is focused on the errors (residuals) made by its predecessors.
+        - **Adaboost**
+        - **Gradient Boosting**
+        - **XGBoost**
+
+    - Stacking
+        - Concept: Stacking (or stacked generalization) involves training a meta-learner to combine the outputs of several base models, allowing for more flexible aggregation methods that can capture dependencies between predictions. In stacking, a model learns the optimal way to combine predictions.
+        - Architecture
+            - Base level (Level 0):Multiple heterogeneous models (different algorithms). Each trained on the same training data. Examples: Random Forests, SVMs, Neural Networks, Gradient Boosting.
+            - Meta level: A model that takes base models' predictions as inputs. Learns to combine these predictions optimally. Can be any algorithm (logistic regression is common for simplicity and interpretability)
+    - Voting
+        - Voting is one of the simplest ensemble techniques where multiple models make predictions independently, and the final prediction is determined by combining these individual predictions. The key idea is that different models may excel in different regions of the input space, so combining them can lead to better overall performance.
+        - Hard Voting (Majority Voting)
+        - Soft Voting (Weighted Average)
+        - Weighted Voting
 
 ----      
    
