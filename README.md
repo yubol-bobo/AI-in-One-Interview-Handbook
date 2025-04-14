@@ -322,6 +322,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Interpretability: Coefficients can be interpreted in terms of odds ratios, offering intuitive insights into feature effects.
 
         - Cost function, sigmoid function, cross entropy
+
     - Support Vector Machines
         - Formulation: SVMs seek a hyperplane that maximally separates classes with the greatest margin. For linearly separable data, the optimization problem is: $\min _{w, b} \frac{1}{2}\|w\|^2 \quad \text { s.t. } y_i\left(w^T x_i+b\right) \geq 1, \quad \forall i$.
         - Soft Margin: For non-separable data, slack variables are introduced to allow misclassifications, leading to a trade-off between margin size and classification error.
@@ -759,12 +760,31 @@ The number of these layers can increase depending on the complexity of the data 
 
 
 ----
-#### Transformer [[YouTube](https://www.youtube.com/watch?v=GGLr-TtKguA)] [[ANLP](https://www.youtube.com/watch?v=vlAIa1eZVR4&list=PL8PYTP1V4I8D4BeyjwWczukWq9d8PNyZp&index=4)] [[李沐](https://www.youtube.com/watch?v=nzqlFIcCSWQ)]
+#### Transformer 
+
+[[李沐](https://www.youtube.com/watch?v=nzqlFIcCSWQ)]  [[ANLP](https://www.youtube.com/watch?v=vlAIa1eZVR4&list=PL8PYTP1V4I8D4BeyjwWczukWq9d8PNyZp&index=4)] [[YouTube](https://www.youtube.com/watch?v=GGLr-TtKguA)] [[Coding](https://www.youtube.com/watch?v=bCz4OMemCcA&t=1208s)]
+
 - Attention
+    - Basic idea (by Bahdanau et al. 2015): Encode each token in the sequence into a vector. When decoding, perform a linear combination of these vectors, weighted by "attention weights".
+    - Cross attention: Each element in a sequence attends to elements of another sequence.
+    - Self attention (Cheng et al. 2016): Each element in the sequence attends to elements of that sequence $\rightarrow$ context sensitive encodings!  In this foundational paper, authors explicitly define $\mathrm{Q}, \mathrm{K}, \mathrm{V}$ as separate linear transformations: $Q=X W_q, \quad K=X W_k, \quad V=X W_v$,  where:
+        - $X$ is the original input embedding or hidden representation.
+        - $W_q, W_k, W_v$ are learnable parameter matrices. Each transformation matrix allows the Transformer to specialize and refine the embeddings differently, to optimize the embeddings specifically for each respective purpose (attention computation for Q and K, content retrieval for V).
+        - Why apply self attention on the same sentence? Distribution hypothesis: Approximate the word meaning by its surrounding words. Ex. Run in English.
+        - Query (Q): Used to "ask" for relevant information.
+        - Key (K): Used to "answer" how relevant a token is to the query.
+        - Value ( $V$ ): Contains the actual content/information to be aggregated.
+        - Attention Weights: Use "query" vector (decoder state) and "key" vectors (all encoder states). For each query-key pair, calculate weight. Then, normalize to add to one using softmax. Compute softmax $\left(\frac{Q K^T}{\sqrt{d}}\right)$, which determines how much focus each token gets.
+        - Output: Multiply the attention weights with $V$ to produce the final context-aware representation.
+
+    - Why divide $\sqrt{d_k}$?  We suspect that for large values of $d_k$, the dot products grow large in magnitude, pushing the softmax function into regions where it has  extremely small gradients. To counteract this effect, we scale the dot products by $\sqrt{d_k}$.
+
+
+[[Lil'Log](https://lilianweng.github.io/posts/2018-06-24-attention/)]
     - Scaled Dot-Product Attention: Mathematics and intuition behind scaling
     - Self-Attention: Mechanism to capture dependencies within the same sequence
     - Cross-Attention: How encoder-decoder attention enables sequence-to-sequence tasks
-    - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features
+    - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features. It was mentioned in the paper that Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions.
 
 - BERT (Bidirectional Encoder Representations from Transformers) [[李沐](https://www.youtube.com/watch?v=ULD3uIb2MHQ)] [[arXiv](https://arxiv.org/abs/1810.04805)]
     - Architecture: transformer encoder stack, masked language modeling, and next sentence prediction.
@@ -839,6 +859,8 @@ The number of these layers can increase depending on the complexity of the data 
 
 ### LLM Basic
 #### Embedding
+
+[[Andrej Karpathy](https://www.youtube.com/watch?v=zduSFxRajkE&list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ&index=9)]
 - how to train    
 - word embedding (Post-LM Era)
     - Contextual embedding (BERT, GPT embeddings)
@@ -862,6 +884,7 @@ The number of these layers can increase depending on the complexity of the data 
 - Encoder-Decoder (e.g., original Transformer, T5, BART)
 - Encoder-only (e.g., BERT, RoBERTa)
 - Decoder-only (e.g., GPT series)
+    [[NanoGPT](https://www.youtube.com/watch?v=kCc8FmEb1nY)]
 - LLaMa [[Youtube](https://www.youtube.com/watch?v=Mn_9W1nCFLo)]
 - Comparison & use-cases for each architecture type
 
