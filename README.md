@@ -898,7 +898,9 @@ The number of these layers can increase depending on the complexity of the data 
 
 ### LLM Engineering
 
-#### Distributed training [[Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)][[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)] [[ANLP-Parallelism and Scaling](https://www.youtube.com/watch?v=Mpg1YJfAEH0)]
+#### Distributed training 
+
+[[Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)][[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)] [[ANLP-Parallelism and Scaling](https://www.youtube.com/watch?v=Mpg1YJfAEH0)] [[知乎](https://zhuanlan.zhihu.com/p/598714869)]
 - Data parallel [[Distributed Data Parallel (DDP) using Pytorch] (https://www.youtube.com/watch?v=-K3bZYHYHEA&list=PL_lsbAsL_o2CSuhUhJIiW0IkdT5C2wGWj&index=1)]
     - Replicate model on several GPUs. Run forward/backward passes on different micro-batches in parallel for each GPU. Average the gradients across the GPUs.
     - ZeRO (Zero Redundancy Optimizer)
@@ -930,6 +932,8 @@ The number of these layers can increase depending on the complexity of the data 
 
 
 #### Fine-Tuning
+
+[[知乎-原理](https://zhuanlan.zhihu.com/p/635152813)] [[知乎-实战](https://zhuanlan.zhihu.com/p/651744834)]
 - Types
 
     - Full fine-tuning vs Parameter-efficient fine-tuning
