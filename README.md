@@ -339,6 +339,9 @@ All following advanced optimization algorithms improve parameter updates by adju
 
     - Linear discriminant analysis (LDA)
         - Concept & Assumptions: LDA models class conditional densities as multivariate Gaussians with equal covariance matrices for all classes. Under this assumption, the discriminant function is linear in the features: $\delta_k(x)=x^T \Sigma^{-1} \mu_k-\frac{1}{2} \mu_k^T \Sigma^{-1} \mu_k+\log \pi_k$. Here, $\mu_k$ is the mean vector, $\Sigma$ the common covariance matrix, and $\pi_k$ the prior probability of class $k$.
+        - Bayes Optimality: Under the LDA assumptions, the resulting classifier is Bayes-optimal.
+        - Dimensionality Reduction: LDA also serves as a dimensionality reduction technique by projecting data onto a subspace that maximizes between-class variance while minimizing within-class variance (related to Fisher’s Linear Discriminant).
+        - Applications: Particularly effective when the Gaussian assumption holds and when class covariances are similar.
       
 - Decision Trees
     - Logits
