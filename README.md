@@ -628,9 +628,11 @@ The number of these layers can increase depending on the complexity of the data 
     - Architecture
         - Cell State $\left(C_t\right)$ : Acts as the "memory" of the network.
         - Hidden State $\left(h_t\right)$ : Carries output information.
+
         <div align="center">
             <img src="figs/lstm_gates.png" width="80%">
         </div>
+
         - Update Equations:
             - Cell State Update: $C_t=f_t \odot C_{t-1}+i_t \odot \tilde{C}_t$
             - Hidden State Update: $h_t=o_t \odot \tanh \left(C_t\right)$ Here, $\odot$ denotes element-wise multiplication and $\sigma$ is the sigmoid activation.
@@ -646,7 +648,12 @@ The number of these layers can increase depending on the complexity of the data 
         - Overfitting Potential: The increased model capacity might require more data and careful regularization to prevent overfitting.
 
 - **GRU** is a variation of LSTM as both have design similarities, and in some cases, they produce similar results.  GRU uses an update gate and reset gate to solve the vanishing gradient problem. These gates decide what information is important and pass it to the output. The gates can be trained to store information from long ago, without vanishing over time or removing irrelevant information. 
+
+    <div align="center">
+        <img src="figs/gru.png" width="70%">
+    </div>
     - Unlike LSTM, GRU does not have cell state Ct. It only has a hidden state ht, and due to the simple architecture, GRU has a lower training time compared to LSTM models. The GRU architecture is easy to understand as it takes input xt and the hidden state from the previous timestamp ht-1 and outputs the new hidden state ht. You can get in-depth knowledge about GRU at [[here](https://towardsdatascience.com/gru-recurrent-neural-networks-a-smart-way-to-predict-sequences-in-python-80864e4fe9f6/)].
+
 
 - **Comparison Among These Models**
 
