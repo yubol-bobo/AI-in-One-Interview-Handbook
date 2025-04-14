@@ -332,7 +332,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - GBM
         - XGBoost
 
-          
+----      
    
 
 #### Unsupervised Learning
@@ -352,6 +352,8 @@ All following advanced optimization algorithms improve parameter updates by adju
     - T-SNE   
     - UMAP    
 
+
+----
 ### XAI
 #### Feature importance
 #### SHAP
@@ -596,7 +598,7 @@ All following advanced optimization algorithms improve parameter updates by adju
             <img src="figs/normalizations.png" width="90%">
         </div>
 
-  
+----
 
 ### DL Algorithms
 #### CNN 
