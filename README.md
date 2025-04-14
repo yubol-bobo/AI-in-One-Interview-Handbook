@@ -704,7 +704,7 @@ The number of these layers can increase depending on the complexity of the data 
         - Extensions such as Beta-VAE for disentanglement
 
 
-
+----
 #### Transformer [[YouTube](https://www.youtube.com/watch?v=GGLr-TtKguA)] [[ANLP](https://www.youtube.com/watch?v=vlAIa1eZVR4&list=PL8PYTP1V4I8D4BeyjwWczukWq9d8PNyZp&index=4)] [[李沐](https://www.youtube.com/watch?v=nzqlFIcCSWQ)]
 - Attention
     - Scaled Dot-Product Attention: Mathematics and intuition behind scaling
