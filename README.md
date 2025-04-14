@@ -647,7 +647,11 @@ The number of these layers can increase depending on the complexity of the data 
         - Computational Complexity: LSTMs have more parameters (due to multiple gates) compared to basic RNNs, leading to increased computational cost and memory usage.
         - Overfitting Potential: The increased model capacity might require more data and careful regularization to prevent overfitting.
 
-- **GRU** is a variation of LSTM as both have design similarities, and in some cases, they produce similar results.  GRU uses an update gate and reset gate to solve the vanishing gradient problem. These gates decide what information is important and pass it to the output. The gates can be trained to store information from long ago, without vanishing over time or removing irrelevant information. 
+- **GRU** are designed to offer similar capabilities to LSTMs but with a simplified structure. They aim to capture long-term dependencies with fewer gates and parameters, potentially yielding faster training and inference.
+    - Architecture: GRUs combine the functionalities of the input and forget gates into a single update gate and use a reset gate to control the combination of past and new information.
+        <div align="center">
+            <img src="figs/gru_gates.png" width="70%">
+        </div>
 
     <div align="center">
         <img src="figs/gru.png" width="70%">
