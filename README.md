@@ -644,7 +644,7 @@ The number of these layers can increase depending on the complexity of the data 
     <div align="center">
         <img src="figs/lstm.png" width="60%">
     </div>
-    
+
     - Advantages
         - Long-Term Dependency Capture: The cell state allows LSTM to preserve information over extended sequences.
         - Mitigation of Vanishing Gradients: Gating mechanisms help maintain stable gradients even for long sequences.
@@ -655,11 +655,11 @@ The number of these layers can increase depending on the complexity of the data 
 - **GRU** are designed to offer similar capabilities to LSTMs but with a simplified structure. They aim to capture long-term dependencies with fewer gates and parameters, potentially yielding faster training and inference.
     - Architecture: GRUs combine the functionalities of the input and forget gates into a single update gate and use a reset gate to control the combination of past and new information.
         <div align="center">
-            <img src="figs/gru_gates.png" width="70%">
+            <img src="figs/gru_gates.png" width="90%">
         </div>
 
     <div align="center">
-        <img src="figs/gru.png" width="70%">
+        <img src="figs/gru.png" width="65%">
     </div>
 
     - Unlike LSTM, GRU does not have cell state Ct. It only has a hidden state ht, and due to the simple architecture, GRU has a lower training time compared to LSTM models. The GRU architecture is easy to understand as it takes input xt and the hidden state from the previous timestamp ht-1 and outputs the new hidden state ht. You can get in-depth knowledge about GRU at [[here](https://towardsdatascience.com/gru-recurrent-neural-networks-a-smart-way-to-predict-sequences-in-python-80864e4fe9f6/)].
