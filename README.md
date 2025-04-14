@@ -301,10 +301,11 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 #### Supervised Learning
 - K-Nearest Neighbors (KNN) [[Code](https://www.youtube.com/watch?v=ngLyX54e1LU&list=PLqnslRFeH2Upcrywf-u2etjdxxkL8nl7E&index=1)]
-    - Nature: non-parametric, instance-based, lazy :smile:
-    - distance 
-- Linear Algorithms
+    - Nature: non-parametric, instance-based, lazy :smile:. It directly predicts the output for a new instance by identifying the k closest data points in the training set, using a suitable distance metric (typically Euclidean distance for continuous features).
+    - Curse of Dimensionality: High-dimensional spaces reduce the discriminative power of distance metrics, often leading to performance degradation unless accompanied by dimensionality reduction techniques.
+    - Time Complexity: Prediction requires computing distances to many or all training samples, which can be computationally expensive for large datasets.
 
+- Linear Algorithms
     - **Linear Regression** [[Code](https://www.youtube.com/watch?v=4swNt7PiamQ&list=PLqnslRFeH2Upcrywf-u2etjdxxkL8nl7E&index=2)]  is a supervised statistical model to predict dependent variable quantity based on independent variables. Linear regression is a parametric model and the objective of linear regression is that it has to learn coefficients using the training data and predict the target value given only independent values.
         - Assumptions:
             - Linear relationship between independent and dependent variables.
@@ -312,10 +313,18 @@ All following advanced optimization algorithms improve parameter updates by adju
             - Homoscedasticity: The variance of the residuals should be constant across all levels of the independent variables. This means the spread of residuals should be roughly the same across all predicted values.
             - Normality of residuals: The residuals should follow a normal distribution. This assumption is important for valid hypothesis testing and confidence interval estimation.
             - No multicollinearity: When multiple independent variables are used, they should not be highly correlated with each other. High correlation between predictors makes it difficult to determine the individual effect of each variable.
+        - Formulation: Linear regression models the relationship between a dependent variable $y$ and one or more independent variables $X$ as a linear combination: $y=X \beta+\epsilon,$, where $\beta$ is a vector of coefficients and $\epsilon$ is the error term.
+        - Regularization: Extensions such as Ridge (L2) and Lasso (L1) regression add penalty terms to handle multicollinearity and promote sparsity.
 
     - Logistic Regression
+        - Formulation: Logistic regression models the probability of a binary outcome by applying the logistic (sigmoid) function to a linear combination of input features: $P(y=1 \mid X)=\frac{1}{1+e^{-X \beta}} .$
+        - Estimation: Parameters are typically estimated via Maximum Likelihood Estimation (MLE), where the cost function (the log-loss) is minimized using iterative optimization methods (e.g., gradient descent or iterative reweighted least squares).
+        - Interpretability: Coefficients can be interpreted in terms of odds ratios, offering intuitive insights into feature effects.
+
         - Cost function, sigmoid function, cross entropy
     - Support Vector Machines
+        - Formulation: SVMs seek a hyperplane that maximally separates classes with the greatest margin. For linearly separable data, the optimization problem is: $\min _{w, b} \frac{1}{2}\|w\|^2 \quad \text { s.t. } y_i\left(w^T x_i+b\right) \geq 1, \quad \forall i$.
+
     - Naive Bayes
     - Linear discriminant analysis (LDA)
       
