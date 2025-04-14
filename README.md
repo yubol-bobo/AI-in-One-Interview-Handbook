@@ -656,6 +656,7 @@ The number of these layers can increase depending on the complexity of the data 
     <div align="center">
         <img src="figs/gru.png" width="70%">
     </div>
+    
     - Unlike LSTM, GRU does not have cell state Ct. It only has a hidden state ht, and due to the simple architecture, GRU has a lower training time compared to LSTM models. The GRU architecture is easy to understand as it takes input xt and the hidden state from the previous timestamp ht-1 and outputs the new hidden state ht. You can get in-depth knowledge about GRU at [[here](https://towardsdatascience.com/gru-recurrent-neural-networks-a-smart-way-to-predict-sequences-in-python-80864e4fe9f6/)].
     - Advantages
         - Simplicity: Fewer gating mechanisms lead to a more straightforward architecture.
