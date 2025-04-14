@@ -407,6 +407,8 @@ All following advanced optimization algorithms improve parameter updates by adju
 ### XAI
 #### Feature importance
 #### SHAP
+#### Attention-based
+- RETAIN
 
 
 
@@ -934,8 +936,8 @@ The number of these layers can increase depending on the complexity of the data 
 #### Fine-Tuning
 
 [[知乎-原理](https://zhuanlan.zhihu.com/p/635152813)] [[知乎-实战](https://zhuanlan.zhihu.com/p/651744834)]
-- Types
 
+- Types
     - Full fine-tuning vs Parameter-efficient fine-tuning
     - Parameter-efficient fine-tuning (PEFT) [[paper](https://arxiv.org/pdf/2110.04366)]
         - Adapters
