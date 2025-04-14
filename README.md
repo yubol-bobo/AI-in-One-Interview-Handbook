@@ -644,6 +644,7 @@ The number of these layers can increase depending on the complexity of the data 
     <div align="center">
         <img src="figs/lstm.png" width="60%">
     </div>
+    
     - Advantages
         - Long-Term Dependency Capture: The cell state allows LSTM to preserve information over extended sequences.
         - Mitigation of Vanishing Gradients: Gating mechanisms help maintain stable gradients even for long sequences.
