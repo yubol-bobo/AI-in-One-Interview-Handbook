@@ -324,9 +324,21 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Cost function, sigmoid function, cross entropy
     - Support Vector Machines
         - Formulation: SVMs seek a hyperplane that maximally separates classes with the greatest margin. For linearly separable data, the optimization problem is: $\min _{w, b} \frac{1}{2}\|w\|^2 \quad \text { s.t. } y_i\left(w^T x_i+b\right) \geq 1, \quad \forall i$.
+        - Soft Margin: For non-separable data, slack variables are introduced to allow misclassifications, leading to a trade-off between margin size and classification error.
+        - Kernel Trick: For nonlinear classification, kernel functions (e.g., Gaussian, polynomial) implicitly map input data to a higher-dimensional space where linear separation is feasible.
+        - Dual Formulation: The Lagrange dual formulation and application of Karush-Kuhn-Tucker (KKT) conditions are central to SVM theory, providing insights into support vectors and decision boundaries.
+        - The optimization is convex, ensuring global optimum, but can be computationally challenging for large datasets.
+
 
     - Naive Bayes
+        - Foundational Principle: Based on Bayes' theorem: $P(C \mid x)=\frac{P(x \mid C) P(C)}{P(x)}$, Naive Bayes assumes conditional independence among features given the class label.
+        - Varients
+            - Gaussian Naive Bayes: Assumes the continuous features follow a normal distribution.
+            - Multinomial/Bernoulli Naive Bayes: Commonly used in text classification where feature counts or binary representations are natural.
+        - Why naive? The term "naive" in Naive Bayes refers to the algorithm's assumption that all features (predictor variables) used for classification are mutually independent given the class label. This assumption is considered "naive" because, in real-world scenarios, features often exhibit some degree of dependency, and assuming independence can be an oversimplification of the true underlying relationships. Despite the “naive” assumption being seldom true in practice, the method often performs well due to its simplicity and effectiveness in high-dimensional settings.
+
     - Linear discriminant analysis (LDA)
+        - Concept & Assumptions: LDA models class conditional densities as multivariate Gaussians with equal covariance matrices for all classes. Under this assumption, the discriminant function is linear in the features: $\delta_k(x)=x^T \Sigma^{-1} \mu_k-\frac{1}{2} \mu_k^T \Sigma^{-1} \mu_k+\log \pi_k$. Here, $\mu_k$ is the mean vector, $\Sigma$ the common covariance matrix, and $\pi_k$ the prior probability of class $k$.
       
 - Decision Trees
     - Logits
