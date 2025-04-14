@@ -657,9 +657,25 @@ The number of these layers can increase depending on the complexity of the data 
         <img src="figs/gru.png" width="70%">
     </div>
     - Unlike LSTM, GRU does not have cell state Ct. It only has a hidden state ht, and due to the simple architecture, GRU has a lower training time compared to LSTM models. The GRU architecture is easy to understand as it takes input xt and the hidden state from the previous timestamp ht-1 and outputs the new hidden state ht. You can get in-depth knowledge about GRU at [[here](https://towardsdatascience.com/gru-recurrent-neural-networks-a-smart-way-to-predict-sequences-in-python-80864e4fe9f6/)].
+    - Advantages
+        - Simplicity: Fewer gating mechanisms lead to a more straightforward architecture.
+        - Efficiency: Fewer parameters often mean faster training and potentially less risk of overfitting.
+        - Comparable Performance: In many tasks, GRUs perform on par with LSTMs despite their simpler structure.
+    - Trade-offs
+        - Expressiveness: With fewer gates, some nuances of long-term dependencies might be less finely controlled compared to LSTMs.
+        - Task-Dependence: The performance benefits of GRUs versus LSTMs can vary; some tasks might benefit from the additional gating complexity of LSTMs.
 
 
 - **Comparison Among These Models**
+
+| **Aspect**                | **Standard RNN**                                          | **LSTM**                                                      | **GRU**                                                       |
+|---------------------------|-----------------------------------------------------------|---------------------------------------------------------------|---------------------------------------------------------------|
+| **Architecture**          | Simple recurrence using a single hidden state             | Memory cell with three gates: input, forget, and output gates  | Streamlined design with two gates: update and reset           |
+| **Handling of Long-Term Dependencies** | Struggles due to vanishing/exploding gradients            | Excellent, via gating mechanisms that preserve cell state      | Good; mitigates gradient issues with a simpler gating mechanism |
+| **Parameter Complexity**  | Fewer parameters                                          | More parameters due to complex gate structure                  | Fewer parameters compared to LSTM                              |
+| **Computational Cost**    | Lower, faster computation for short sequences             | Higher, computationally intensive due to extra gates           | More efficient than LSTM, balancing complexity and performance  |
+| **Usage Considerations**  | Best for short sequences; limited long-range memory       | Ideal for tasks with long-range dependencies; robust memory    | Suitable when speed and simplicity are needed, with competitive performance |
+
 
 
 #### (Generative Models: GANs & Autoencoders)
