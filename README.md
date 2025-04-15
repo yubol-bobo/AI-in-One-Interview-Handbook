@@ -779,13 +779,17 @@ The number of these layers can increase depending on the complexity of the data 
         - Output: Multiply the attention weights with $V$ to produce the final context-aware representation.
 
     - Why divide $\sqrt{d_k}$?  We suspect that for large values of $d_k$, the dot products grow large in magnitude, pushing the softmax function into regions where it has  extremely small gradients. To counteract this effect, we scale the dot products by $\sqrt{d_k}$.
-
+    - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features. It was mentioned in the paper that Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions. 
+        - Intuition: Information from different parts fo the sentence can be useful to disambiguate in different ways.   Ex. **I** run a small **business**.
+        <div align="center">
+            <img src="figs/multi_head_att.png" width="75%">
+        </div>
 
 [[Lil'Log](https://lilianweng.github.io/posts/2018-06-24-attention/)]
     - Scaled Dot-Product Attention: Mathematics and intuition behind scaling
     - Self-Attention: Mechanism to capture dependencies within the same sequence
     - Cross-Attention: How encoder-decoder attention enables sequence-to-sequence tasks
-    - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features. It was mentioned in the paper that Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions.
+    
 
 - BERT (Bidirectional Encoder Representations from Transformers)
 [[李沐](https://www.youtube.com/watch?v=ULD3uIb2MHQ)] [[arXiv](https://arxiv.org/abs/1810.04805)]
@@ -804,7 +808,8 @@ The number of these layers can increase depending on the complexity of the data 
     - Use cases: text generation, few-shot learning, API-based applications
 
 - Other Architectures
-     - T5 (Text-To-Text Transfer Transformer): Unified text-to-text paradigm (encoder-decoder architecture)
+     - Encoder-decoder models: T5 (Text-To-Text Transfer Transformer): Unified text-to-text paradigm; MBART.
+     - Decoder Only Models: GPT, LLaMa
      - XLNet: Permutation-based language modeling: advantages over BERT in capturing bidirectional context
 
 
