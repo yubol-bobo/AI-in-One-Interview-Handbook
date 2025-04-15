@@ -901,10 +901,22 @@ The number of these layers can increase depending on the complexity of the data 
     <img src="figs/prefix_causal_lm.png" width="80%">
 </div>
 
-Prefix LM and Causal LM are two different types of language models, which differ in the way they generate text and the training objectives.
-    - Prefix LM is actually a variant of the Encoder-Decoder model. Why do we say this? The explanation is as follows: In the standard Encoder-Decoder model, the Encoder and Decoder each use a separate Transformer. In Prefix LM, Encoder and Decoder share the same Transformer structure, which is implemented through the Attention Mask mechanism inside the Transformer. Similar to the standard Encoder-Decoder, Prefix LM uses the Auto Encoding (AE) mode in the Encoder part, that is, any two tokens in the prefix sequence are visible to each other, and the Decoder part uses the Auto Regressive (AR) mode, that is, the token to be generated can see all tokens on the Encoder side (including the context) and the tokens already generated on the Decoder side, but cannot see the tokens that have not yet been generated in the future .
-        - Representative models of Prefix LM include UniLM and GLM
-    - Causal LM is a causal language model. Most of the popular models currently have this structure, for no other reason than that the internal structure of the GPT series of models is this, as well as the open source LLaMa. Causal LM only involves the Decoder part of Encoder-Decoder and adopts Auto Regressive mode. To put it bluntly, it predicts the next token based on the historical tokens, which is also done in the Attention Mask .
+    Prefix LM and Causal LM are two different types of language models, which differ in the way they generate text and the training objectives.
+        - Prefix LM is actually a variant of the Encoder-Decoder model. Why do we say this? The explanation is as follows: In the standard Encoder-Decoder model, the Encoder and Decoder each use a separate Transformer. In Prefix LM, Encoder and Decoder share the same Transformer structure, which is implemented through the Attention Mask mechanism inside the Transformer. Similar to the standard Encoder-Decoder, Prefix LM uses the Auto Encoding (AE) mode in the Encoder part, that is, any two tokens in the prefix sequence are visible to each other, and the Decoder part uses the Auto Regressive (AR) mode, that is, the token to be generated can see all tokens on the Encoder side (including the context) and the tokens already generated on the Decoder side, but cannot see the tokens that have not yet been generated in the future .
+            - Representative models of Prefix LM include UniLM and GLM
+        - Causal LM is a causal language model. Most of the popular models currently have this structure, for no other reason than that the internal structure of the GPT series of models is this, as well as the open source LLaMa. Causal LM only involves the Decoder part of Encoder-Decoder and adopts Auto Regressive mode. To put it bluntly, it predicts the next token based on the historical tokens, which is also done in the Attention Mask.
+
+- Training objectives
+    - At its core, an LLM’s training objective is Maximum Likelihood Estimation (MLE): we maximize the probability of the observed text under the model, which in practice means minimizing the cross‑entropy loss for next‑token prediction.
+    - What Is Maximum Likelihood Estimation (MLE)? Maximum Likelihood Estimation is a classical statistical method for fitting a parameterized model to data. Given training sequences $\left\{x^{(i)}\right\}_{i=1}^N$, MLE chooses $\theta$ to maximize the likelihood of observing that data under the model. Equivalently, one maximizes the log-likelihood. $\mathcal{L}(\theta)=\sum_{i=1}^N \log p_\theta\left(x^{(i)}\right)$ or, in practice, minimizes the negative log-likelihood.
+    - MLE in LLM training: Training objective: $\max _\theta \sum_{i=1}^N \sum_{t=1}^{\left|x^{(i)}\right|} \log p_\theta\left(x_t^{(i)} \mid x_{<t}^{(i)}\right)$. In deep‑learning code this becomes the familiar cross‑entropy loss between the model’s predicted token‑distribution and the true next token.
+    
+        ```python
+        loss = CrossEntropyLoss(logits, targets)
+        loss.backward()
+
+        ```
+
 
 - Temperature parameter controls how much randomness we want from the language model. T=0 (Deterministically select the most likely token).
 
