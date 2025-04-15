@@ -464,7 +464,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Swish has been shown to outperform ReLU on deeper models in certain cases, due to its ability to maintain non-zero gradients across a wider range of inputs.
 
     - **GLU (Gated Linear Unit)** 
-        - Given an input $x \in \mathbb{R}^d$, two learned projections $W, V \in \mathbb{R}^{d \times h}$. $\operatorname{GLU}(x)=(x W) \otimes \sigma(x V)$, where $\otimes$ is elementwise product.
+        - Given an input $x \in \mathbb{R}^d$, two learned projections $W, V \in \mathbb{R}^{d \times h}$. $\text{GLU}(x)=(x W) \otimes \sigma(x V)$, where $\otimes$ is elementwise product.
         - Intuition: One projection $(x W)$ carries "content," the other $(x V)$ gates it via a sigmoid. Allows the network to learn when to pass or suppress information.
 
 
