@@ -443,13 +443,18 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Limitations
             - Vanishing Gradients: In regions where the input is very positive or very negative, the output saturates close to 1 or 0. This can lead to extremely small gradients, slowing or even halting the training process in deep networks.
             - Non Zero-Centered: The sigmoid function’s outputs being always positive can lead to inefficient gradient updates, as the activations are not centered around zero.
-    - **Tanh (The hyperbolic tangent) (1980s)**: $\tanh (x)=\frac{e^x-e^{-x}}{e^x+e^{-x}}$.
-        - It produces outputs in the range (-1, 1) and tends to center the data better compared to the sigmoid.
+    - **Tanh (The hyperbolic tangent) (1980s)**: $\tanh (z)=\frac{e^z-e^{-z}}{e^z+e^{-z}}=\frac{2}{1+e^{-2 z}}-1$. 
+        - It's the improvement based on Sigmoid. It produces outputs in the range (-1, 1) and tends to center the data (0) better compared to the sigmoid.
+
+    Sigmoid and Tanh limits the output between (0,1) and (-1,1), which means that Sigmoid and tanh are suitable for processing probability values, such as various gates in LSTM; but ReLUis not suitable because ReLUthere is no maximum value limit and very large values ​​may appear.
+
     - **ReLU (2010) family (Rectified Linear Unit) (ReLU, Leaky ReLU, PReLU, ELU, SELU)**: $f(x)=\max (0, x)$ ReLU outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
         - Dying issue: In some cases during training, a significant number of neurons can end up outputting zero for all inputs. This happens when the weights and biases of these neurons adjust in such a way that the input to ReLU is consistently negative. Once a neuron falls into this state, its gradient becomes zero for any input value (since the derivative of ReLU is zero for negative inputs). And Because it outputs zero consistently, the neuron effectively "dies," meaning it no longer contributes to the learning process.
         - Solution-Leaky ReLU (2013): Instead of outputting zero for negative inputs, Leaky ReLU allows a small, non-zero gradient (e.g., $f(x)=\alpha x$ for $x<0$ with $\alpha$ being a small constant such as 0.01 ). This helps prevent neurons from dying.
         - Parametric ReLU (PReLU) (2015): Similar to Leaky ReLU, but the coefficient $\alpha$ is learned during training.
         - ELU (Exponential Linear Unit) （2015） and SELU (Scaled ELU) （2017）: These functions introduce an exponential factor for negative inputs which can improve learning dynamics and sometimes contribute to self-normalizing properties in deeper networks.
+    
+    Why we expect zero-mean activations? When activations have a non-zero mean, especially if it's strongly positive or negative, it can cause what's called a "bias shift" in the next layer’s input. That means the inputs to each layer get skewed, and the network keeps needing to compensate for that. Zero-mean activation help: center the input distribution, keep the gradient more stable, and prevent saturation. Faster convergence.
 
     - **GELU （2016）** uses the Gaussian cumulative distribution function to weight the inputs, often defined approximately as: $f(x)=0.5 x\left(1+\tanh \left[\sqrt{\frac{2}{\pi}}\left(x+0.044715 x^3\right)\right]\right)$.
         - GELU provides a smooth output which can help gradient flow.
@@ -458,11 +463,18 @@ All following advanced optimization algorithms improve parameter updates by adju
         - The function is differentiable everywhere and its non-monotonicity can sometimes lead to better performance in deep networks.
         - Swish has been shown to outperform ReLU on deeper models in certain cases, due to its ability to maintain non-zero gradients across a wider range of inputs.
 
+    - **GLU (Gated Linear Unit)** 
+        - Given an input $x \in \mathbb{R}^d$, two learned projections $W, V \in \mathbb{R}^{d \times h}$. $\operatorname{GLU}(x)=(x W) \otimes \sigma(x V)$, where $\otimes$ is elementwise product.
+        - Intuition: One projection $(x W)$ carries "content," the other $(x V)$ gates it via a sigmoid. Allows the network to learn when to pass or suppress information.
+
+
+
     - **Mish (2019)**: Mish is defined as: $f(x)=x \cdot \tanh (\text{softplus}(x))$, where $\text{softplus}(x)=\ln \left(1+e^x\right)$.
         - Mish provides a smooth activation that has continuous derivatives, aiding optimization.
         - It has been reported to offer improvements in generalization and training stability compared to ReLU and some of its variants.
 
     - **SwiGLU (Swish with Gating)**: SwiGLU combines the Swish activation with a gating mechanism, which allows the network to control the flow of information dynamically.
+        - A simple GLU variant that replaces the "content" branch with Swish (SiLU): $\text{SwiGLU}(x)=(\text{SiLU}(x W)) \otimes(x V) \quad \text { where } \quad \text{SiLU}(z)=z \cdot \sigma(z)$. Equivalently, split a linear projection into two halves, apply Swish to one half, and gate with the other.
         - By incorporating gating, SwiGLU can further improve the representation power and stability of gradient propagation.
         - Often applied in transformer and language models, where dynamic control over activations can benefit deeper network architectures.
 
@@ -860,6 +872,7 @@ The number of these layers can increase depending on the complexity of the data 
 
 ### Word Embedding (Pre-LM Era)
 #### Word2Vec (CBOW and Ski-gram architectures)
+- Training: CBOW, skip-gram.
 #### GloVe
 #### FastText (Subword embeddings)
 #### Evaluation of embeddings (semantic similarity, analogy tasks)
@@ -870,9 +883,14 @@ The number of these layers can increase depending on the complexity of the data 
 
 ## Large Language Models
 
+
 [[State of GPT](https://www.youtube.com/watch?v=bZQun8Y4L2A)]  [[Deep Dive into LLMs like ChatGPT](https://www.youtube.com/watch?v=7xTGNNLPyMI&t=1869s)] [[GitHub:llm_interview](https://github.com/wdndev/llm_interview_note/tree/main)]
 
 ### LLM Basic
+
+#### LLM Concept
+- Temperature parameter controls how much randomness we want from the language model. T=0 (Deterministically select the most likely token).
+
 #### Embedding
 
 [[Andrej Karpathy](https://www.youtube.com/watch?v=zduSFxRajkE&list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ&index=9)]
