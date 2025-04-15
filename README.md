@@ -827,56 +827,94 @@ The number of these layers can increase depending on the complexity of the data 
 
 
 
-## NLP
+## NLP (Pre-LLM Era)
+
+Natural Language Processing (NLP) encompasses the interaction between computers and human languages, enabling machines to understand, interpret, and produce human text and speech. From basic tasks such as text parsing to more advanced ones like sentiment analysis and translation, NLP is integral to various applications, including virtual assistants, content classification, and information retrieval systems.
+
 
 ### NLP Basic
-#### Text pre-processing
-- Tokenization
-- Stemming vs lemmatization
-- Stop-word
-- Punctuation and noise removal
-- Text normalization(lowercasing, numbers, dates)
 
-####Text representation
-- Bag-of-Words(BoW)
-- TF-IDF weighting
+### Rule-Based Era (1960s-1980s)
+- Key Innovation: Handcrafted linguistic rules.
+- Core Techniques
+    - Pattern matching & templates. Ex. ELIZA (1966): Pattern‑matching “therapist” bot.
+    - Heuristic grammars (e.g. keyword spotting + script rules)
+- Strengths & Limitations
+    - ✅ Transparent, easy to debug.
+    - ❌ Brittle, no real “understanding,” poor scalability.
 
+### Statistical & ML Era
+    
+Statistical models learned parameters from data—first n‑grams, then classical ML.
 
-### NLP Tasks and Algorithms
-#### Language modeling
-- n-gram models
-- Smoothing methods (Laplace, Good-turing)
-
-#### Text Classification
-- Naive Bayes (multinomial NB)
-- Logistic regression with TF-IDF
-- SVM for text classification
-
-#### Text Similarity and Information Retrieval
-- Cosine similarity
-- Jaccard similarity
-- Document retrieval
-
-#### NER
-- CRF (Conditional Random Fields)
-- HMM
-- De-identification
-
-
-### Topic Modeling
-#### Latent Semantic Analysis (LSA)
-#### Latent Dirichlet Allocation (LDA)
-- Generative process intuition
-- Gibbs sampling (basic intuition)
+- Text Pre‑processing
+    - Tokenization (word, subword)
+    - Stemming vs. Lemmatization: Both lemmatization and stemming are methods for reducing inflected words to their root forms.
+        - **Stemming** uses an algorithmic, rule-based approach to cut off word endings, producing the stem. This process can sometimes result in non-real words, known as "raw" stems. Example: The stem of "running" is "run."
+            - Code:
+                ```Python
+                from nltk.stem import PorterStemmer
+                stemmer = PorterStemmer()
+                stem = stemmer.stem("running")
+                ```
+        - **Lemmatization**, on the other hand, uses a linguistic approach that considers the word's context. It maps inflected forms to their base or dictionary form (lemma). Example: The lemma of "running" is "run".
+            - Code:
+                ```Python
+                from nltk.stem import WordNetLemmatizer
+                lemmatizer = WordNetLemmatizer()
+                lemma = lemmatizer.lemmatize("running", pos="v")  # Need to specify part of speech (pos)
+                ```
+        - When to choose?
+            - Stemming: Useful for tasks like text classification when speed is a priority. The technique is simpler and quicker than lemmatization, but it may sacrifice precision and produce non-real words.
+            - Lemmatization: Ideal when semantic accuracy is crucial, such as in question-answering systems or topic modeling. It ensures that the root form retains its existing meaning in the text, potentially leading to better results in tasks that require understanding and interpretation of the text.
+            In general, if you require interpretability (the capability to interpret the outcome of an ML model, for example) or have a need for precise language understanding, lemmatization is often the better choice. However, if your task is purely computational, derives more complex models or intended to process a large volume of text in a relatively short time, you might opt for stemming instead.
 
 
-### Word Embedding (Pre-LM Era)
-#### Word2Vec (CBOW and Ski-gram architectures)
-- Training: CBOW, skip-gram.
-#### GloVe
-#### FastText (Subword embeddings)
-#### Evaluation of embeddings (semantic similarity, analogy tasks)
-#### Contextual embedding optimization
+    - Stop‑word Removal
+    - Punctuation & Noise Filtering
+    - Normalization (lowercasing, digit/date handling).
+- Shllow Text Representations
+    - Bag‑of‑Words (BoW)
+    - CBOW
+    - TF–IDF Weighting
+- Language Modeling
+    - n-gram modeling
+    - smoothing: Laplace, Good–Turing, Kneser–Ney.
+- Supervised Learning for NLP
+    - Text Classification (Multinomial Naïve Bayes, Logistic Regression on TF–IDF, SVM).
+    - Sequence Labeling & NER (Hidden Markov Models (HMM), Conditional Random Fields (CRF), Rule‑based de‑identification).
+- Unsupervised Learning for NLP
+    - Similarity Metrics: Cosine, Jaccard
+    - Document Retrieval (vector space, BM25)
+    - Topic Modeling 
+        - LSA
+        - LDA
+            - Generative intuition
+            - Gibbs sampling overview
+
+
+### Embedding & Deep‑Learning Era
+
+Neural nets brought continuous representations and end‑to‑end learning.
+
+- Word & Subword Embeddings
+    - Word2Vec (2013)
+        - CBOW vs. Skip‑gram
+    - GloVe
+    - FastTest
+    - Evaluation: analogy tests, semantic similarity
+    - Contextual Embeddings (early): ELMo
+- Neural Architectures
+    - Recurrent Nets: RNN → LSTM → GRU.
+    - Encoder–Decoder & Seq2Seq (2014).
+    - Attention Mechanism (2015).
+    - Transformer (2017)
+- Subword Tokenization
+    - Byte‑Pair Encoding (BPE)
+    - WordPiece / SentencePiece
+
+
+
 
 
 
@@ -895,7 +933,7 @@ The number of these layers can increase depending on the complexity of the data 
     - XLNet : An autoregressive pre-trained language model based on the Transformer architecture released by CMU and Google Brain. The XLNet model is pre-trained in an autoregressive manner, can model global dependencies, and has better language modeling and generation capabilities.
     - T5 (Text-to-Text Transfer Transformer) : A multi-task pre-trained language model based on the Transformer architecture released by Google. The T5 model is pre-trained on large-scale datasets and can be used for a variety of natural language processing tasks, such as text classification, machine translation, question answering, etc.
 
-- Predix LM vs Causal LM
+- Prefix LM vs Causal LM
 
     <div align="center">
         <img src="figs/prefix_causal_lm.png" width="80%">
@@ -917,6 +955,10 @@ The number of these layers can increase depending on the complexity of the data 
         loss.backward()
 
         ```
+- Why decoder-only model is popular? 
+    - Encoder has low rank problem. In bidirectional encoders, each token can attend to all other tokens in the sequence, creating a fully-connected attention pattern. This creates a potential issue where the attention matrices can become "low-rank" - meaning they tend to distribute attention broadly rather than forming sharp, focused attention patterns.
+    - Better zero-shot capability, more suitable for large-corpus self-supervised learning. The decoder-only model has the best zero-shot performance without any tuning data, while the encoder-decoder needs multitask finetuning on a certain amount of labeled data to achieve the best performance.
+    - Efficiency issue : decoder-only supports the reuse of KV-Cache, which is more friendly to multi-round conversations because the representation of each Token is related to its previous input, which is difficult for encoder-decoder and PrefixLM to do.
 
 
 - Temperature parameter controls how much randomness we want from the language model. T=0 (Deterministically select the most likely token).
