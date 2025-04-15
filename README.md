@@ -643,6 +643,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - **Weight normalization** reparameterizes the weights $(\omega)$ as: $\boldsymbol{w}=\frac{g}{\|\boldsymbol{v}\|} \boldsymbol{v}$. It separates the weight vector from its direction, this has a similar effect as in batch normalization with variance. The only difference is in variation instead of direction.
 
         - **Layer normalization** [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)] normalizes input across the features instead of normalizing input features across the batch dimension in batch normalization. Good for RNN.
+        - **RMSnorm** simplifies LayerNorm by removing the mean and bias terms.  $\operatorname{RMS}(\mathbf{x})=\sqrt{\frac{1}{n} \sum_{i=1}^n x_i^2}$, $\operatorname{RMSNorm}(\mathbf{x})=\frac{\mathbf{x}}{\operatorname{RMS}(\mathbf{x})} \cdot \mathbf{g}$.
         - **Instance/Constrast normalization**: Layer normalization and instance normalization is very similar to each other but the difference between them is that instance normalization normalizes across each channel in each training example instead of normalizing across input features in an training example. Unlike batch normalization, the instance normalization layer is applied at test time as well(due to non-dependency of mini-batch). This technique is originally devised for style transfer, the problem instance normalization tries to address is that the network should be agnostic to the contrast of the original image.
         - **Group normalization** normalizes over group of channels for each training examples. We can say that, Group Norm is in between Instance Norm and Layer Norm. When we put all the channels into a single group, group normalization becomes Layer normalization. And, when we put each channel into different groups it becomes Instance normalization.
         - (**Spectral normalization**: for GAN)
@@ -879,9 +880,10 @@ The number of these layers can increase depending on the complexity of the data 
 - word embedding (Post-LM Era)
     - Contextual embedding (BERT, GPT embeddings)
 - positional embedding
-    - absolute positinal embedding
-    - Relative positional embedding
-    - RoPE
+    - **Absolute positinal encodings** add an encoding to the input in hope that relative position will be captured
+    - **Relative positional encodings** explicitly êncode relative position
+    - **RoPE** uses trigonometry and imaginary numbers to come up with a function that satisfies this property. It uses absolute positions to represent relative positions.
+        - $f_q\left(\mathbf{x}_m, m\right) \cdot f_k\left(\mathbf{x}_n, n\right)=g\left(\mathbf{x}_m, \mathbf{x}_n, m-n\right)$
     - when it's not that important?
 
 
@@ -897,9 +899,9 @@ The number of these layers can increase depending on the complexity of the data 
 #### Architecture
 - Encoder-Decoder (e.g., original Transformer, T5, BART)
 - Encoder-only (e.g., BERT, RoBERTa)
-- Decoder-only (e.g., GPT series)
+- Decoder-only (e.g., GPT series, LLaMa [[Youtube](https://www.youtube.com/watch?v=Mn_9W1nCFLo)])
     [[NanoGPT](https://www.youtube.com/watch?v=kCc8FmEb1nY)]
-- LLaMa [[Youtube](https://www.youtube.com/watch?v=Mn_9W1nCFLo)]
+
 - Comparison & use-cases for each architecture type
 
 
