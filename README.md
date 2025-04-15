@@ -762,7 +762,8 @@ The number of these layers can increase depending on the complexity of the data 
 ----
 #### Transformer 
 
-[[李沐](https://www.youtube.com/watch?v=nzqlFIcCSWQ)]  [[ANLP](https://www.youtube.com/watch?v=vlAIa1eZVR4&list=PL8PYTP1V4I8D4BeyjwWczukWq9d8PNyZp&index=4)] [[YouTube](https://www.youtube.com/watch?v=GGLr-TtKguA)] [[Coding](https://www.youtube.com/watch?v=bCz4OMemCcA&t=1208s)]
+[[李沐](https://www.youtube.com/watch?v=nzqlFIcCSWQ)]  [[ANLP](https://www.youtube.com/watch?v=vlAIa1eZVR4&list=PL8PYTP1V4I8D4BeyjwWczukWq9d8PNyZp&index=4)] [[YouTube](https://www.youtube.com/watch?v=GGLr-TtKguA)] [[Coding](https://www.youtube.com/watch?v=ISNdQcPhsts&t=96s)]
+[[The Annotated Transformer](https://nlp.seas.harvard.edu/2018/04/03/attention.html)] [[Coding]]
 
 - Attention
     - Basic idea (by Bahdanau et al. 2015): Encode each token in the sequence into a vector. When decoding, perform a linear combination of these vectors, weighted by "attention weights".
@@ -786,12 +787,18 @@ The number of these layers can increase depending on the complexity of the data 
     - Cross-Attention: How encoder-decoder attention enables sequence-to-sequence tasks
     - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features. It was mentioned in the paper that Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions.
 
-- BERT (Bidirectional Encoder Representations from Transformers) [[李沐](https://www.youtube.com/watch?v=ULD3uIb2MHQ)] [[arXiv](https://arxiv.org/abs/1810.04805)]
-    - Architecture: transformer encoder stack, masked language modeling, and next sentence prediction.
-    - Applications in NLP tasks (e.g., question answering, sentiment analysis).
+- BERT (Bidirectional Encoder Representations from Transformers)
+[[李沐](https://www.youtube.com/watch?v=ULD3uIb2MHQ)] [[arXiv](https://arxiv.org/abs/1810.04805)]
+    - It’s a language model developed by Google (Devlin et al., 2018) and became a major breakthrough in NLP. Instead of reading text left-to-right (like standard LSTMs) or just right-to-left, BERT reads in both directions simultaneously — that's what "bidirectional" means.
+
+    - Architecture: transformer **encoder** stack, masked language modeling, and next sentence prediction.
+    - Applications in NLP tasks (e.g., sentense classification, extraction-based QA, sentiment analysis).
+    - Next Sentence Prediction task: In NSP, given two sentences A and B, BERT predicts whether B naturally follows A in the original text. NSP was thought to help tasks like QA or entailment, but its contribution turned out to be marginal once enough pretraining is done.
     - Fine-tuning BERT implementation [[YouTube](https://www.youtube.com/watch?v=4QHg8Ix8WWQ&t=19s)]
+
 - RoBERTa
-    - Improvements over BERT (training strategies, data size, no NSP)
+    - same architecture as BERT, but is trained using a larger amount (10 times) pf text date and for a longer time, which makes it even better at understanding language.
+    - Improvements over BERT (training strategies, data size, no NSP, dynamic masking, larger batch size )
 - GPT Series (Generative Pre-trained Transformer)
     - GPT-2, GPT-3, GPT-4: Architecture and scaling, autoregressive language modeling
     - Use cases: text generation, few-shot learning, API-based applications
@@ -856,6 +863,8 @@ The number of these layers can increase depending on the complexity of the data 
 
 
 ## Large Language Models
+
+[[State of GPT](https://www.youtube.com/watch?v=bZQun8Y4L2A)]  [[Deep Dive into LLMs like ChatGPT](https://www.youtube.com/watch?v=7xTGNNLPyMI&t=1869s)] [[GitHub:llm_interview](https://github.com/wdndev/llm_interview_note/tree/main)]
 
 ### LLM Basic
 #### Embedding
