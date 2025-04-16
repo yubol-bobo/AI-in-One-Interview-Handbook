@@ -909,7 +909,7 @@ Statistical models learned parameters from data—first n‑grams, then classica
     - TF–IDF [[YouTube](https://www.youtube.com/watch?v=zLMEnNbdh4Q)] (Term Frequency-Inverse Document Frequency) is a numerical statistic used in natural language processing and information retrieval to indicate the importance of a word in a document relative to a collection of documents (corpus).
         - Term Frequency (TF): The term frequency measures how often a term appears in a document. $\text{TF}(t, d)=\frac{f_{t, d}}{\sum_{t^{\prime} \in d} f_{t^{\prime}, d}}$, $f_{t, d}$ represents the raw count of term $t$ in document $d$. The denominator sums the raw counts for all terms in document $d$ to normalize the frequency.
         - Inverse Document Frequency (IDF) reflects how unique or rare a term is across an entire corpus.  $\text{IDF}(t, D)=\log \left(\frac{N}{1+|\{d \in D: t \in d\}|}\right)$, $N$ is the total number of documents in the corpus $D$. $|\{d \in D: t \in d\}|$ counts the number of documents that contain the term $t$. The addition of 1 in the denominator avoids division by zero for terms that might not appear in the corpus, though typically every term considered appears at least once.
-        - $\text{TF}-\text{IDF}(t, d, D)=\text{TF}(t, d) \times \operatorname{IDF}(t, D)$. This formulation ensures that if **a term is very frequent in a document but rare in the corpus**, it gets a high TF-IDF score.
+        - $\text{TF}-\text{IDF}(t, d, D)=\text{TF}(t, d) \times \text{IDF}(t, D)$. This formulation ensures that if **a term is very frequent in a document but rare in the corpus**, it gets a high TF-IDF score.
 
 - Language Modeling
     - n-gram modeling
