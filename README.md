@@ -848,7 +848,7 @@ Natural Language Processing (NLP) encompasses the interaction between computers 
 Statistical models learned parameters from data—first n‑grams, then classical ML.
 
 - Text Pre‑processing
-    - Tokenization (word, subword)
+    - Tokenization is the process of breaking longer text into discrete units, or tokens, which could be words, n-grams, or characters. Common tokenization strategies include splitting by whitespace, punctuation, or specific vocabularies. Tokenization is a foundational step for various text processing tasks and is crucial for tasks like neural network for NLP.
     - Stemming vs. Lemmatization: Both lemmatization and stemming are methods for reducing inflected words to their root forms.
         - **Stemming** uses an algorithmic, rule-based approach to cut off word endings, producing the stem. This process can sometimes result in non-real words, known as "raw" stems. Example: The stem of "running" is "run."
             - Code:
@@ -870,12 +870,42 @@ Statistical models learned parameters from data—first n‑grams, then classica
             In general, if you require interpretability (the capability to interpret the outcome of an ML model, for example) or have a need for precise language understanding, lemmatization is often the better choice. However, if your task is purely computational, derives more complex models or intended to process a large volume of text in a relatively short time, you might opt for stemming instead.
 
 
-    - Stop‑word Removal
-    - Punctuation & Noise Filtering
-    - Normalization (lowercasing, digit/date handling).
+    - **Stopwords** are words that are often removed from texts during processing as they carry little meaning on their own (e.g., 'is', 'the', 'and') in bag-of-words models. By eliminating stopwords, we can focus on content-carrying words and reduce data dimensionality, thus enhancing computational efficiency and, in some applications, improving the accuracy of text classification or clustering.
+
 - Shllow Text Representations
-    - Bag‑of‑Words (BoW)
-    - CBOW
+    - Bag‑of‑Words (BoW): The Bag of Words model, or BoW, is a fundamental technique in Natural Language Processing (NLP). This model disregards the word order and syntax within a text, focusing instead on the presence and frequency of words.
+        - Working Mechanism
+            - Text Collection: Gather a set of documents or a corpus.
+            - Tokenization: Split the text into individual words, known as tokens.
+            - Vocabulary Building: Identify unique tokens, constituting the vocabulary.
+            - Vectorization: Represent each document as a numerical vector, where each element reflects word presence or frequency in the vocabulary.
+        - Code
+            ```python
+            from sklearn.feature_extraction.text import CountVectorizer
+
+            # Sample data
+            corpus = [
+                'This is the first document.',
+                'This document is the second document.',
+                'And this is the third one.',
+            ]
+
+            # Create BoW model
+            vectorizer = CountVectorizer()
+            X = vectorizer.fit_transform(corpus)
+
+            # Visualize outputs
+            print(vectorizer.get_feature_names_out())
+            print(X.toarray())
+            ```
+            The output shows the unique feature names (vocabulary) and the BoW representations of each document.
+
+        - Limitations
+            - Loss of Word Order: Disregarding word dependencies and contextual meanings can hinder performance.
+            - Loss of word meaning: Fails to distinguish meanings of polysemous words (words with multiple meanings) or homonyms.
+            - Dimensionality: The vector's length equals the vocabulary size, getting unwieldy with large corpora.
+            - Out-of-Vocabulary Words: Struggles to handle new words or spelling variations.
+        
     - TF–IDF Weighting
 - Language Modeling
     - n-gram modeling
