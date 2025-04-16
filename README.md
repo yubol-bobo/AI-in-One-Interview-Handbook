@@ -331,7 +331,19 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Estimation: Parameters are typically estimated via Maximum Likelihood Estimation (MLE), where the cost function (the log-loss) is minimized using iterative optimization methods (e.g., gradient descent or iterative reweighted least squares).
         - Interpretability: Coefficients can be interpreted in terms of odds ratios, offering intuitive insights into feature effects.
 
-        - Cost function, sigmoid function, cross entropy
+        - The cost for a single training example using the cross-entropy (log-loss) is: $\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})]$
+        - For $m$ training examples, the overall cost is: $J(w, b)=\frac{1}{m} \sum_{i=1}^m \ell^{(i)}(w, b)=-\frac{1}{m} \sum_{i=1}^m\left[y^{(i)} \log \left(\hat{y}^{(i)}\right)+\left(1-y^{(i)}\right) \log \left(1-\hat{y}^{(i)}\right)\right]$
+        - Derivation of gradients
+            - The cost for one sample is: $\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})], \quad \text { with } \hat{y}=\sigma(z) \text { and } z=w^T x+b$.
+            - Compute the derivative of the cost with respect to $\hat{y}$ : $\frac{\partial \ell}{\partial \hat{y}}=-\left(\frac{y}{\hat{y}}-\frac{1-y}{1-\hat{y}}\right)$
+            - The derivative of the sigmoid is: $\frac{d \hat{y}}{d z}=\hat{y}(1-\hat{y}) .$
+            - Then by the chain rule: $\frac{\partial \ell}{\partial z}=\frac{\partial \ell}{\partial \hat{y}} \cdot \frac{d \hat{y}}{d z}$. When you work through the algebra, the product simplifies to: $\frac{\partial \ell}{\partial z}=\hat{y}-y$.
+            - Since $z=w^T x+b$, the derivative of $z$ with respect to $w_j$ is: $\frac{\partial z}{\partial w_j}=x_j$. Then: $\frac{\partial \ell}{\partial w_j}=\frac{\partial \ell}{\partial z} \cdot \frac{\partial z}{\partial w_j}=(\hat{y}-y) x_j$.
+            - Similarly, $\frac{\partial \ell}{\partial b}=\frac{\partial \ell}{\partial z} \cdot \frac{\partial z}{\partial b}=(\hat{y}-y)$.
+
+
+
+
 
     - Support Vector Machines
         - Formulation: SVMs seek a hyperplane that maximally separates classes with the greatest margin. For linearly separable data, the optimization problem is: $\min _{w, b} \frac{1}{2}\|w\|^2 \quad \text { s.t. } y_i\left(w^T x_i+b\right) \geq 1, \quad \forall i$.
