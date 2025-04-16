@@ -20,6 +20,9 @@
         - [Transformers](#transformer)
 
 - [Natural Language Processing](#nlp)
+    - [Rule-Based Era](#rule-based-era-1960s-1980s)
+    - [Statistical & ML Methods Era](#statistical--ml-era)
+    - [Embedding & DL Methods Era](#embedding--deeplearning-era)
 
 - [Large Language Models](#Large-Language-Models)
 
@@ -830,9 +833,6 @@ The number of these layers can increase depending on the complexity of the data 
 ## NLP (Pre-LLM Era)
 
 Natural Language Processing (NLP) encompasses the interaction between computers and human languages, enabling machines to understand, interpret, and produce human text and speech. From basic tasks such as text parsing to more advanced ones like sentiment analysis and translation, NLP is integral to various applications, including virtual assistants, content classification, and information retrieval systems.
-
-
-### NLP Basic
 
 ### Rule-Based Era (1960s-1980s)
 - Key Innovation: Handcrafted linguistic rules.
