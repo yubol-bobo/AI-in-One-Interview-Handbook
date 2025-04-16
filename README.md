@@ -912,11 +912,50 @@ Statistical models learned parameters from data—first n‑grams, then classica
         - $\text{TF}-\text{IDF}(t, d, D)=\text{TF}(t, d) \times \text{IDF}(t, D)$. This formulation ensures that if **a term is very frequent in a document but rare in the corpus**, it gets a high TF-IDF score.
 
 - Language Modeling
-    - n-gram modeling
-    - smoothing: Laplace, Good–Turing, Kneser–Ney.
+    - N-grams are sequential word or character sets, with "n" indicating the number of elements in a particular set. They play a crucial role in understanding context and text prediction, especially in statistical language models.
+        - Types: Unigrams: Single words $w_i$; Bigrams: Pairs of words $w_{i-1}, w_i$; Trigrams: Three-word sequences $w_{i-2}, w_{i-1}, w_i$.
+        - Code
+        ```python
+        !pip install nltk
+        import nltk
+        nltk.download('punkt_tab')
+
+        from nltk import ngrams, word_tokenize
+        # Define input text
+        text = "This is a simple example for generating n-grams using NLTK."
+
+        # Tokenize the text into words
+        tokenized_text = word_tokenize(text.lower())
+
+        # Generate different types of N-grams
+        unigrams = ngrams(tokenized_text, 1)
+        bigrams = ngrams(tokenized_text, 2)
+        trigrams = ngrams(tokenized_text, 3)
+
+        # Print the generated n-grams
+        print("Unigrams:", [gram for gram in unigrams])
+        print("Bigrams:", [gram for gram in bigrams])
+        print("Trigrams:", [gram for gram in trigrams])
+        ```
+
+    - Smoothing: In n‑gram language models, maximum likelihood estimation often assigns a zero probability to n‑grams that do not occur in the training data. Smoothing techniques redistribute some probability mass from frequent (observed) n‑grams to those unseen in order to: Prevent zero probabilities (which can cause issues in probability chains or likelihood computations); Improve the model’s generalizability when encountering new text.
+        - Laplace (Add‑One) Smoothing is one of the simplest methods available. It adds one to every count in the frequency table, ensuring no event has a zero probability. Despite its simplicity, this method can be overly naive—especially when the vocabulary size is large, since it tends to overestimate the probability of rare (or unseen) events.
+            - For an n-gram $w_1, \ldots, w_n$ with count $c\left(w_1, \ldots, w_n\right)$, the smoothed probability is: $P\left(w_n \mid w_1, \ldots, w_{n-1}\right)=\frac{c\left(w_1, \ldots, w_n\right)+1}{c\left(w_1, \ldots, w_{n-1}\right)+V}$
+                where:
+                - $c\left(w_1, \ldots, w_n\right)$ is the count of the n-gram.
+                - $c\left(w_1, \ldots, w_{n-1}\right)$ is the count of the ( $\mathrm{n}-1$ )-gram context.
+                - $V$ is the vocabulary size.
+            - Laplace smoothing is computationally simple but may not be optimal for larger vocabularies where its additive nature overly penalizes higher-frequency events.
+        - Good–Turing Smoothing focuses on adjusting the probability estimates based on the frequency of frequencies—or counts‑of‑counts. The key observation is that the probability mass “lost” to unseen events can be estimated by how many events have been seen once, twice, etc.
+        - Kneser–Ney smoothing is regarded as one of the most effective and sophisticated smoothing methods for n‑gram models. Its power lies in two key aspects:
+            - Absolute Discounting: Subtract a constant discount $D$ from each nonzero n-gram count.
+            - Continuation Probability: Instead of backing off to the raw frequency of lower-order n-grams, Kneser-Ney considers how likely it is that a word appears as a novel continuation. This is captured by the "continuation probability," which is the proportion of contexts in which a word appears.
+
+
 - Supervised Learning for NLP
     - Text Classification (Multinomial Naïve Bayes, Logistic Regression on TF–IDF, SVM).
     - Sequence Labeling & NER (Hidden Markov Models (HMM), Conditional Random Fields (CRF), Rule‑based de‑identification).
+        - Output: BIO tagging scheme.
 - Unsupervised Learning for NLP
     - Similarity Metrics: Cosine, Jaccard
     - Document Retrieval (vector space, BM25)
@@ -931,9 +970,11 @@ Statistical models learned parameters from data—first n‑grams, then classica
 
 Neural nets brought continuous representations and end‑to‑end learning.
 
-- Word & Subword Embeddings
-    - Word2Vec (2013)
-        - CBOW vs. Skip‑gram
+- Word & Subword Embeddings [[YouTube](https://www.youtube.com/watch?v=hVM8qGRTaOA)] Word embedding is a technique in natural language processing (NLP) where words are represented as dense numerical vectors in a continuous vector space. (n-dim vector). Two similar vectors are two similar words and the direction have some meaning.
+    - Word2Vec (2013) [[知乎](https://zhuanlan.zhihu.com/p/61635013)]
+        - Word2Vec use recently proposed techniques for measuring the quality of the resulting vector representations, with the expectation that not only will similar words tend to be close to each other, but that words can have multiple degrees of similarity. This has been observed earlier in the context. syntactic regulanties. Using a word offet technique where simple algebratc operations are performed on the word vectors, it was shown for example that vector("King") - vector("Man") + vector("Woman") results in a vector that is closest to the vector representation of the word Queen.
+        - CBOW
+        - Skip-gram
     - GloVe
     - FastTest
     - Evaluation: analogy tests, semantic similarity
