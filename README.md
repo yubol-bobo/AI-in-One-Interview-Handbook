@@ -1103,7 +1103,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
 #### Stages
 
 <div align="center">
-    <img src="figs/llm_stages.png" width="80%">
+    <img src="figs/llm_stages.png" width="90%">
 </div>
 
 - Pre training
