@@ -1,7 +1,7 @@
 # PhD-ML-DL-LLM-Interview-Handbook
 
 ## Table of Contents
-
+- [Statistics](#statistics)
 - [Machine Learning](#Machine-Learning)
     - [ML Basic](#ML-Basic)
     - [ML Algorithms](#ML-Algorithms)
@@ -30,8 +30,15 @@
  
 
 ----
+## Statistics
 
+### Hypothesis Test
+[[Wiki](https://en.wikipedia.org/wiki/Statistical_hypothesis_test)]
+A statistical hypothesis test is a method of statistical inference used to decide whether the data provide **sufficient evidence to reject** a particular hypothesis. A statistical hypothesis test typically involves a calculation of a test statistic. Then a decision is made, either by comparing the test statistic to a critical value or equivalently by evaluating a p-value computed from the test statistic.
 
+- P-value:the p-value represents the probability of obtaining a test value, which is as extreme as the one which had been observed originally. The underlying condition is that the null hypothesis is true.
+
+----
 ## Machine Learning
 
 ### ML Basic
