@@ -38,6 +38,10 @@ A statistical hypothesis test is a method of statistical inference used to decid
 
 - P-value:the p-value represents the probability of obtaining a test value, which is as extreme as the one which had been observed originally. The underlying condition is that the null hypothesis is true.
 
+### MLE
+- Definition: Maximum Likelihood Estimation (MLE) is a statistical method used to estimate the parameters of a probability distribution by maximizing a likelihood function. It's a fundamental technique in both statistics and machine learning.
+- The basic idea behind MLE is to find the parameter values that make the observed data most probable. Given a set of observations and a statistical model with unknown parameters, MLE selects the parameter values that maximize the likelihood function.
+- In everyday conversation, "probability" and "likelihood" mean the same thing. However, in Stats-Land, "likelihood" specifically refers to this situation we've covered here; where you are trying to find the optimal value for the mean or standard deviation for a distribution given a bunch of observed measurements.
 ----
 ## Machine Learning
 
@@ -331,7 +335,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Estimation: Parameters are typically estimated via Maximum Likelihood Estimation (MLE), where the cost function (the log-loss) is minimized using iterative optimization methods (e.g., gradient descent or iterative reweighted least squares).
         - Interpretability: Coefficients can be interpreted in terms of odds ratios, offering intuitive insights into feature effects.
 
-        - The cost for a single training example using the cross-entropy (log-loss) is: $\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})]$
+        - The cost for a single training example using the binary cross-entropy (log-loss) is: $\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})]$.
         - For $m$ training examples, the overall cost is: $J(w, b)=\frac{1}{m} \sum_{i=1}^m \ell^{(i)}(w, b)=-\frac{1}{m} \sum_{i=1}^m\left[y^{(i)} \log \left(\hat{y}^{(i)}\right)+\left(1-y^{(i)}\right) \log \left(1-\hat{y}^{(i)}\right)\right]$
         - Derivation of gradients
             - The cost for one sample is: $\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})], \quad \text { with } \hat{y}=\sigma(z) \text { and } z=w^T x+b$.
@@ -340,8 +344,6 @@ All following advanced optimization algorithms improve parameter updates by adju
             - Then by the chain rule: $\frac{\partial \ell}{\partial z}=\frac{\partial \ell}{\partial \hat{y}} \cdot \frac{d \hat{y}}{d z}$. When you work through the algebra, the product simplifies to: $\frac{\partial \ell}{\partial z}=\hat{y}-y$.
             - Since $z=w^T x+b$, the derivative of $z$ with respect to $w_j$ is: $\frac{\partial z}{\partial w_j}=x_j$. Then: $\frac{\partial \ell}{\partial w_j}=\frac{\partial \ell}{\partial z} \cdot \frac{\partial z}{\partial w_j}=(\hat{y}-y) x_j$.
             - Similarly, $\frac{\partial \ell}{\partial b}=\frac{\partial \ell}{\partial z} \cdot \frac{\partial z}{\partial b}=(\hat{y}-y)$.
-
-
 
 
 
@@ -354,10 +356,18 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
     - Naive Bayes
+        [[Coding](https://www.youtube.com/watch?v=TLInuAorxqE)]
         - Foundational Principle: Based on Bayes' theorem: $P(C \mid x)=\frac{P(x \mid C) P(C)}{P(x)}$, Naive Bayes assumes conditional independence among features given the class label.
-        - Varients
-            - Gaussian Naive Bayes: Assumes the continuous features follow a normal distribution.
-            - Multinomial/Bernoulli Naive Bayes: Commonly used in text classification where feature counts or binary representations are natural.
+            - $P(C)$ is the prior probability of class $C$.
+            - $P(x \mid C)$ is the likelihood of observing features $x$ under class $C$.
+            - $P(C \mid x)$ is the posterior probability: what we want.
+            - Because $P(x)$ is the same across classes when comparing them, we only need $\arg \max _C P(x \mid C) P(C)$.
+
+        - Choosing a Model
+            - Multinomial NB: features are non‑negative counts (e.g. word counts in text).
+            - Bernoulli NB: binary features (presence/absence).
+            - Gaussian NB: continuous features, modeled with class‑conditional Gaussians.
+
         - Why naive? The term "naive" in Naive Bayes refers to the algorithm's assumption that all features (predictor variables) used for classification are mutually independent given the class label. This assumption is considered "naive" because, in real-world scenarios, features often exhibit some degree of dependency, and assuming independence can be an oversimplification of the true underlying relationships. Despite the “naive” assumption being seldom true in practice, the method often performs well due to its simplicity and effectiveness in high-dimensional settings.
 
     - Linear discriminant analysis (LDA)
@@ -1091,6 +1101,11 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 
 #### Stages
+
+<div align="center">
+    <img src="figs/llm_stages.png" width="80%">
+</div>
+
 - Pre training
     - Masked Language Modeling (MLM)
     - Causal Language Modeling (CLM)
