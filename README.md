@@ -823,12 +823,32 @@ The number of these layers can increase depending on the complexity of the data 
         - Attention Weights: Use "query" vector (decoder state) and "key" vectors (all encoder states). For each query-key pair, calculate weight. Then, normalize to add to one using softmax. Compute softmax $\left(\frac{Q K^T}{\sqrt{d}}\right)$, which determines how much focus each token gets.
         - Output: Multiply the attention weights with $V$ to produce the final context-aware representation.
 
-    - Why divide $\sqrt{d_k}$?  We suspect that for large values of $d_k$, the dot products grow large in magnitude, pushing the softmax function into regions where it has  extremely small gradients. To counteract this effect, we scale the dot products by $\sqrt{d_k}$.
+    - Why dot product instead of additive attention? While the two are similar in theoretical complexity, the exp in the paper shows much faster and more space-efficient in practice, since it can be implemented using highly optimized matrix multiplication code.
+
+    - Why divide $\sqrt{d_k}$?  We suspect that for large values of $d_k$, the dot products grow large in magnitude, pushing the softmax function into regions where it has  extremely small gradients. To counteract this effect, we scale the dot products by $\sqrt{d_k}$. Besides, it is due to Variance stabilization. when using Xavier (or Glorot) initialization, the weights have a variance of 1/d (where d is the embedding dimension). Multiplying by √d scales the variance to 1, which helps maintain a stable variance throughout the network.
     - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features. It was mentioned in the paper that Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions. 
         - Intuition: Information from different parts fo the sentence can be useful to disambiguate in different ways.   Ex. **I** run a small **business**.
         <div align="center">
             <img src="figs/multi_head_att.png" width="75%">
         </div>
+    - Multi-query attention: all heads share the same W_k and W_v. 
+        - Uptraining: fine-tuning based on the MQA checkpoint.
+        - All attention heads share exactly the same key (W_k) and value (W_v) projection matrices
+        - Each head still maintains its own query (W_q) projection matrix
+    - Grouped Query Attention: A middle-ground approach introduced to balance efficiency and performance
+        - Attention heads are divided into groups.
+        - Heads within the same group share the same key (W_k) and value (W_v) projection matrices.
+        - Each head still has its own query (W_q) projection matrix.
+    - Flash Attention [[arXiv](https://arxiv.org/abs/2205.14135)]
+
+    - Positional Encoding
+        In this work, we use sine and cosine functions of different frequencies:
+
+        $\begin{aligned} P E_{(p o s, 2 i)} & =\sin \left(p o s / 10000^{2 i / d_{\text {model }}}\right) \\ P E_{(p o s, 2 i+1)} & =\cos \left(p o s / 10000^{2 i / d_{\text {model }}}\right)\end{aligned}$
+
+        where pos is the position and $i$ is the dimension. That is, each dimension of the positional encoding corresponds to a sinusoid. The wavelengths form a geometric progression from $2 \pi$ to $10000 \cdot 2 \pi$. We chose this function because we hypothesized it would allow the model to easily learn to attend by relative positions, since for any fixed offset $k, P E_{p o s+k}$ can be represented as a linear function of $P E_{\text {pos }}$.
+        We also experimented with using learned positional embeddings [8] instead, and found that the two versions produced nearly identical results (see Table 3 row (E)). We chose the sinusoidal version because it may allow the model to extrapolate to sequence lengths longer than the ones encountered during training.
+
 
 [[Lil'Log](https://lilianweng.github.io/posts/2018-06-24-attention/)]
     - Scaled Dot-Product Attention: Mathematics and intuition behind scaling
@@ -1106,9 +1126,14 @@ Neural nets brought continuous representations and end‑to‑end learning.
     <img src="figs/llm_stages.png" width="90%">
 </div>
 
-- Pre training
-    - Masked Language Modeling (MLM)
-    - Causal Language Modeling (CLM)
+- Pre training (99% of the training computation work happens here) --> base model 
+    Pre-training involves several steps. First, a massive dataset of text data, often in terabytes, is gathered. Next, a model architecture is chosen or created specifically for the task at hand. Additionally, a tokenizer is trained to appropriately handle the data, ensuring that it can efficiently encode and decode text. The dataset is then pre-processed using the tokenizer's vocabulary, converting the raw text into a format suitable for training the model. This step involves mapping tokens to their corresponding IDs, and incorporating any necessary special tokens or attention masks. Once the dataset is pre-processed, it is ready to be used for the pre-training phase.
+
+    During pre-training, the model learns to predict the next word in a sentence or to fill in missing words by utilizing the vast amount of data available. This process involves optimizing the model's parameters through an iterative training procedure that maximizes the likelihood of generating the correct word or sequence of words given the context.
+
+    To accomplish this, the pre-training phase typically employs a variant of the self-supervised learning technique. The model is presented with partially masked input sequences, where certain tokens are intentionally hidden, and it must predict those missing tokens based on the surrounding context. By training on massive amounts of data in this manner, the model gradually develops a rich understanding of language patterns, grammar, and semantic relationships. This specific approach is for [[Masked Language Modeling](https://huggingface.co/docs/transformers/main/tasks/masked_language_modeling)] (BERT). The most commonly used method today, however, is [[Causal Language Modeling](https://huggingface.co/docs/transformers/main/tasks/language_modeling)]. Unlike masked language modeling, where certain tokens are masked and the model predicts those missing tokens, causal language modeling focuses on predicting the next word in a sentence given the preceding context.
+
+
 - Post training
 - Data Quality and Selection
     - High-quality data selection strategies (deduplication, filtering, diversity)
