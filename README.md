@@ -679,20 +679,40 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Weight constraints: Imposes restrictions (e.g., max-norm constraints) on the weights, ensuring they do not become too large during training.
 
     - Normalization [[Medium](https://medium.com/techspace-usict/normalization-techniques-in-deep-neural-networks-9121bf100d8)]
-        - **Batch normalization** [[YouTube](https://www.youtube.com/watch?v=yXOMHOpbon8)] is a method that normalizes activations in a network across the mini-batch of definite size. For each feature, batch normalization computes the mean and variance of that feature in the mini-batch. It then subtracts the mean and divides the feature by its mini-batch standard deviation. Good for CNN.
+        - **Batch normalization** (2015) [[YouTube](https://www.youtube.com/watch?v=yXOMHOpbon8)] is a method that normalizes activations in a network across the mini-batch of definite size. For each feature, batch normalization computes the mean and variance of that feature in the mini-batch. It then subtracts the mean and divides the feature by its mini-batch standard deviation. Good for CNN.
         - Problems
             - Variable Batch Size → If batch size is of 1, then variance would be 0 which doesn’t allow batch norm to work. Furthermore, if we have small mini-batch size then it becomes too noisy and training might affect. There would also be a problem in distributed training. As, if you are computing in different machines then you have to take same batch size because otherwise γ and β will be different for different systems. It batch size too large, training might need more epochs.
             - Recurrent Neural Network → In an RNN, the recurrent activations of each time-step will have a different story to tell(i.e. statistics). This means that we have to fit a separate batch norm layer for each time-step. This makes the model more complicated and space consuming because it forces us to store the statistics for each time-step during training.
         
         - **Weight normalization** reparameterizes the weights $(\omega)$ as: $\boldsymbol{w}=\frac{g}{\|\boldsymbol{v}\|} \boldsymbol{v}$. It separates the weight vector from its direction, this has a similar effect as in batch normalization with variance. The only difference is in variation instead of direction.
 
-        - **Layer normalization** [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)] normalizes input across the features instead of normalizing input features across the batch dimension in batch normalization. Good for RNN.
+        - **Layer normalization** (2016) [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)] normalizes input across the features instead of normalizing input features across the batch dimension in batch normalization. Good for RNN.
             - $\mathrm{y}=\frac{\mathrm{x}-\mathrm{E}(\mathrm{x})}{\sqrt{\mathrm{V} \text{ar}(\mathrm{x})+\epsilon}} * \gamma+\beta$.
+            - Post-layerNorm: $x_{i+1}=\text { LayerNorm }\left(x_i+\text{Sublayer}\left(x_i\right)\right)$. Apply the residual connection first, then normalize. Used in BERT, T5, and many earlier models. (BERT, T5)
+            - Pre-layerNorm: $x_{i+1}=x_i+\text{Sublayer}\left(\text{LayerNorm}\left(x_i\right)\right)$. Normalize before the sublayer (e.g., attention or MLP). Residual connection happens after the sublayer.  (GPT, LLaMa)
+            - Why post LN is better? [[科学空间](https://kexue.fm/archives/9009)] Under same setting, pre-LN is easier to be trained, but performance is not as good as post-LN. 
+                - In Pre-LN, because the input is normalized before the residual path, the updates across layers become smaller as depth increases.
+                - As a result, deeper layers contribute less and less, and the model starts acting like a shallow but wide network — you're stacking more layers, but they don't add much unique information.
+                - So while the model has many layers on paper, in practice, it’s not effectively using its depth — it becomes “deep in form but shallow in function.”
+                - Quote from DeepNet: The gradients of Pre-LN at bottom layers tend to be larger than at top layers, leading to a degradation in performance compared with Post-LN.
+            - DeepNet introduces **DeepNorm** to merge the high performance of Post‑LN with the stability of Pre‑LN, enabling reliable training of ultra‑deep Transformers .
+                - In a vanilla Post‑LN Transformer, each sublayer updates via： $x_{l+1} = LayerNorm(x_l + G_l(x_l))$, where $G_l$ is the sublayer function (self-attention or feed-forward). DeepNorm replaces this with $x_{l+1} = LayerNorm(x_l + α·G_l(x_l))$.
+                - scaling the residual branch by a constant $\alpha$. Additionally, after standard initialization, the weights inside each residual branch (feed-forward projections and attention value/output projections) are multiplied by a constant $\beta$. These two scaling factors jointly bound the magnitude of model updates and gradients, stabilizing training even at depths of hundreds or thousands of layers.
 
         - **RMSnorm** simplifies LayerNorm by removing the mean and bias terms.  $\text{RMS}(\mathbf{x})=\sqrt{\frac{1}{n} \sum_{i=1}^n x_i^2}$, $\text{RMSNorm}(\mathbf{x})=\frac{\mathbf{x}}{\text{RMS}(\mathbf{x})} \cdot \mathbf{g}$.
-        - **Instance/Constrast normalization**: Layer normalization and instance normalization is very similar to each other but the difference between them is that instance normalization normalizes across each channel in each training example instead of normalizing across input features in an training example. Unlike batch normalization, the instance normalization layer is applied at test time as well(due to non-dependency of mini-batch). This technique is originally devised for style transfer, the problem instance normalization tries to address is that the network should be agnostic to the contrast of the original image.
-        - **Group normalization** normalizes over group of channels for each training examples. We can say that, Group Norm is in between Instance Norm and Layer Norm. When we put all the channels into a single group, group normalization becomes Layer normalization. And, when we put each channel into different groups it becomes Instance normalization.
+        - **pRMSNrom** is a normalization technique similar to RMSNorm, but with a twist: instead of computing the normalization over the entire vector, it does so over only part of it (hence the "partial").
+            - Instead of using all $d$ dimensions, pRMSNorm uses just a subset $d_p$ of them for computing the RMS: $\text{pRMSNorm}(x)=\frac{x}{\sqrt{\frac{1}{d_p} \sum_{i=1}^{d_p} x_i^2+\epsilon}} \cdot g$  (Mistral, Yi)
+
+        - **Instance/Constrast normalization** (2017): Layer normalization and instance normalization is very similar to each other but the difference between them is that instance normalization normalizes across each channel in each training example instead of normalizing across input features in an training example. Unlike batch normalization, the instance normalization layer is applied at test time as well(due to non-dependency of mini-batch). This technique is originally devised for style transfer, the problem instance normalization tries to address is that the network should be agnostic to the contrast of the original image.
+        - **Group normalization** (2018) normalizes over group of channels for each training examples. We can say that, Group Norm is in between Instance Norm and Layer Norm. When we put all the channels into a single group, group normalization becomes Layer normalization. And, when we put each channel into different groups it becomes Instance normalization.
         - (**Spectral normalization**: for GAN)
+
+        - **Understanding**: Imagine a stack of N (batch) books, each with C (channels) pages, every page has H lines, and each line contains W characters.
+            - BN: It's like averaging across the same page in different books. For example, all the 36th pages from all N books are added together, and the average is computed over all characters on those pages (total of N×H×W characters).
+            - LN: It averages all characters in a single book. Each book is normalized independently, computing the average over C×H×W characters.
+            - IN: It averages all characters on a single page of a book. Each page is treated separately, averaging over H×W characters.
+            - GN: Each book (with C pages) is split into G groups of pages. Each group (C/G pages) is treated like a mini-book, and normalization is done within each group.
+
 
         <div align="center">
             <img src="figs/normalizations.png" width="90%">
@@ -1024,8 +1044,17 @@ Neural nets brought continuous representations and end‑to‑end learning.
 - Word & Subword Embeddings [[YouTube](https://www.youtube.com/watch?v=hVM8qGRTaOA)] Word embedding is a technique in natural language processing (NLP) where words are represented as dense numerical vectors in a continuous vector space. (n-dim vector). Two similar vectors are two similar words and the direction have some meaning.
     - Word2Vec (2013) [[知乎](https://zhuanlan.zhihu.com/p/61635013)]
         - Word2Vec use recently proposed techniques for measuring the quality of the resulting vector representations, with the expectation that not only will similar words tend to be close to each other, but that words can have multiple degrees of similarity. This has been observed earlier in the context. syntactic regulanties. Using a word offet technique where simple algebratc operations are performed on the word vectors, it was shown for example that vector("King") - vector("Man") + vector("Woman") results in a vector that is closest to the vector representation of the word Queen.
-        - CBOW
-        - Skip-gram
+
+        They propose two new model architectures for learning distributed representations of words that try to minimize computational complexity. They found most of the complexity is caused by the non-linear hidden layer in the model. While this is what makes neural networks so attractive, we decided to explore simpler models that might not be able to represent the data as precisely as neural networks, but can possibly be trained on much more data efficiently.
+        - CBOW: predicts the current word based on the context. 
+            
+        - Skip-gram predicts surrounding words given the current word.
+            - Objective function: Maximize the probability of any context word given the current center word.
+
+        - Hierarchical Softmax reduces the cost of computing softmax from $\mathrm{O}(\mathrm{V})$ to $\mathrm{O}(\log \mathrm{V})$ using a binary tree specifically a Huffman Tree.
+        - In the follow-up work, negative sampling is purposed.
+
+
     - GloVe
     - FastTest
     - Evaluation: analogy tests, semantic similarity
@@ -1093,11 +1122,38 @@ Neural nets brought continuous representations and end‑to‑end learning.
 #### Embedding
 
 [[Andrej Karpathy](https://www.youtube.com/watch?v=zduSFxRajkE&list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ&index=9)]
+
+
 - how to train    
 - word embedding (Post-LM Era)
     - Contextual embedding (BERT, GPT embeddings)
 - positional embedding
-    - **Absolute positinal encodings** add an encoding to the input in hope that relative position will be captured
+
+
+    Self‑attention alone is permutation‑invariant—it treats an input sequence as a set, so without extra signals the model cannot tell “this token comes before that one.” Injecting position information is therefore essential to recover order in Transformers.
+
+    - What is Extrapolation in Positional Encoding? Whether the model can still understand position and order when you feed it a longer sequence than it was originally trained on. For example: If a model was trained with a maximum sequence length of 2,048 tokens, can it still work on 8,000 tokens or 100,000 tokens?
+
+    To extrapolate well, a positional encoding must:
+        - Be continuous (no hard index limits).
+        - Preserve relative position information.
+        - Have regular patterns that extend naturally beyond training range
+
+
+    - **Absolute positinal encodings**  attach a vector $p_k$ (depending only on position $k$ ) to each token embedding $x_k$, typically via addition $x_k \leftarrow x_k+p_k$.
+        - Learnable embeddings: Initialize a $\left(P_{\max } \times d\right)$ matrix of parameters and train jointly.
+            - Pros: highly expressive.
+            - Cons: no inherent extrapolation beyond $P_{\max }$ without further fine-tuning.
+        - Sinusoidal ("triangular") encodings $p_{k, 2 i}=\sin \left(k / 10000^{2 i / d}\right), \quad p_{k, 2 i+1}=\cos \left(k / 10000^{2 i / d}\right)$.
+            - Pros: closed-form, constant memory, some theoretical extrapolation via periodicity.
+            - Cons: distant positions eventually "wrap around" and become hard to distinguish without decay tweaks.
+        - Recursive / ODE-based encodings: Define $p_{k+1}=f\left(p_k\right)$ (e.g. an RNN) or even an ODE $d p_t / d t=h\left(p_t, t\right)$ (FLOATER).
+            - Pros: highly flexible, can be shown to generalize sinusoidal as a special case.
+            - Cons: sequential dependency hurts parallelism and speed.
+        - Multiplicative encodings [[知乎](https://zhuanlan.zhihu.com/p/183234823)]: Inject position by element-wise scaling $x_k \leftarrow x_k$ $\odot p_k$ instead of adding.
+            - Pros: sometimes better empirical performance.
+            - Cons: less commonly used, few systematic studies.
+
     - **Relative positional encodings** explicitly êncode relative position
     - **RoPE** uses trigonometry and imaginary numbers to come up with a function that satisfies this property. It uses absolute positions to represent relative positions.
         - $f_q\left(\mathbf{x}_m, m\right) \cdot f_k\left(\mathbf{x}_n, n\right)=g\left(\mathbf{x}_m, \mathbf{x}_n, m-n\right)$
@@ -1170,6 +1226,9 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 [[Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)][[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)] [[ANLP-Parallelism and Scaling](https://www.youtube.com/watch?v=Mpg1YJfAEH0)] [[知乎](https://zhuanlan.zhihu.com/p/598714869)]
 - Data parallel [[Distributed Data Parallel (DDP) using Pytorch] (https://www.youtube.com/watch?v=-K3bZYHYHEA&list=PL_lsbAsL_o2CSuhUhJIiW0IkdT5C2wGWj&index=1)]
+    - PyTorch DP: `torch.nn.DataParallel`
+    - PyTorch DDP: `torch.nn.DistributedDataParallel`
+        - All-Reduce
     - Replicate model on several GPUs. Run forward/backward passes on different micro-batches in parallel for each GPU. Average the gradients across the GPUs.
     - ZeRO (Zero Redundancy Optimizer)
 - Model parallel
@@ -1252,6 +1311,8 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 
 ### RAG
+
+[[ANLP](https://www.youtube.com/watch?v=KfQaYk4k9eM)]
 #### Retrieval
 - Sparse retrieval (BM25, TF-IDF based retrival)
 - Dense retrieval (Embedding-based retrieval)
