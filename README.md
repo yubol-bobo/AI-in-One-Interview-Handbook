@@ -1191,8 +1191,17 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
     To accomplish this, the pre-training phase typically employs a variant of the self-supervised learning technique. The model is presented with partially masked input sequences, where certain tokens are intentionally hidden, and it must predict those missing tokens based on the surrounding context. By training on massive amounts of data in this manner, the model gradually develops a rich understanding of language patterns, grammar, and semantic relationships. This specific approach is for [[Masked Language Modeling](https://huggingface.co/docs/transformers/main/tasks/masked_language_modeling)] (BERT). The most commonly used method today, however, is [[Causal Language Modeling](https://huggingface.co/docs/transformers/main/tasks/language_modeling)]. Unlike masked language modeling, where certain tokens are masked and the model predicts those missing tokens, causal language modeling focuses on predicting the next word in a sentence given the preceding context.
 
+    - Framework
+        - DeepSpeed is a deep learning optimization library that makes distributed training easy, efficient, and effective. It has been integrated into the Huggingface library.
+        - Megatron-LM is a large, powerful transformer model framework developed by the Applied Deep Learning Research team at NVIDIA.
 
-- Post training
+
+- Fine-Tuning
+    - Fully Fine-Tuning
+    - Parameter-Efficient Fine-Tuning (PEFT)
+    - More on [[LLM Fine-Tuning](#fine-tuning)]
+    
+
 - Data Quality and Selection
     - High-quality data selection strategies (deduplication, filtering, diversity)
     - Data cleaning techniques for LLMs
@@ -1226,11 +1235,32 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 [[Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)][[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)] [[ANLP-Parallelism and Scaling](https://www.youtube.com/watch?v=Mpg1YJfAEH0)] [[知乎](https://zhuanlan.zhihu.com/p/598714869)]
 - Data parallel [[Distributed Data Parallel (DDP) using Pytorch] (https://www.youtube.com/watch?v=-K3bZYHYHEA&list=PL_lsbAsL_o2CSuhUhJIiW0IkdT5C2wGWj&index=1)]
-    - PyTorch DP: `torch.nn.DataParallel`
+    - PyTorch DP: `torch.nn.DataParallel`. Nobody use it anymore. Do not support model parallel.
+        - 4 Communications: Output gather → Loss scatter → Gradients gather → Parameter broadcast.
+        - Drawbacks
+            - Main GPU is a bottleneck.
+            - Heavy memory and communication load on cuda:0.
+            - Not scalable across machines
+
     - PyTorch DDP: `torch.nn.DistributedDataParallel`
-        - All-Reduce
+        - No communication during forward pass and loss computation.
+        - During backpropagation, gradients are automatically **all-reduced** across all GPUs. This means all GPUs average their gradients with each other using NCCL's all-reduce. Hence, all models stay synchornized.
+        - Gradient all-reduce is the core operation that enables DDP to synchronize gradients across GPUs. After local backpropagation, it aggregates gradients (sums them), averages them, and ensures all GPUs update their model in the same way. It uses high-performance communication backends like NCCL and scales efficiently to large GPU clusters.
+
+    - ZeRO (Zero Redundancy Optimizer) is a memory optimization technique for large-scale model training developed by Microsoft’s DeepSpeed team. Its goal is to eliminate memory redundancy across GPUs during distributed training, so you can train much larger models without running out of memory. ZeRO removes redundancy by sharding (splitting) model states across GPUs. Different ZeRO stages define how much is sharded:
+        - ZeRO-1: Sharding Optimizer States. Only optimizer states are sharded across GPUs. Model parameters and gradients are still fully replicated. (All reduce)
+        - ZeRO-2: Sharding Optimizer States + (reduce) Gradients. Each gradient tensor is sent to the GPU responsible for that parameter shard, using reduce (not all-reduce). Each GPU updates only the part of the model it's responsible for, then broadcasts updated weights.
+        - ZeRO-3: Full Sharding (Optimizer + Gradients + Parameters). Shards everything: parameters, gradients, and optimizer states. At any moment, each GPU holds only a part of the full model. This essentially blends **data parallelism** and **model parallelism**.
+            - Reduce + AllGather can simulate AllReduce.
+
+        <div align="center">
+            <img src="figs/zero.png" width="90%">
+        </div>
+    
+    - **Fully Sharded DP (FSDP)** is directly inspired by ZeRO-3. FSDP offers the same full-sharding idea but natively within the PyTorch ecosystem. FSDP also supports activation checkpointing and mixed precision, like ZeRO-Offload in DeepSpeed.
+
     - Replicate model on several GPUs. Run forward/backward passes on different micro-batches in parallel for each GPU. Average the gradients across the GPUs.
-    - ZeRO (Zero Redundancy Optimizer)
+    
 - Model parallel
     - Tensor parallel
         - Sequence(Activation) parallel
@@ -1265,11 +1295,11 @@ Neural nets brought continuous representations and end‑to‑end learning.
 - Types
     - Full fine-tuning vs Parameter-efficient fine-tuning
     - Parameter-efficient fine-tuning (PEFT) [[paper](https://arxiv.org/pdf/2110.04366)]
+        - Prompt/Prefix Tuning
         - Adapters
-        - Prefix Tuning
         - LORA [[YouTube](https://www.youtube.com/watch?v=eC6Hd1hFvos&t=959s)]
-        - Q-LoRA
-        - BitFit
+        - Q-LoRA: Further compress memory requirements for training by 4-bit quantization of the model. Use of GPU memory paging to prevent OOM
+        - BitFit: Tune only the bias terms of the model
     - Quantization
 
     - Deepspeed Zero
@@ -1280,7 +1310,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 - Catastrophic forgetting mitigation
     - add general domain data as well 1:5 - 1:10
-- LoRA/QLoRA
+
 - GPT Fine-tuning
 
 
