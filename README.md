@@ -415,6 +415,15 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Soft Voting (Weighted Average)
         - Weighted Voting
 
+
+- While we can also divide the supervised learning classification algorithms by Training Methods into **Generative vs. Discriminative Models**
+    - Discriminative models[[wiki](https://en.wikipedia.org/wiki/Discriminative_model)], also referred to as conditional models, are a class of models frequently used for classification. 
+        - Discriminative models learn the conditional distribution $P(y \mid x)$ (or decision boundary), focusing solely on predicting labels from observed inputs.
+        - They are typically used to solve binary classification problems, i.e. assign labels, such as pass/fail, win/lose, alive/dead or healthy/sick, to existing datapoints.
+        - logistic regression (LR), Support Vector Machines (SVMs), Decision Trees & Random Forests, KNN, conditional random fields (CRFs).
+    - Generative models learn the joint distribution $P(x, y)$, modeling how data and labels are generated so they can both classify and synthesize new samples.
+        - Naive Bayes, Gaussian Mixture Models (GMMs), Hidden Markov Models (HMMs), Latent Dirichlet Allocation (LDA), Boltzmann Machines / RBMs, Variational Autoencoders (VAEs), Generative Adversarial Networks (GANs), Normalizing Flows, Diffusion Models
+
 ----      
    
 
@@ -1262,10 +1271,11 @@ Neural nets brought continuous representations and end‑to‑end learning.
     - Replicate model on several GPUs. Run forward/backward passes on different micro-batches in parallel for each GPU. Average the gradients across the GPUs.
     
 - Model parallel
-    - Tensor parallel
+    - Pipeline (horizontal) parallel: split layers across multi-GPUs when model is too large. 
+        - **bubble issue**: deepseek design - one forward one-backward
+    - Tensor (vertical) parallel
         - Sequence(Activation) parallel
-    - Pipeline parallel: split layers across multi-GPUs when model is too large.
-        - bubble issue: deepseek design - one forward one-backward
+
     - Expert (MoE) parallel
 
 - Memory optimization
