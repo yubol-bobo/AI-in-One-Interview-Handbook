@@ -421,7 +421,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Discriminative models learn the conditional distribution $P(y \mid x)$ (or decision boundary), focusing solely on predicting labels from observed inputs.
         - They are typically used to solve binary classification problems, i.e. assign labels, such as pass/fail, win/lose, alive/dead or healthy/sick, to existing datapoints.
         - logistic regression (LR), Support Vector Machines (SVMs), Decision Trees & Random Forests, KNN, conditional random fields (CRFs).
-    - Generative models learn the joint distribution $P(x, y)$, modeling how data and labels are generated so they can both classify and synthesize new samples.
+    - Generative models [[wiki](https://en.wikipedia.org/wiki/Generative_model)] learn the joint distribution $P(x, y)$, modeling how data and labels are generated so they can both classify and synthesize new samples.
         - Naive Bayes, Gaussian Mixture Models (GMMs), Hidden Markov Models (HMMs), Latent Dirichlet Allocation (LDA), Boltzmann Machines / RBMs, Variational Autoencoders (VAEs), Generative Adversarial Networks (GANs), Normalizing Flows, Diffusion Models
 
 ----      
