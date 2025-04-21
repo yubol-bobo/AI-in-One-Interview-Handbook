@@ -1240,6 +1240,10 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 ### LLM Engineering
 
+#### Mixed Precision
+[[arXiv](https://arxiv.org/abs/1710.03740)]
+
+
 #### Distributed training 
 
 [[Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)][[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)] [[ANLP-Parallelism and Scaling](https://www.youtube.com/watch?v=Mpg1YJfAEH0)] [[知乎](https://zhuanlan.zhihu.com/p/598714869)]
@@ -1262,7 +1266,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - ZeRO-3: Full Sharding (Optimizer + Gradients + Parameters). Shards everything: parameters, gradients, and optimizer states. At any moment, each GPU holds only a part of the full model. This essentially blends **data parallelism** and **model parallelism**.
             - Reduce + AllGather can simulate AllReduce.
 
-        <div align="center">
+        <div align="center">s
             <img src="figs/zero.png" width="90%">
         </div>
     
@@ -1271,7 +1275,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
     - Replicate model on several GPUs. Run forward/backward passes on different micro-batches in parallel for each GPU. Average the gradients across the GPUs.
     
 - Model parallel
-    - Pipeline (horizontal) parallel: split layers across multi-GPUs when model is too large. 
+    - Pipeline (horizontal) parallel [[GPipe](https://arxiv.org/abs/1811.06965)]: split layers across multi-GPUs when model is too large. 
         - **bubble issue**: deepseek design - one forward one-backward
     - Tensor (vertical) parallel
         - Sequence(Activation) parallel
