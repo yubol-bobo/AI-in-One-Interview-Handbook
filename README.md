@@ -428,6 +428,9 @@ All following advanced optimization algorithms improve parameter updates by adju
    
 
 #### Unsupervised Learning
+
+ [[Unsupervised learning](https://en.wikipedia.org/wiki/Unsupervised_learning)] is a framework in machine learning where, in contrast to supervised learning, algorithms learn patterns exclusively from unlabeled data.
+ 
 - Clustering
     - Centroid models: k-means clustering
     - Connectivity models: Hierarchical clustering
@@ -1247,7 +1250,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
 #### Distributed training 
 
 [[Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)][[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)] [[ANLP-Parallelism and Scaling](https://www.youtube.com/watch?v=Mpg1YJfAEH0)] [[知乎](https://zhuanlan.zhihu.com/p/598714869)]
-- Data parallel [[Distributed Data Parallel (DDP) using Pytorch] (https://www.youtube.com/watch?v=-K3bZYHYHEA&list=PL_lsbAsL_o2CSuhUhJIiW0IkdT5C2wGWj&index=1)]
+- Data parallel [[Distributed Data Parallel (DDP) using Pytorch] (https://www.youtube.com/watch?v=-K3bZYHYHEA&list=PL_lsbAsL_o2CSuhUhJIiW0IkdT5C2wGWj&index=1)] [[Collective Operation](https://en.wikipedia.org/wiki/Collective_operation)]
     - PyTorch DP: `torch.nn.DataParallel`. Nobody use it anymore. Do not support model parallel.
         - 4 Communications: Output gather → Loss scatter → Gradients gather → Parameter broadcast.
         - Drawbacks
