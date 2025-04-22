@@ -442,10 +442,13 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Transition probability and emission probability
     - Viterbi algorithm
 - Dimension reduction techniques
-    - PCA
-    - Independent Component Analysis (ICA)
-    - T-SNE   
-    - UMAP    
+    - Linear/Subspace Methods
+        - PCA
+        - Independent Component Analysis (ICA)
+    - Nonlinear/ Manifold Methods
+        - Isomap
+        - T-SNE   
+        - UMAP    
 
 
 ----
@@ -1263,6 +1266,23 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - During backpropagation, gradients are automatically **all-reduced** across all GPUs. This means all GPUs average their gradients with each other using NCCL's all-reduce. Hence, all models stay synchornized.
         - Gradient all-reduce is the core operation that enables DDP to synchronize gradients across GPUs. After local backpropagation, it aggregates gradients (sums them), averages them, and ensures all GPUs update their model in the same way. It uses high-performance communication backends like NCCL and scales efficiently to large GPU clusters.
 
+        ```python
+
+        def ddp_setup(rank, world_size):
+            " " "
+            Args:
+                rank: Unique identifier of each process
+                world_size: Total number of processes
+            " ""
+            # rank 0 process
+            os.environ["MASTER_ADDR"] = "localhost"
+            os.environ["MASTER_PORT"] = "12355"
+            # nccl: NVIDIA Collective Communication Library
+            init_process_group(backend="nccl", rank=rank, world_size=world_size)
+            torch.cuda.set_device(rank)
+
+        ```
+
     - ZeRO (Zero Redundancy Optimizer) is a memory optimization technique for large-scale model training developed by Microsoft’s DeepSpeed team. Its goal is to eliminate memory redundancy across GPUs during distributed training, so you can train much larger models without running out of memory. ZeRO removes redundancy by sharding (splitting) model states across GPUs. Different ZeRO stages define how much is sharded:
         - ZeRO-1: Sharding Optimizer States. Only optimizer states are sharded across GPUs. Model parameters and gradients are still fully replicated. (All reduce)
         - ZeRO-2: Sharding Optimizer States + (reduce) Gradients. Each gradient tensor is sent to the GPU responsible for that parameter shard, using reduce (not all-reduce). Each GPU updates only the part of the model it's responsible for, then broadcasts updated weights.
@@ -1285,7 +1305,6 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
     - Expert (MoE) parallel
 
-- Memory optimization
 
 
 - Hybrid parallel
@@ -1328,7 +1347,14 @@ Neural nets brought continuous representations and end‑to‑end learning.
 - Catastrophic forgetting mitigation
     - add general domain data as well 1:5 - 1:10
 
-- GPT Fine-tuning
+
+- BERT Fine-Tuning
+[[YouTube](https://www.youtube.com/watch?v=ujubwa_oa-0&t=129s)]
+
+- GPT Fine-tuning 
+    - Version: gpt-4o-2024-08-06
+- Claude Fine-Tuning
+[[Claude 3 Haiku](https://www.youtube.com/watch?v=BfURFJbEQLA)]
 
 
 #### Optimization and Efficiency
