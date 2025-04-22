@@ -433,6 +433,14 @@ All following advanced optimization algorithms improve parameter updates by adju
  
 - Clustering
     - Centroid models: k-means clustering
+        - Objective Function: K-Means seeks to minimize the within-cluster sum of squares (WCSS), also known as inertia or squared error sum (SSE). Given a set of observations $\left\{x_1, x_2, \ldots, x_n\right\}$ where each $x_i \in \mathbb{R}^d$, and a set of $k$ clusters $S=\left\{S_1, S_2, \ldots, S_k\right\}$, the objective is to find the clusters and their centroids $\left\{\mu_1, \mu_2, \ldots, \mu_k\right\}$ that minimize: $J=\sum_{j=1}^k \sum_{x_i \in S_j}\left\|x_i-\mu_j\right\|^2$, where $\mu_j$ is the mean (centroid) of points in cluster $S_j$, calculated as $\mu_j=\frac{1}{\left|S_j\right|} \sum_{x_i \in S_j} x_i$. Minimizing WCSS is equivalent to minimizing the variance within each cluster. This objective function inherently favors spherical, equally sized clusters because it penalizes squared Euclidean distances from the mean.
+        - Algorithm details
+            - Initialization of centroids
+            - Assignment Step (E-step): Assign each data point $x_i$ to the cluster $S_j$ whose centroid $\mu_j$ is nearest (typically using squared Euclidean distance).
+            - Update step
+            - Iteration: Repeat steps 2 and 3 until convergence criteria are met.
+        - Evaluation Metrics
+            - Silhouette Score
     - Connectivity models: Hierarchical clustering
     - Density models: DBSCAN
 - Gaussian mixture models
