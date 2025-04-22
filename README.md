@@ -432,18 +432,36 @@ All following advanced optimization algorithms improve parameter updates by adju
  [[Unsupervised learning](https://en.wikipedia.org/wiki/Unsupervised_learning)] is a framework in machine learning where, in contrast to supervised learning, algorithms learn patterns exclusively from unlabeled data.
  
 - Clustering
-    - Centroid models: k-means clustering
+    - K-means
         - Objective Function: K-Means seeks to minimize the within-cluster sum of squares (WCSS), also known as inertia or squared error sum (SSE). Given a set of observations $\left\{x_1, x_2, \ldots, x_n\right\}$ where each $x_i \in \mathbb{R}^d$, and a set of $k$ clusters $S=\left\{S_1, S_2, \ldots, S_k\right\}$, the objective is to find the clusters and their centroids $\left\{\mu_1, \mu_2, \ldots, \mu_k\right\}$ that minimize: $J=\sum_{j=1}^k \sum_{x_i \in S_j}\left\|x_i-\mu_j\right\|^2$, where $\mu_j$ is the mean (centroid) of points in cluster $S_j$, calculated as $\mu_j=\frac{1}{\left|S_j\right|} \sum_{x_i \in S_j} x_i$. Minimizing WCSS is equivalent to minimizing the variance within each cluster. This objective function inherently favors spherical, equally sized clusters because it penalizes squared Euclidean distances from the mean.
         - Algorithm details
             - Initialization of centroids
             - Assignment Step (E-step): Assign each data point $x_i$ to the cluster $S_j$ whose centroid $\mu_j$ is nearest (typically using squared Euclidean distance).
             - Update step
             - Iteration: Repeat steps 2 and 3 until convergence criteria are met.
+            - WCSS - elbow method for k optimization.
         - Evaluation Metrics
-            - Silhouette Score
-    - Connectivity models: Hierarchical clustering
-    - Density models: DBSCAN
-- Gaussian mixture models
+            - Silhouette Score: Measures how similar a point is to its own cluster (cohesion) compared to other clusters (separation). For a point $i$, let $a(i)$ be the average distance to other points in its cluster, and $b(i)$ be the minimum average distance to points in another cluster. The score is $s(i)=(b(i)-a(i)) / \max (a(i), b(i))$. Scores range from -1 (misclassified) to +1 (well-clustered), with 0 indicating points near cluster boundaries. The overall score is the average $s(i)$ over all points. Higher scores are better.
+    - Hierarchical clustering
+    - [[DBSCAN](https://www.youtube.com/watch?v=4AW_5nYQkuc&ab_channel=KilianWeinberger)] is a density-based clustering algorithm that groups together points that are closely packed, marking points in low-density regions as outliers (noise).
+        - Parameters
+            - eps ( $\epsilon$ ): The maximum distance (radius) between two points for one to be considered as in the neighborhood of the other. 
+            - min_samples (MinPts): The minimum number of points required within the e-neighborhood (including the point itself) for a point to be considered a core point.
+        - Core Point: A point p is a core point if its $\epsilon$-neighborhood, $N \epsilon(p)=\{q \in D \mid d i s t(p, q) \leq \epsilon\}$, contains at least min_samples points.
+        - Algorithm
+            - 1. Start with an arbitrary unvisited point $p$.
+            - 2. Mark $p$ as visited.
+            - 3. Retrieve the $\epsilon$-neighborhood of $p, N \epsilon(p)$.
+            - 4. If $|\mathrm{Ne}(\mathrm{p})|<$ min_samples, mark $p$ as noise (temporarily).
+            - 5. If $|\mathrm{N} \epsilon(\mathrm{p})| \geq$ min_samples, p is a core point. Create a new cluster C and add p to it. Add all points in $\mathrm{N} \mathrm{\epsilon}(\mathrm{p})$ to a seed set.
+            - 6. Expand the cluster: For each point q in the seed set:
+                - If q is unvisited, mark it visited, retrieve its neighborhood $\mathrm{N} \mathrm{\epsilon}(\mathrm{q})$. If $|\mathrm{N} \mathrm{\epsilon}(\mathrm{q})| \geq$ min_samples, add points in $N \epsilon(q)$ to the seed set.
+                - If q is not yet a member of any cluster, add q to cluster C. 
+            - 7. Repeat step 6 until the seed set is empty. 
+            - 8. Go back to step 1 and pick another unvisited point, until all points are visited.
+        - [[Interview Questions](https://www.youtube.com/watch?v=cCw1yqqvOCI&ab_channel=UnfoldDataScience)]
+    - Gaussian Mixture Models (GMMs)
+
 - Latent Mixture Models
 - Hidden Markov Models(HMMs)
     - Markov processes
@@ -457,6 +475,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Isomap
         - T-SNE   
         - UMAP    
+    - Autoencoders
 
 
 ----
