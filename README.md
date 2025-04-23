@@ -68,7 +68,9 @@ All following advanced optimization algorithms improve parameter updates by adju
 - **Momentum (gc)** enhances standard gradient descent by adding a velocity term that accumulates past gradients. This velocity term smooths the updates, reducing oscillations and accelerating convergence, particularly in scenarios with noisy gradients or ill-conditioned optimization surfaces.
     - Pros: faster, jump out of local minimum, stable training.
 
-- Nesterov Accelerated Gradient (TBD)
+- Nesterov Accelerated Gradient
+    - Update rule: $\tilde{\theta}_t & =\theta_t+\mu v_t \quad \text { ("look-ahead") },  v_{t+1} & =\mu v_t-\eta \nabla_\theta \mathcal{L}\left(\tilde{\theta}_t\right), \theta_{t+1}=\theta_t+v_{t+1}$
+
 
 - **Adagrad (lr)** uses adaptive learning rates for each parameter, automatically adjusting LR during training. Larger learning rates for infrequent parameters, smaller rates for frequent parameters.
     - Formula:  $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
