@@ -139,7 +139,9 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 - Bias/Variance [[ref](https://traintestsplit.com/bias-vs-variance-in-machine-learning/)]
     - Bias: The bias is the simplifying assumption made by the model to make the target function easy to learn. Low bias suggests fewer assumptions made about the form of the target function. High bias suggests more assumptions made about the form of the target data. The smaller the bias error the better the model is. If, however, it is high, this means that the model is **underfitting** the training data. 
-    - Variance: Variance is the amount that the estimate of the target function will change if different training data was used. The target function is estimated from the training data, so we should expect the algorithm to have some variance. Ideally, it should not change too much from one training dataset to the next. This means that the algorithm is good at picking out the hidden underlying mapping between the inputs and the output variables. If the variance error is high this indicates that the model **overfits** the training data.
+
+    - Variance: Represents the model's sensitivity to small fluctuations in the training data. It measures how much the model's predictions would change if it were trained on a different training dataset drawn from the same distribution. High variance suggests the model is too complex and captures noise in the training data, leading to overfitting and poor generalization to unseen data.
+
     - If our model is too simple and has very few parameters then it may have high bias and low variance. On the other hand if our model has large number of parameters then it’s going to have high variance and low bias. So we need to find the right/good balance without overfitting and underfitting the data. 
 
     <div align="center">
@@ -394,12 +396,13 @@ All following advanced optimization algorithms improve parameter updates by adju
 - Ensemble methods [[Wiki](https://en.wikipedia.org/wiki/Ensemble_learning)] [[Document](https://scikit-learn.org/stable/modules/ensemble.html)]
     - Definition: Ensemble methods aim to combine the predictions of multiple base learners to achieve improved generalization performance and robustness compared to single models.
 
-    - Bagging (Bootstrap Aggregating)
+    - Bagging: Variance Reduction through Bootstrap Aggregation
         - Concept: A set of base learners (often decision trees) is trained on different bootstrap samples of the data. Their predictions are then aggregated (by averaging or voting).
-        - Impact on Variance: Bagging substantially reduces variance and improves stability without increasing bias significantly.
+        - Bagging primarily focuses on reducing variance. It typically employs complex base learners (e.g., deep decision trees) which have low bias but high variance. By training these models on different bootstrap samples of the data and then averaging their predictions, Bagging smooths out the predictions and reduces the overall variance of the ensemble, often without significantly affecting the bias.
         - **Random Forest**
-    - Boosting
+    - Boosting: Sequential Learning for Bias Reduction
         - Concept: Boosting sequentially trains weak learners, where each learner is focused on the errors (residuals) made by its predecessors.
+        - Boosting primarily focuses on reducing bias. It sequentially builds an ensemble, typically using weak learners (simple models with high bias and low variance, like shallow decision trees or decision stumps). Each subsequent learner is trained to correct the errors (residuals or misclassifications weighted by importance) of the preceding ensemble. This iterative process gradually reduces the overall bias of the strong learner. While boosting primarily targets bias, the sequential fitting process can sometimes also reduce variance, although it is more susceptible to overfitting than bagging if not properly regularized. 
         - **Adaboost**
         - **Gradient Boosting**
         - **XGBoost**
