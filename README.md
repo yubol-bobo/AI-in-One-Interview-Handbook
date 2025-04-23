@@ -460,7 +460,8 @@ All following advanced optimization algorithms improve parameter updates by adju
             - 7. Repeat step 6 until the seed set is empty. 
             - 8. Go back to step 1 and pick another unvisited point, until all points are visited.
         - [[Interview Questions](https://www.youtube.com/watch?v=cCw1yqqvOCI&ab_channel=UnfoldDataScience)]
-    - Gaussian Mixture Models (GMMs)
+    - Gaussian Mixture Models ([[GMMs](https://www.youtube.com/watch?v=hJLaHWaLsyg&ab_channel=AtifAdib)])
+    
 
 - Latent Mixture Models
 - Hidden Markov Models(HMMs)
