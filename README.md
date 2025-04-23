@@ -73,6 +73,9 @@ All following advanced optimization algorithms improve parameter updates by adju
         - $\tilde{\theta}_t=\theta_t+\mu v_t \quad$ ("look-ahead")
         - $v_{t+1}=\mu v_t-\eta \nabla_\theta \mathcal{L}\left(\tilde{\theta}_t\right)$
         - $\theta_{t+1}=\theta_t+v_{t+1}$
+    - Intuition
+        - First take a "momentum step" to peek ahead at where you'd be $\left(\tilde{\theta}_t\right)$, then compute the gradient there.
+        - This correction reduces lag in the momentum term, leading to more accurate, often faster convergence.
 
 
 - **Adagrad (lr)** uses adaptive learning rates for each parameter, automatically adjusting LR during training. Larger learning rates for infrequent parameters, smaller rates for frequent parameters.
