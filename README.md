@@ -69,7 +69,10 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Pros: faster, jump out of local minimum, stable training.
 
 - Nesterov Accelerated Gradient
-    - Update rule: $\tilde{\theta}_t=\theta_t+\mu v_t \quad$ ("look-ahead")
+    - Update rule
+        - $\tilde{\theta}_t=\theta_t+\mu v_t \quad$ ("look-ahead")
+        - $v_{t+1}=\mu v_t-\eta \nabla_\theta \mathcal{L}\left(\tilde{\theta}_t\right)$
+        - $\theta_{t+1}=\theta_t+v_{t+1}$
 
 
 - **Adagrad (lr)** uses adaptive learning rates for each parameter, automatically adjusting LR during training. Larger learning rates for infrequent parameters, smaller rates for frequent parameters.
