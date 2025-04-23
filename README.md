@@ -401,10 +401,10 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Bagging primarily focuses on reducing variance. It typically employs complex base learners (e.g., deep decision trees) which have low bias but high variance. By training these models on different bootstrap samples of the data and then averaging their predictions, Bagging smooths out the predictions and reduces the overall variance of the ensemble, often without significantly affecting the bias.
         - **Random Forest**
     - Boosting: Sequential Learning for Bias Reduction
-        - Concept: Boosting sequentially trains weak learners, where each learner is focused on the errors (residuals) made by its predecessors.
+        - Boosting represents a family of ensemble algorithms that construct a strong predictive model by iteratively training a sequence of base learners (typically weak learners), where each new learner focuses on correcting the errors made by the ensemble built so far. Unlike Bagging's parallel approach, Boosting is inherently sequential.
         - Boosting primarily focuses on reducing bias. It sequentially builds an ensemble, typically using weak learners (simple models with high bias and low variance, like shallow decision trees or decision stumps). Each subsequent learner is trained to correct the errors (residuals or misclassifications weighted by importance) of the preceding ensemble. This iterative process gradually reduces the overall bias of the strong learner. While boosting primarily targets bias, the sequential fitting process can sometimes also reduce variance, although it is more susceptible to overfitting than bagging if not properly regularized. 
         - **Adaboost**
-        - **Gradient Boosting**
+        -  [[**Gradient Boosting**](https://www.youtube.com/watch?v=en2bmeB4QUo)]
         - **XGBoost**
 
     - Stacking
