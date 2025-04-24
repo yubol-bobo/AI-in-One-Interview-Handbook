@@ -536,7 +536,7 @@ All following advanced optimization algorithms improve parameter updates by adju
     - **Tanh (The hyperbolic tangent) (1980s)**: $\tanh (z)=\frac{e^z-e^{-z}}{e^z+e^{-z}}=\frac{2}{1+e^{-2 z}}-1$. 
         - It's the improvement based on Sigmoid. It produces outputs in the range (-1, 1) and tends to center the data (0) better compared to the sigmoid.
 
-    Sigmoid and Tanh limits the output between (0,1) and (-1,1), which means that Sigmoid and tanh are suitable for processing probability values, such as various gates in LSTM; but ReLUis not suitable because ReLUthere is no maximum value limit and very large values ​​may appear.
+    Sigmoid and Tanh limits the output between (0,1) and (-1,1), which means that Sigmoid and tanh are suitable for processing probability values, such as various gates in LSTM; but ReLU is not suitable because ReLU there is no maximum value limit and very large values ​​may appear.
 
     - **ReLU (2010) family (Rectified Linear Unit) (ReLU, Leaky ReLU, PReLU, ELU, SELU)**: $f(x)=\max (0, x)$ ReLU outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
         - Dying issue: In some cases during training, a significant number of neurons can end up outputting zero for all inputs. This happens when the weights and biases of these neurons adjust in such a way that the input to ReLU is consistently negative. Once a neuron falls into this state, its gradient becomes zero for any input value (since the derivative of ReLU is zero for negative inputs). And Because it outputs zero consistently, the neuron effectively "dies," meaning it no longer contributes to the learning process.
