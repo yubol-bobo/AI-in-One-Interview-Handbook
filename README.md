@@ -36,7 +36,8 @@
 [[Wiki](https://en.wikipedia.org/wiki/Statistical_hypothesis_test)]
 A statistical hypothesis test is a method of statistical inference used to decide whether the data provide **sufficient evidence to reject** a particular hypothesis. A statistical hypothesis test typically involves a calculation of a test statistic. Then a decision is made, either by comparing the test statistic to a critical value or equivalently by evaluating a p-value computed from the test statistic.
 
-- P-value:the p-value represents the probability of obtaining a test value, which is as extreme as the one which had been observed originally. The underlying condition is that the null hypothesis is true.
+- The p-value represents the probability of obtaining results at least as extreme as the observed results, assuming the null hypothesis is true. 
+    - In simpler terms, it tells you how likely it is that your data could have occurred under the null hypothesis. A low p-value suggests your observed data is unlikely under the null, hinting that your findings are significant.
 
 ### MLE
 - Definition: Maximum Likelihood Estimation (MLE) is a statistical method used to estimate the parameters of a probability distribution by maximizing a likelihood function. It's a fundamental technique in both statistics and machine learning.
@@ -56,7 +57,7 @@ A statistical hypothesis test is a method of statistical inference used to decid
     - (Batch) GD: All data points at once
     - SGD: one data point per iteration
         - Updates parameters using only one randomly chosen training example at each step.
-        - Formula: $$\theta=\theta-\alpha \nabla_\theta J\left(\theta ; x^{(i)}, y^{(i)}\right)$$.
+        - Formula: $\theta_{t+1}=\theta_t-\alpha \nabla J\left(\theta_t\right)$, where $\theta_t$ are the parameters, $\alpha$ is the learning rate, and $\nabla J\left(\theta_t\right)$ is the gradient.
     - Mini-batch GD: Small subset per iteration.
     - Cons:
         - Sensitivity to learning rate
@@ -66,13 +67,15 @@ A statistical hypothesis test is a method of statistical inference used to decid
 All following advanced optimization algorithms improve parameter updates by adjusting both the **gradient calculation (gc)** and the **learning rate strategy (lr)**.
 
 - **Momentum (gc)** enhances standard gradient descent by adding a velocity term that accumulates past gradients. This velocity term smooths the updates, reducing oscillations and accelerating convergence, particularly in scenarios with noisy gradients or ill-conditioned optimization surfaces.
+    - $v_t=\beta v_{t-1}+(1-\beta) \nabla J\left(\theta_t\right)$ 
+    - $\theta_{t+1}=\theta_t-\alpha v_t$
     - Pros: faster, jump out of local minimum, stable training.
 
 - Nesterov Accelerated Gradient
     - Update rule
-        - $\tilde{\theta}_t=\theta_t+\mu v_t \quad$ ("look-ahead")
-        - $v_{t+1}=\mu v_t-\eta \nabla_\theta \mathcal{L}\left(\tilde{\theta}_t\right)$
-        - $\theta_{t+1}=\theta_t+v_{t+1}$
+        - $\tilde{\theta}_t=\theta_t+\beta v_{t-1} \quad$ ("look-ahead")
+        - $v_{t}=\beta v_{t-1} + \eta \nabla_\theta \mathcal{L}\left(\tilde{\theta}_t\right)$
+        - $\theta_{t+1}=\theta_t-v_{t}$
     - Intuition
         - First take a "momentum step" to peek ahead at where you'd be $\left(\tilde{\theta}_t\right)$, then compute the gradient there.
         - This correction reduces lag in the momentum term, leading to more accurate, often faster convergence.
@@ -167,27 +170,27 @@ All following advanced optimization algorithms improve parameter updates by adju
 
         - L0 is a technique in ML to encourage sparsity in a model's parameters. It penalizes the number of **non-zero parameters** in a model.
 
-            ![L0 Formula](https://latex.codecogs.com/svg.latex?\|w\|_0=\sum_{i=1}^n\mathbb{I}(w_i\neq0))
+            $\|\mathbf{w}\|_0=\sum_{i=1}^n \mathbf{1}\left[w_i \neq 0\right]$
 
             Use case: Feature Selection: L0 regularization is particularly useful in scenarios where the number of features is large, and only a small subset is expected to be relevant. It helps to automatically select a subset of features that contribute significantly to the model's performance.
 
         - L1 penalizes **absolute magnitude** of weight: 
 
-            ![L1 Formula](https://latex.codecogs.com/svg.latex?R%28w%29%3D%5C%7Cw%5C%7C_2%5E2%3D%5Csum_%7Bi%3D1%7D%5En%20w_i%5E2)
+            $R(w)=\sum\left|w_i\right|$.
 
             Encourages sparsity through geometry.
         
         - L2 penalizes **square magnitude** of weights:
 
-            ![L2 Formula](https://latex.codecogs.com/svg.latex?R%28w%29%3D%5C%7Cw%5C%7C_2%5E2%3D%5Csum_%7Bi%3D1%7D%5En%20w_i%5E2)
+            $R(w)=\sum\left(w_i^2\right)$
 
             Penalizes large weights heavily, encourges smaller, diffuse weigths. Handles correlated features better.
 
         - L-infinity penalizes the **largest absolute weight** (maximum norm):
 
-            ![L-infinity Formula](https://latex.codecogs.com/svg.latex?\|w\|_\infty=\max_{i}|w_i|)
+            $R(w)=\max \left|w_i\right|$
 
-            Constrains the maximum coefficient magnitude, balancing all weights' magnitudes uniformly
+            It's used when you need to control the model's sensitivity to prevent any one feature from dominating the predictions.
 
         - When prefer L1 over L2? For explicit feature selection or interpretability
         - When prefer L2 over L1? L2 (Ridge) shrinks correlated features toward each other, effectively managing correlated features.
@@ -314,9 +317,10 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 - Parametric vs non-parametric algorithms (if we assume a fixed functional form or not) 
 
-(Functional form = Mathematical shape or structure that the model assumes to represent how the input relates to the output.)
-    - **Parametric Algorithms**(e.g., Logistic Regression, Naive Bayes, Neural Networks) assume that the dataset comes from a certain function with some set of parameters that should be tuned to reach the optimal performance. For such models, the number of parameters is determined prior to training, thus the degree of freedom is limited and reduces the chances of overfitting. They are computationally efficient and often easier to interpret, but less flexible.
-    - **Non-parametric methods** (e.g., KNN, Decision Trees, Random Forests) don't assume anything about the function from which the dataset was sampled. For these models, the number of parameters is not determined prior to training, thus they are free to generalize the model based on the data. Sometimes these models overfit themselves while generalizing. To generalize they need more data in comparison with Parametric Models. They are relatively more difficult to interpret compared to Parametric Models. Their complexity grows with the data, making them suitable for capturing complex patterns.
+    (Functional form = Mathematical shape or structure that the model assumes to represent how the input relates to the output.)
+    - Parametric Algorithms(e.g., Logistic Regression, Naive Bayes, Neural Networks) assume that the dataset comes from a certain function with some set of parameters that should be tuned to reach the optimal performance. For such models, the number of parameters is determined prior to training, thus the degree of freedom is limited and reduces the chances of overfitting. They are computationally efficient and often easier to interpret, but less flexible.
+
+    - Non-parametric methods (e.g., KNN, Decision Trees, Random Forests) don't assume anything about the function from which the dataset was sampled. For these models, the number of parameters is not determined prior to training, thus they are free to generalize the model based on the data. Sometimes these models overfit themselves while generalizing. To generalize they need more data in comparison with Parametric Models. They are relatively more difficult to interpret compared to Parametric Models. Their complexity grows with the data, making them suitable for capturing complex patterns.
 
 - Linear vs Nonlinear algorithms
     - Linear algorithms (Linear Regression, Logistic Regression, Linear SVM) assume a linear relationship and provide simplicity and interpretability.
