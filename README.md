@@ -1,5 +1,11 @@
 # PhD-ML-DL-LLM-Interview-Handbook
 
+⭐⭐⭐ Welcome! I recently went through the Amazon Applied Scientist Intern interview process and successfully received an offer, with the entire timeline spanning just 25 days. A critical part of my success was a rapid, 12-day review using a handbook I put together covering key areas in ML, DL, NLP, and LLMs.
+
+Preparing this guide was immensely helpful for integrating concepts and solidifying my understanding. Believing in sharing knowledge and resources, I've documented my study materials here. Whether you’re just starting your journey or racing against the clock, my hope is that this guide accelerates your learning, boosts your confidence, and helps you land that dream offer. Good luck!
+
+> I plan to update this repo frequently with new insights and learnings. Don't hesitate to contact me if you find any typos or areas for improvement!
+
 ## Table of Contents
 - [Statistics](#statistics)
 - [Machine Learning](#Machine-Learning)
