@@ -1,4 +1,4 @@
-# PhD-ML-DL-LLM-Interview-Handbook
+# AI-in-One-Interview-Handbook 
 
 ⭐⭐⭐ Welcome! I recently went through the Amazon Applied Scientist Intern interview process and successfully received an offer, with the entire timeline spanning just 25 days. A critical part of my success was a rapid, 12-day review using a handbook I put together covering key areas in ML, DL, NLP, and LLMs.
 
