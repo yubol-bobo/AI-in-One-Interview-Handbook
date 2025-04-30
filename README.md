@@ -51,11 +51,9 @@ Preparing this guide was immensely helpful for integrating concepts and solidify
     - [Re-ranking](#re-ranking)
     - [Generation](#generation)
     
-
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yubol-bobo/AI-in-One-Interview-Handbook&type=Date)](https://www.star-history.com/#yubol-bobo/AI-in-One-Interview-Handbook
-&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=yubol-bobo/AI-in-One-Interview-Handbook&type=Date)](https://www.star-history.com/#yubol-bobo/AI-in-One-Interview-Handbook&Date)
 
 
  
