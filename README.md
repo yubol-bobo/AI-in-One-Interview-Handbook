@@ -31,6 +31,26 @@ Preparing this guide was immensely helpful for integrating concepts and solidify
     - [Embedding & DL Methods Era](#embedding--deeplearning-era)
 
 - [Large Language Models](#Large-Language-Models)
+    - [LLM Basic](#llm-basic)
+    - [Embedding](#embedding)
+    - [Tokenization](#tokenization)
+    - [Architecture](#architecture)
+    - [Stages](#stages)
+
+- [LLM Engineering](#llm-engineering)
+    - [Mixed Precision](#mixed-precision)
+    - [Distributed Training](#distributed-training)
+    - [Fine-Tuning](#fine-tuning)
+    - [Optimization and Efficiency](#optimization-and-efficiency)
+    - [Evaluation and Monitoring](#evaluation-and-monitoring)
+
+- [RAG](#rag)
+    - [Retrieval](#retrieval)
+    - [Embedding Models](#embedding-models)
+    - [Chunking and Vectorization](#chunking-and-vectorization)
+    - [Re-ranking](#re-ranking)
+    - [Generation](#generation)
+    
 
 
  
