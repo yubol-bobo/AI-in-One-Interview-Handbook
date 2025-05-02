@@ -1440,6 +1440,13 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - Overlap + bucketing
 
 
+#### LLM Inference
+
+- Inference Framework
+
+- Model Serving
+
+
 
 #### Evaluation and Monitoring
 - Evaluation metrics
