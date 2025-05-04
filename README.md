@@ -153,6 +153,16 @@ All following advanced optimization algorithms improve parameter updates by adju
 | Muon | ✅ Yes | ✅ Yes | Low | High | Recent advancement |
 
 
+#### Black-Box Optimization
+- Black-box optimization (BBO) refers to optimizing an objective function without an explicit formula or gradient information for that function. BBO has become increasingly important with the rise of expensive simulations and automated experiments – scenarios where each function evaluation is costly or time-consuming, and derivatives are unavailable.
+
+- Random Search
+- Evolutionary Algorithms
+- Bayesian Optimization
+- Derivative-Free Optimization Methods (Direct Search and Surrogate Algorithms)
+- Reinforcement Learning-based Approaches
+
+
 #### Model evaluation and selection
 - Evaluation
     - TP, FP, TN, FN
