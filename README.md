@@ -45,7 +45,8 @@ Preparing this guide was immensely helpful for integrating concepts and solidify
     - [Post-training](#post-training)
         - [SFT / RL / OPD Comparison](#sft-rl-opd-comparison)
         - [SFT and Instruction Tuning](#post-sft)
-        - [Online RL / RLVR / PPO / GRPO](#online-rl)
+        - [RLHF / RLAIF / RLVR / RLCD Comparison](#rl-feedback-comparison)
+        - [Online RL / PPO / GRPO](#online-rl)
         - [Preferences / DPO / RLAIF](#preference-optimization)
         - [Distillation and OPD](#distillation-and-opd)
     - [Shared Training Systems](#llm-engineering)
@@ -1813,12 +1814,54 @@ SFT is supervised adaptation to target outputs; instruction fine-tuning is its i
 
 [[Claude 3 Haiku](https://www.youtube.com/watch?v=BfURFJbEQLA)]
 
+<a id="rl-feedback-comparison"></a>
+#### [To be reviewed] RLHF, RLAIF, RLVR, and RLCD: A Side-by-Side Comparison
+
+These labels describe different parts of a feedback pipeline. **RLHF/RLAIF emphasize who supplies judgments; RLVR emphasizes how outcomes are verified; RLCD specifies how synthetic preference pairs are constructed.** They are not four mutually exclusive policy-gradient algorithms. In this section, RLCD means **Reinforcement Learning from Contrastive Distillation**, following Yang et al., rather than contrastive decoding. [RLCD paper](https://arxiv.org/abs/2307.12950)
+
+| Dimension | RLHF | RLAIF | RLVR | RLCD, original recipe |
+| --- | --- | --- | --- | --- |
+| Full name | Reinforcement Learning from Human Feedback | Reinforcement Learning from AI Feedback | Reinforcement Learning with Verifiable Rewards | Reinforcement Learning from Contrastive Distillation |
+| Source of the learning signal | Human preferences, ratings, or corrections | AI-judge preferences or scores under a rubric | Executable outcome/constraint checks against a specification | Positive/negative prompting generates a pair; the positive-prompt output is labeled preferred |
+| Typical route to an RL reward | Human comparisons → fitted reward model → policy optimization | AI comparisons → fitted reward model; direct-RLAIF can instead query the judge during RL | Policy rollout → verifier → reward | Contrastive pairs → fitted preference/reward model → PPO |
+| Separate learned reward model required? | Used in the canonical comparison-based pipeline; not required by every human-feedback RL design | Used in canonical RLAIF; omitted in direct-RLAIF | Unnecessary for a pure verifier reward; hybrids can add learned rewards | Yes in the original pipeline |
+| Natural application | Open-ended helpfulness and preferences requiring human judgment | Rubric-based evaluation when an AI judge is reliable enough | Testable code, checkable answers/proofs, explicit instruction constraints | A desired attribute that contrastive prompts can reliably separate |
+| Main scaling cost | Annotation, adjudication, reward fitting, and rollouts | Judge inference, reward fitting when used, and rollouts | Rollouts, execution/proof-checking, and verifier construction | Two response-generation conditions, reward fitting, and rollouts |
+| Characteristic failure | Annotator disagreement; reward-model extrapolation and preference proxies | Judge errors, position/style bias, or judge-directed reward hacking | Incomplete specifications, weak tests, parser exploits, sparse successes | Prompt polarity fails to establish the intended preference; shortcut learning |
+
+The RLHF column describes the canonical [InstructGPT pipeline](https://arxiv.org/abs/2203.02155). The AI-feedback distinction follows [RLAIF and direct-RLAIF](https://arxiv.org/abs/2309.00267); the verifier route follows [Tülu 3, Section 6](https://arxiv.org/html/2411.15124v5#S6). RLCD follows its [original method, Section 3](https://arxiv.org/html/2307.12950v3#S3). These are pipeline descriptions; they do not establish a universal ranking of performance or total cost.
+
+##### [To be reviewed] What Changes Mathematically, and What Can Be Shared?
+
+In a hard-label pairwise reward-model formulation, a preferred/rejected pair can train the scalar score using $`\mathcal{L}_{\mathrm{RM}}=-\mathbb{E}_{(x,y_w,y_l)\sim D}\log\sigma(r_\phi(x,y_w)-r_\phi(x,y_l))`$. Human labeling, AI judging, and contrastive construction change **D and the validity of its labels**, even when this fitting loss is shared. Soft-label variants use an appropriate cross-entropy target instead. [Comparison-based reward modeling](https://arxiv.org/html/2203.02155v1#S3), [RLAIF soft-label formulation](https://arxiv.org/html/2309.00267v3#S2.SS2.SSS1)
+
+RLVR can replace that learned score with, for example, $`R_{\mathrm{verify}}(x,y)=\mathbf{1}\{\text{the specified checker accepts }(x,y)\}`$. This illustrative binary reward certifies acceptance by that checker, not arbitrary real-world correctness. A final-answer check also does not certify every reasoning step. Continuous/partial-credit rewards and learned-verifier variants need their own definitions and validation. [Tülu 3 verifier formulation](https://arxiv.org/html/2411.15124v5#S6)
+
+**The update algorithm is a separate choice.** Tülu 3 uses PPO for RLVR; DeepSeek-R1-Zero uses GRPO with rule-based rewards. Neither “RLVR = GRPO” nor “RLHF = PPO by definition” is correct. The [online RL section](#online-rl) specifies policy objectives and estimators. [Tülu 3](https://arxiv.org/html/2411.15124v5#S6), [DeepSeek-R1-Zero](https://arxiv.org/html/2501.12948v1#S2.SS2)
+
+##### [To be reviewed] Same-task Example: A Code Assistant
+
+Consider a function that must sort a list while preserving the original input. This is an illustrative comparison, not a reported experiment:
+
+- **RLHF:** reviewers compare answers for correctness, clarity, and adherence to the nonmutation requirement. Those comparisons can supervise a reward model; human judgments still need checks on difficult code.
+- **RLAIF:** a judge compares the same candidates under the same rubric. Specify whether RL uses a fitted reward model or fresh judge scores, and audit both factual mistakes and preference bias.
+- **RLVR:** execute checks for sorted output, permutation preservation, nonmutation, and edge cases. An incomplete suite that ignores input mutation can accept an implementation that sorts the input in place and returns it, despite the task requirement.
+- **RLCD:** generate one candidate under an instruction encouraging compliance and another under a contrasting instruction; assign the first the preferred label by construction. The label is wrong if the supposed positive candidate violates the requirement. Audit actual outputs rather than trusting prompt polarity.
+
+##### [To be reviewed] Relationships, Hybrids, and Evaluation
+
+As a design inference from these definitions, a coding assistant can combine human-rated communication, AI-rated rubric compliance, and executable correctness rewards. Record each component, scale, and aggregation rule: a weighted sum can trade correctness against style, whereas a hard correctness gate imposes a different objective. Human-written rubrics, tests, and contrastive prompts remain human design inputs even when individual outputs are labeled automatically.
+
+**Keep the supervision axes separate.** RLCD constructs response-level preferences; [OPD](#distillation-and-opd) instead queries teacher guidance on student-generated states. RLCD is also different from contrastive decoding at inference. Training DPO on human-, AI-, or contrastively generated pairs is a direct-preference variant; pair provenance alone does not make that update an online RL loop or the original RLCD procedure. See [DPO](#preference-optimization) and the [SFT/RL/OPD comparison](#sft-rl-opd-comparison).
+
+For a fair comparison, hold the starting checkpoint, prompt splits, evaluation decoding, and resource accounting fixed where the causal question permits. Report human annotation, judge calls, verifier execution, reward-model training, and rollout costs separately. Evaluate using independent human judgments and unseen executable tests, inspect disagreement slices, and measure correctness separately from style. A method's own training reward cannot serve as the sole evidence that it is better.
+
 <a id="online-rl"></a>
-#### [To be reviewed] Online RL: RLHF, RLVR, PPO, and GRPO
+#### [To be reviewed] Online RL: Objectives, PPO, and GRPO
 
 An illustrative sequence-level objective is $`J(\theta)=\mathbb{E}_{x,y\sim\pi_\theta}[R(x,y)]-\beta\,\mathbb{E}_x D_{\mathrm{KL}}(\pi_\theta(\cdot\mid x)\|\pi_{\mathrm{ref}}(\cdot\mid x))`$. A particular algorithm may approximate, clip, omit, or differently implement the KL regularizer. Separate the **current policy**, **rollout/old policy**, **reference policy**, **reward model/verifier**, and an optional **value estimator**. Conflating these roles leads to incorrect loss implementations. [PPO](https://arxiv.org/abs/1707.06347), [RLHF pipeline](https://arxiv.org/abs/2203.02155)
 
-**RLVR** uses verifiable rewards, such as executable tests, mathematical answer checks, or proof checking. “Verifiable” means verified against the chosen specification: incomplete tests, parser exploits, leaked answers, or a defective checker can reward incorrect solutions. For multi-step tool environments, rewards may also include terminal success, intermediate events, cost, and invalid-action penalties; these choices change behavior.
+Choose and validate the reward source using the [RLHF/RLAIF/RLVR/RLCD comparison](#rl-feedback-comparison). For multi-step tool environments, rewards may also include terminal success, intermediate events, cost, and invalid-action penalties; these choices change behavior.
 
 **GRPO.** Sample a group of responses to a prompt and form group-relative advantages, for example $`A_i=(r_i-\bar r)/(s_r+\epsilon)`$ under one explicit normalization convention. This can remove the need for a separately learned value model. Define the standard-deviation convention, zero-variance behavior, token/sequence reduction, clipping, and any KL term. Equal-reward groups provide no relative learning signal; group normalization also changes how prompts contribute, so it is not an unbiased universal replacement for a critic. [DeepSeekMath / GRPO](https://arxiv.org/abs/2402.03300)
 
