@@ -206,6 +206,21 @@ This README is the handbook index. Each chapter has its own contents and chapter
     - [Evaluation and Monitoring](docs/large-language-models.md#evaluation-and-monitoring)
     - [Research Reading List](docs/large-language-models.md#recent-interesting-papers)
 
+<a id="benchmarking-and-evaluation"></a>
+
+- [Benchmarking & Evaluation](docs/benchmarking-and-evaluation.md#benchmarking-and-evaluation)
+    - [Static / Dynamic / Interactive Benchmarks](docs/benchmarking-and-evaluation.md#eval-taxonomy)
+    - [LLM Benchmark Families](docs/benchmarking-and-evaluation.md#eval-llm-benchmarks)
+    - [Agent and Workflow Benchmarks](docs/benchmarking-and-evaluation.md#eval-agent-benchmarks)
+    - [Versions and Maintenance](docs/benchmarking-and-evaluation.md#eval-version-changes)
+    - [Benchmark Saturation](docs/benchmarking-and-evaluation.md#eval-saturation)
+    - [Metrics, Reliability, and Cost](docs/benchmarking-and-evaluation.md#eval-metrics)
+    - [Graders and Judges](docs/benchmarking-and-evaluation.md#eval-graders)
+    - [Contamination and Integrity](docs/benchmarking-and-evaluation.md#eval-contamination)
+    - [Uncertainty and Aggregation](docs/benchmarking-and-evaluation.md#eval-statistics)
+    - [Reproducibility Protocol](docs/benchmarking-and-evaluation.md#eval-protocol)
+    - [Concrete Evaluation Portfolio](docs/benchmarking-and-evaluation.md#eval-portfolio)
+
 <a id="chunking-and-vectorization"></a>
 <a id="embedding-models"></a>
 <a id="generation"></a>

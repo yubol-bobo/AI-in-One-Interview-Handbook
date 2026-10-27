@@ -1,6 +1,6 @@
 # RAG
 
-[Handbook contents](../README.md#table-of-contents) | [Previous: Large Language Models](large-language-models.md) | [Next: QA Systems](qa.md)
+[Handbook contents](../README.md#table-of-contents) | [Previous: Benchmarking & Evaluation](benchmarking-and-evaluation.md) | [Next: QA Systems](qa.md)
 
 ## Contents
 
@@ -95,3 +95,5 @@
     - Fusion-in-Decoder
     - Long-context Transformers
 - Mitigating hallucinations through retrieval context management
+
+For benchmark selection, evidence-oracle ablations, judge validity, and end-to-end system comparisons, see the [Benchmarking & Evaluation portfolio](benchmarking-and-evaluation.md#eval-portfolio).

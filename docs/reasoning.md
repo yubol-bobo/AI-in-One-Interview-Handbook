@@ -24,3 +24,5 @@
 
     - Turn an information need into successive evidence-gathering actions: formulate a query, inspect sources, update the evidence state, and decide whether another query is useful. ReAct interleaves reasoning-oriented generation with environment actions and observations. [ReAct](https://arxiv.org/abs/2210.03629)
     - **Example:** answering a disputed release date may require the original announcement and a later correction. Track source dates and claim provenance, and stop when the available evidence resolves the question or a stated search budget is exhausted. Repeating equivalent searches is additional activity rather than additional evidence.
+
+For math/coding/agent benchmark families, saturation, and the distinction between pass@k search opportunity and pass^k repeated-run reliability, see [Benchmarking & Evaluation](benchmarking-and-evaluation.md#eval-metrics).

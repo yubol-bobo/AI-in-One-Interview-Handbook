@@ -1,6 +1,6 @@
 # Large Language Models
 
-[Handbook contents](../README.md#table-of-contents) | [Previous: NLP (Pre-LLM Era)](nlp.md) | [Next: RAG](rag.md)
+[Handbook contents](../README.md#table-of-contents) | [Previous: NLP (Pre-LLM Era)](nlp.md) | [Next: Benchmarking & Evaluation](benchmarking-and-evaluation.md)
 
 ## Contents
 
@@ -562,6 +562,9 @@ State/parameter sharding is described once in [Distributed Training](#distribute
 
 <a id="evaluation-and-monitoring"></a>
 ## [To be reviewed] Evaluation and Monitoring
+
+For benchmark families, static/dynamic/interactive designs, saturation, contamination, and statistical comparisons, see [Benchmarking & Evaluation](benchmarking-and-evaluation.md). The [reproducibility protocol](benchmarking-and-evaluation.md#eval-protocol) connects these metrics to a complete experimental setup.
+
 - Evaluation metrics
     - [To be reviewed] Perplexity
 
@@ -605,6 +608,8 @@ This is a dated reading list selected on **2026-10-26**. Years indicate first pu
 For each paper, record **claim → assumptions → comparison baseline → ablation → uncertainty → failure cases**. Prefer the released implementation and the specific report revision used for reproduction; benchmark rank alone is insufficient to identify which mechanism caused an improvement.
 
 ## Related chapters
+
+- [Benchmarking & Evaluation](benchmarking-and-evaluation.md#benchmarking-and-evaluation)
 
 <a id="chunking-and-vectorization"></a>
 <a id="embedding-models"></a>
