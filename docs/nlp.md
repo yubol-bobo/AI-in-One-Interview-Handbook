@@ -87,7 +87,7 @@ Statistical models learned parameters from data—first n‑grams, then classica
     - TF–IDF [[YouTube](https://www.youtube.com/watch?v=zLMEnNbdh4Q)] (Term Frequency-Inverse Document Frequency) is a numerical statistic used in natural language processing and information retrieval to indicate the importance of a word in a document relative to a collection of documents (corpus).
         - Term Frequency (TF): The term frequency measures how often a term appears in a document. $`\text{TF}(t, d)=\frac{f_{t, d}}{\sum_{t^{\prime} \in d} f_{t^{\prime}, d}}`$, $`f_{t, d}`$ represents the raw count of term $`t`$ in document $`d`$. The denominator sums the raw counts for all terms in document $`d`$ to normalize the frequency.
         - [To be reviewed] One common smoothed IDF convention is $`\operatorname{idf}(t)=\log[(1+N)/(1+\operatorname{df}(t))]+1`$, as used by scikit-learn when smoothing is enabled. Other systems use different formulas. State the convention, TF weighting, and vector normalization rather than mixing formulas across implementations. [TF-IDF reference](https://scikit-learn.org/stable/modules/feature_extraction.html#tfidf-term-weighting)
-        - $`\text{TF}-\text{IDF}(t, d, D)=\text{TF}(t, d) \times \text{IDF}(t, D)`$. This formulation ensures that if **a term is very frequent in a document but rare in the corpus**, it gets a high TF-IDF score.
+        - $`\text{TF}-\text{IDF}(t, d, D)=\text{TF}(t, d) \times \text{IDF}(t, D)`$. The product rewards within-document frequency and corpus rarity under the stated TF/IDF convention. For example, scikit-learn TfidfVectorizer defaults use raw-count TF, smoothed IDF, and L2 vector normalization. The formula above instead divides TF by document length; with the same IDF and subsequent L2 normalization, this positive per-document scale cancels, yielding the same nonzero vector. Other TF transforms, such as logarithmic TF, need not be equivalent.
 
 - Language Modeling
     - N-grams are sequential word or character sets, with "n" indicating the number of elements in a particular set. They play a crucial role in understanding context and text prediction, especially in statistical language models.
@@ -134,7 +134,7 @@ Statistical models learned parameters from data—first n‑grams, then classica
     - Text Classification (Multinomial Naïve Bayes, Logistic Regression on TF–IDF, SVM).
     - Sequence Labeling & NER (Hidden Markov Models (HMM), Conditional Random Fields (CRF), Rule‑based de‑identification).
         - Output: BIO tagging scheme.
-- Unsupervised Learning for NLP
+- Retrieval, Similarity, and Unsupervised Topic Models
     - [To be reviewed] Similarity Metrics: Cosine, Jaccard
 
         - Cosine similarity measures vector direction and is insensitive to positive rescaling; Jaccard measures set overlap as intersection size divided by union size. Neither is a universal notion of semantic equivalence.
@@ -143,7 +143,7 @@ Statistical models learned parameters from data—first n‑grams, then classica
     - [To be reviewed] Document Retrieval (vector space, BM25)
 
         - Rank documents with a sparse vector-space score or BM25, which combines query-term matches with term-frequency saturation and document-length normalization. Sparse matching is especially useful for exact identifiers, rare entities, and terminology.
-        - **Example:** the exact error code `E137` can be decisive even if a semantic encoder treats it as an opaque string. Evaluate retrieval with relevance judgments rather than assuming lexical overlap implies relevance. [Stanford IR textbook](https://nlp.stanford.edu/IR-book/html/htmledition/okapi-bm25-a-non-binary-model-1.html)
+        - **Example:** the exact error code `E137` can be decisive even if a semantic encoder treats it as an opaque string. Evaluate retrieval with relevance judgments rather than assuming lexical overlap implies relevance. [Robertson and Zaragoza: BM25](https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf)
 
     - Topic Modeling
         - [To be reviewed] LSA
@@ -179,7 +179,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
             - Objective function: Maximize the probability of any context word given the current center word.
 
         - [To be reviewed] Hierarchical softmax computes a word's probability along a tree path. A balanced tree gives $`O(\log V)`$ path length; a frequency-based Huffman tree makes common words cheap on average, but does not guarantee logarithmic worst-case depth for every word. Include embedding width when comparing arithmetic cost.
-        - In the follow-up work, negative sampling is purposed.
+        - In the follow-up work, negative sampling is proposed.
 
 
     - [To be reviewed] GloVe
@@ -221,7 +221,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
     - [To be reviewed] Transformer (2017)
 
         - Replace recurrence with self-attention and positionwise transformations, permitting parallel computation across known token positions during training. Positional information and masks specify ordering and visibility.
-        - **Complexity:** dense self-attention compares all token pairs; training parallelism does not mean autoregressive decoding becomes fully parallel. See the Transformer section above for scaled attention and memory-efficient implementations.
+        - **Complexity:** dense self-attention compares all token pairs; training parallelism does not mean autoregressive decoding becomes fully parallel. See [Transformer attention](transformer.md#tf-attention) and [computation/memory costs](transformer.md#tf-cost) for the canonical explanations.
 
 - Subword Tokenization
     - [To be reviewed] Byte‑Pair Encoding (BPE)

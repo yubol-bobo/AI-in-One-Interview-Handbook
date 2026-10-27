@@ -259,7 +259,7 @@ This README is the handbook index. Each chapter has its own contents and chapter
     - [Retrieval](docs/rag.md#retrieval)
     - [Embedding Models](docs/rag.md#embedding-models)
     - [Chunking and Vectorization](docs/rag.md#chunking-and-vectorization)
-    - [Re-ranking](docs/rag.md#re-ranking)
+    - [Reranking](docs/rag.md#re-ranking)
     - [Generation](docs/rag.md#generation)
 
 
@@ -335,7 +335,10 @@ This README is the handbook index. Each chapter has its own contents and chapter
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yubol-bobo/AI-in-One-Interview-Handbook&type=Date)](https://www.star-history.com/#yubol-bobo/AI-in-One-Interview-Handbook&Date)
+[View the interactive Star History chart](https://www.star-history.com/#yubol-bobo/AI-in-One-Interview-Handbook&Date)
 
 ## Reference
+
+- [Chapter review and terminology map — 2026-10-27](docs/review-report.md)
+
 1. [Machine Learning/Data Science Interview Cheat sheets by Aqeel Anwar](https://sites.google.com/view/datascience-cheat-sheets#h.h40dwqqwv30w)

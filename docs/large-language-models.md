@@ -83,7 +83,7 @@ For paired queries and positive passages, a contrastive retrieval objective can 
     - With vocabulary size $`V`$ and hidden width $`d`$, an embedding table has $`Vd`$ parameters; an untied output matrix adds another $`Vd`$. Increasing vocabulary can shorten sequences but raises embedding/softmax storage and changes rare-token estimation.
     - **Illustrative calculation:** at width 4,096, adding 10,000 vocabulary entries adds 40.96 million parameters to one table. Compare token fertility by language and domain, inference cost per user-visible character, and quality at a matched training budget; vocabulary size alone is not an efficiency metric.
 
-- [To be reviewed] Tokenization impact on model perfromance (OOV handling, multilingual scenarios)
+- [To be reviewed] Tokenization impact on model performance (OOV handling, multilingual scenarios)
 
     - Unknown-word behavior depends on the base alphabet and fallback rules. Byte-level coverage can represent arbitrary byte sequences, but it does not ensure economical segmentation, semantic understanding, or easy copying of an unfamiliar identifier.
     - **Example:** one tokenizer might use 5 tokens for an identifier while another uses 20, changing context occupancy and generation cost. Compare multilingual and domain slices. Per-token perplexities from different tokenizers are not directly comparable; use a shared unit such as bits per byte when the text encoding and evaluation protocol support it.
@@ -387,13 +387,13 @@ At each transition, save a checkpoint and evaluate **target capability, general 
         - [To be reviewed] DP scatters inputs, replicates the module, gathers outputs, and reduces replica gradients to the original module. The loss location depends on what is wrapped; a fixed “output gather → loss scatter” sequence is not its general definition. [DataParallel](https://docs.pytorch.org/docs/stable/generated/torch.nn.DataParallel.html)
         - Drawbacks
             - Main GPU is a bottleneck.
-            - Heavy memory and communication load on cuda:0.
+            - Extra gather/reduction memory and communication on the configured primary device, commonly `device_ids[0]`.
             - Not scalable across machines
 
     - PyTorch DDP: `torch.nn.DistributedDataParallel`
         - [To be reviewed] DDP synchronizes gradients during backward, but can also communicate during construction and forward, for example parameter verification/initial synchronization and configured buffer broadcasts. SyncBatchNorm or custom distributed modules can add forward collectives. [DDP design](https://docs.pytorch.org/docs/stable/notes/ddp.html)
         - [To be reviewed] DDP reduces gradient buckets across its process group, normally averaging gradients. Identical initial parameters, synchronized updates, and compatible optimizer state are needed to keep replicas aligned. Unequal local valid-token counts require correct weighting for a global token-mean objective.
-        - Gradient all-reduce is the core operation that enables DDP to synchronize gradients across GPUs. After local backpropagation, it aggregates gradients (sums them), averages them, and ensures all GPUs update their model in the same way. It uses high-performance communication backends like NCCL and scales efficiently to large GPU clusters.
+        - Gradient all-reduce can overlap bucketwise with backpropagation; it need not wait for the whole backward pass. Communication backend, topology, bucket sizes, and compute/communication balance determine scaling.
 
         ```python
 
@@ -413,8 +413,8 @@ At each transition, save a checkpoint and evaluate **target capability, general 
 
         ```
 
-    - ZeRO (Zero Redundancy Optimizer) is a memory optimization technique for large-scale model training developed by Microsoft’s DeepSpeed team. Its goal is to eliminate memory redundancy across GPUs during distributed training, so you can train much larger models without running out of memory. ZeRO removes redundancy by sharding (splitting) model states across GPUs. Different ZeRO stages define how much is sharded:
-        - ZeRO-1: Sharding Optimizer States. Only optimizer states are sharded across GPUs. Model parameters and gradients are still fully replicated. (All reduce)
+    - ZeRO (Zero Redundancy Optimizer) reduces replicated model-state storage by sharding across data-parallel workers. It can increase feasible model size, but activations, temporary gathers, and communication still determine peak memory. The stages define which persistent states are partitioned:
+        - ZeRO-1 shards optimizer states. Model parameters and gradients remain replicated; implementations synchronize gradients and distribute updated parameter partitions using their chosen collectives.
         - [To be reviewed] ZeRO-2 partitions optimizer states and gradients. Implementations can use reduce-scatter or related collectives, then exchange updated parameter shards as required. The ownership/sharding semantics, not one mandatory “reduce then broadcast” sequence, define the stage.
         - [To be reviewed] ZeRO-3 additionally shards parameters and gathers the needed parameter groups around computation. Persistent states are sharded, but temporary gathered parameters and buffers still consume memory. This is parameter/state sharding in a data-parallel training scheme, distinct from tensor or layer partitioning. [ZeRO](https://arxiv.org/abs/1910.02054)
             - [To be reviewed] Reduce-scatter followed by all-gather can implement an all-reduce over the same participants and compatible partitioning. A reduce-to-one operation is a different collective.
@@ -430,18 +430,18 @@ At each transition, save a checkpoint and evaluate **target capability, general 
     - [To be reviewed] Ordinary replicated data parallelism processes different local data on each replica and synchronizes gradients; it should not be confused with the persistent-state layout of fully sharded training.
 
 - Model parallel
-    - [To be reviewed] Pipeline (horizontal) parallel [[GPipe](https://arxiv.org/abs/1811.06965)]: split layers across multi-GPUs when model is too large.
+    - [To be reviewed] Pipeline parallelism [[GPipe](https://arxiv.org/abs/1811.06965)]: split layers across multi-GPUs when model is too large.
 
         - Split consecutive layers into stages and send microbatch activations between them. A simple synchronous fill/drain schedule with $`p`$ balanced stages and $`m`$ microbatches has idealized utilization about $`m/(m+p-1)`$, ignoring communication and imbalance.
         - **Example:** four stages and eight microbatches yield about 8/11 utilization in that simplified model. More microbatches reduce the fractional bubble but can increase activation storage or reduce per-microbatch kernel efficiency. 1F1B schedules trade scheduling complexity and memory against idle time; they are not unique to one model family. [GPipe](https://arxiv.org/abs/1811.06965), [Megatron schedules](https://arxiv.org/abs/2104.04473)
 
         - [To be reviewed] Pipeline bubbles arise from schedule fill/drain, dependencies, and imbalance. 1F1B schedules predate DeepSeek and are not the defining novelty of DualPipe or another particular pipeline schedule.
-    - [To be reviewed] Tensor (vertical) parallel
+    - [To be reviewed] Tensor parallelism
 
         - Shard individual linear transformations or attention heads across devices. Column- and row-parallel matrix multiplications place collectives at chosen points so the composed operation matches the unsharded mathematical computation.
         - **Example:** split an MLP expansion across four GPUs, then combine partial outputs in its contraction. Tensor parallelism saves per-device weight/activation memory but adds frequent communication, so fast interconnects are valuable. A dimension must satisfy the implementation's partitioning requirements. [Megatron-LM](https://arxiv.org/abs/1909.08053)
 
-        - [To be reviewed] Sequence(Activation) parallel
+        - [To be reviewed] Sequence (activation) parallelism
 
             - In Megatron-style sequence parallelism, shard sequence-dimension activations for operations such as normalization and dropout around tensor-parallel layers, using appropriate collectives to transition layouts. This reduces replicated activation storage.
             - Distinguish this from **context parallelism**, which partitions long-context attention work and communicates K/V information across sequence partitions. **Example:** merely slicing a sequence and performing independent attention on each slice changes the model by deleting cross-slice dependencies. [Activation-memory analysis](https://arxiv.org/abs/2205.05198)
@@ -498,7 +498,7 @@ Choose an update parameterization independently of the stage/objective. The mech
             - Insert trainable bottleneck modules inside a frozen model, often with a residual form $`h'=h+W_{\mathrm{up}}\,\sigma(W_{\mathrm{down}}h)`$. The bottleneck limits trainable parameters while permitting nonlinear adaptation.
             - **Example:** maintain separate adapters for legal and biomedical tagging over one encoder. Added modules can add runtime work unless the implementation can fuse or otherwise optimize them. Choose insertion locations and bottleneck size through held-out evaluation. [Adapter paper](https://arxiv.org/abs/1902.00751)
 
-        - [To be reviewed] LORA [[YouTube](https://www.youtube.com/watch?v=eC6Hd1hFvos&t=959s)]
+        - [To be reviewed] LoRA [[YouTube](https://www.youtube.com/watch?v=eC6Hd1hFvos&t=959s)]
 
             - Parameterize a frozen matrix's update as $`\Delta W=(\alpha/r)BA`$, with $`A\in\mathbb{R}^{r\times d_{\mathrm{in}}}`$ and $`B\in\mathbb{R}^{d_{\mathrm{out}}\times r}`$. This trains $`r(d_{\mathrm{in}}+d_{\mathrm{out}})`$ parameters rather than $`d_{\mathrm{in}}d_{\mathrm{out}}`$ for that matrix.
             - **Illustrative calculation:** a 4,096-by-4,096 matrix has 16,777,216 entries; rank 16 adds 131,072 entries, about 0.78%. Rank, scaling, target modules, initialization, and data all matter. A merge can remove adapter matmul overhead when precision and deployment constraints permit it. [LoRA](https://arxiv.org/abs/2106.09685)
@@ -532,18 +532,19 @@ State/parameter sharding is described once in [Distributed Training](#distribute
 ### [To be reviewed] Accumulation, Checkpointing, and Communication
 - [To be reviewed] Gradient accumulation
 
-    - Accumulate gradients across microbatches before an optimizer step. For equal-sized microbatches, scale each mean loss by the number of accumulation steps to recover the large-batch mean gradient. With variable valid-token counts, normalize by the total relevant token count instead.
+    - Accumulate gradients across microbatches before an optimizer step. For equal-sized microbatches, divide each mean loss by the number of accumulation steps to recover the large-batch mean gradient. With variable valid-token counts, normalize by the total relevant token count instead.
     - **Example:** averaging a 10-token microbatch loss and a 100-token microbatch loss weights their tokens differently from a global token mean. Dropout, batch normalization, clipping frequency, and floating-point accumulation can also prevent exact equivalence to one physical large batch. [AMP accumulation example](https://docs.pytorch.org/docs/stable/notes/amp_examples.html#gradient-accumulation)
+
+    - [To be reviewed] **Batch accounting (applies to accumulation, independently of checkpointing):** for equal microbatches, global batch size is $`B_{\mathrm{global}}=B_{\mathrm{micro}}\,A\,D`$, where $`A`$ is accumulation steps and $`D`$ is data-parallel replicas. Normalize gradients/loss by the intended total example or valid-token count. “Average gradients” needs that explicit weighting when microbatch lengths differ.
 
 - [To be reviewed] Activation checkpointing
     - Activation checkpointing/ Activation recomputation: Recompute some activations during the backward pass. Store some activations during the forward pass as checkpoints. Discard other activations and recompute them during the backward pass.
         - Save memory but take longer to compute.
-    - [To be reviewed] For equal microbatches, global batch size is $`B_{\mathrm{global}}=B_{\mathrm{micro}}\,A\,D`$, where $`A`$ is accumulation steps and $`D`$ is data-parallel replicas. Normalize gradients/loss by the intended total example or valid-token count. “Average gradients” needs that explicit weighting when microbatch lengths differ.
-        - could be combined with multi-GPU techniques.
-        - [To be reviewed] Overlap + bucketing
 
-            - Launch communication for ready gradient buckets while backward computation continues. Bucket size trades launch overhead against how early overlap begins. Some distributed implementations can suppress repeated synchronization during accumulation and synchronize on the final microbatch.
-            - **Example:** if every microbatch synchronizes despite eight-step accumulation, communication cost can be much larger than expected. Verify traces and framework semantics; excessive communication buffers can also raise peak memory. [DDP design notes](https://docs.pytorch.org/docs/stable/notes/ddp.html)
+- [To be reviewed] Overlap + bucketing
+
+    - Launch communication for ready gradient buckets while backward computation continues. Bucket size trades launch overhead against how early overlap begins. Some distributed implementations can suppress repeated synchronization during accumulation and synchronize on the final microbatch.
+    - **Example:** if every microbatch synchronizes despite eight-step accumulation, communication cost can be much larger than expected. Verify traces and framework semantics; excessive communication buffers can also raise peak memory. [DDP design notes](https://docs.pytorch.org/docs/stable/notes/ddp.html)
 
 <a id="llm-inference"></a>
 ## [To be reviewed] Inference and Serving

@@ -9,7 +9,7 @@
     - [Black-Box Optimization](#black-box-optimization)
     - [Model evaluation and selection](#model-evaluation-and-selection)
 - [ML Algorithms](#ml-algorithms)
-    - [Algorithm Categories [Super Quick Overview](#algorithm-categories)
+    - [Algorithm Categories](#algorithm-categories)
     - [Supervised Learning](#supervised-learning)
     - [Unsupervised Learning](#unsupervised-learning)
 - [XAI](#xai)
@@ -21,7 +21,7 @@
 ## ML Basic
 ### Gradient descent
 - (Batch) Gradient descent [[ref](https://machinelearningmastery.com/gradient-descent-for-machine-learning/)] [[B站](https://www.bilibili.com/video/BV1jh4y1q7ua/?spm_id_from=333.337.search-card.all.click&vd_source=c86f14ec33e79f08f7e2278747a071e8)]
-    - The gradient $`\left(\nabla_\theta J(\theta)\right)`$ represents the direction of steepest ascent-the direction where the function increases the fastest. Gradient gives the direction of steepest ascend. So to minimize the function, take steps in the opposite direction.
+    - [To be reviewed] At a differentiable point with nonzero gradient, $`\nabla_\theta J(\theta)`$ gives the steepest local ascent direction under the Euclidean norm. Gradient descent steps in its negative direction; a suitable step size is still needed to decrease the objective.
     - Gradient descent is an optimization algorithm used to find the values of parameters (coefficients) of a function (f) that minimizes a cost function (cost).
     - formula: $`\theta = \theta - \alpha \nabla_\theta J(\theta)`$, where $`\theta:`$ Parameters to be optimized. $`\alpha`$ : Learning rate (step size). $`\nabla_\theta J(\theta)`$ : Gradient of the cost function w.r.t. parameters.
 
@@ -38,7 +38,7 @@
 
 [To be reviewed] These optimizers modify the update direction, its history, and/or its coordinatewise scale. Momentum is not itself an adaptive per-coordinate learning-rate method, and no listed method guarantees improved convergence or generalization on every task.
 
-- **Momentum (gc)** enhances standard gradient descent by adding a velocity term that accumulates past gradients. This velocity term smooths the updates, reducing oscillations and accelerating convergence, particularly in scenarios with noisy gradients or ill-conditioned optimization surfaces.
+- **Momentum SGD** enhances standard gradient descent by adding a velocity term that accumulates past gradients. This velocity term smooths the updates, reducing oscillations and accelerating convergence, particularly in scenarios with noisy gradients or ill-conditioned optimization surfaces.
     - $`v_t=\beta v_{t-1}+(1-\beta) \nabla J\left(\theta_t\right)`$
     - $`\theta_{t+1}=\theta_t-\alpha v_t`$
     - [To be reviewed] Momentum can reduce oscillation and accelerate progress on suitable objectives, but it does not guarantee escape from a local minimum or stable training for arbitrary hyperparameters.
@@ -53,7 +53,7 @@
         - This correction reduces lag in the momentum term, leading to more accurate, often faster convergence.
 
 
-- **Adagrad (lr)** uses adaptive learning rates for each parameter, automatically adjusting LR during training. Larger learning rates for infrequent parameters, smaller rates for frequent parameters.
+- **AdaGrad** rescales each coordinate using its accumulated squared gradients. Coordinates with smaller accumulated squared gradients receive larger effective steps; update frequency alone does not determine the scale.
     - Formula:
 
       $`G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)`$
@@ -141,9 +141,9 @@ Stability and generalization require a task-specific comparison; they are not fi
         - Precision ($`\frac{T P}{T P+F P}`$): Out of predicted positives, how many were actually positive?
         - Recall/sensitivity/TPR ($`\frac{T P}{T P+F N}`$): 	Out of actual positives, how many were predicted correctly?
         - Specificity/TNR ($`\frac{T N}{T N+F P}`$): Out of actual negatives, how many were correctly predicted negative?
-        - F1-score ($`2 \times \frac{\text { Precision } \times \text { Recall }}{\text { Precision }+ \text { Recall }}`$): Harmonic mean balancing precision and recall. For multi-class problems, use macro or weighted averages.
-        - **How to choose**: Accuracy is misleading with imbalanced data. Precision, if avoiding false positives is crucial (e.g., spam detection). Recall (Sensitivity), if missing a positive case is costly (e.g., cancer detection, fraud detection). F1-score, if both precision and recall matter equally. Specificity, if correctly identifying negative cases is essential (medical tests).
-        - Precision vs Recall: Precision clearly matters when the cost of a FP is high. (e.g., classifying email as spam—high precision avoids wrongly marking important emails). Recall (TPR) clearly matters when the cost of missing positives (FN) is very high (e.g., disease diagnosis—high recall ensures positive cases aren't missed).
+        - F1-score ($`2 \times \frac{\text { Precision } \times \text { Recall }}{\text { Precision }+ \text { Recall }}`$): Harmonic mean of precision and recall. Multiclass/multilabel reductions include micro, macro, and support-weighted averages; specify the convention.
+        - [To be reviewed] **Choose a metric and threshold from the decision costs, prevalence, and constraints.** Accuracy can hide minority-class failure. Precision measures the reliability of positive predictions; recall measures positive-case coverage; specificity measures negative-case coverage. F1 ignores true negatives and is not generally equivalent to minimizing an application's expected error cost. Include precision–recall curves and relevant operating points when positives are rare. [Metric definitions](https://scikit-learn.org/stable/modules/model_evaluation.html#precision-recall-f-measure-metrics)
+        - **Example:** a spam filter can require a low false-positive rate before comparing recall. Higher recall reduces missed positives at the chosen threshold; it does not ensure that none are missed. State zero-denominator handling for precision, recall, specificity, and F1, and evaluate on the intended population.
 
     - ROC (Receiver Operating Characteristic) curve (TPR vs FPR, threshold selection)
         - [To be reviewed] ROC plots TPR against FPR as the decision threshold changes. Threshold choice balances costs, prevalence, and constraints; maximizing TPR and minimizing FPR simultaneously is generally impossible. Inspect the operating region relevant to deployment.
@@ -176,7 +176,7 @@ Stability and generalization require a task-specific comparison; they are not fi
         $`\operatorname{Loss}(w)=\operatorname{Loss}_{\text{original}}(w)+\lambda\cdot{R}(w)`$
 
 
-        - L0 is a technique in ML to encourage sparsity in a model's parameters. It penalizes the number of **non-zero parameters** in a model.
+        - The L0 count (not a norm in the mathematical sense) is used in ML to encourage sparsity in a model's parameters. It penalizes the number of **non-zero parameters** in a model.
 
             $`\|\mathbf{w}\|_0=\sum_{i=1}^n \mathbf{1}\left[w_i \neq 0\right]`$
 
@@ -192,16 +192,16 @@ Stability and generalization require a task-specific comparison; they are not fi
 
             $`R(w)=\sum\left(w_i^2\right)`$
 
-            Penalizes large weights heavily, encourges smaller, diffuse weigths. Handles correlated features better.
+            Encourages smaller coefficients and can stabilize an ill-conditioned fit. Its effect depends on feature scaling and the objective.
 
         - L-infinity penalizes the **largest absolute weight** (maximum norm):
 
             $`R(w)=\max \left|w_i\right|`$
 
-            It's used when you need to control the model's sensitivity to prevent any one feature from dominating the predictions.
+            [To be reviewed] A hard L-infinity constraint sets a coefficient cap; a soft penalty discourages a large maximum magnitude without specifying a fixed cap. Neither alone ensures that no feature dominates predictions: feature scales, interactions, and the input norm also matter.
 
         - When prefer L1 over L2? For explicit feature selection or interpretability
-        - When prefer L2 over L1? L2 (Ridge) shrinks correlated features toward each other, effectively managing correlated features.
+        - When prefer L2 over L1? Ridge can distribute weight across correlated predictors and stabilize estimation; it does not universally force arbitrary correlated coefficients to equality. Standardize features when the penalty should act comparably across units.
         - [To be reviewed] As $`\lambda\to\infty`$, penalized coefficients typically approach zero under the stated objective, while an unpenalized intercept need not. L1 can make coefficients exactly zero at finite penalty values; L2 generally shrinks them continuously. There is no parameterization-independent sense in which L1 always reaches zero “faster.”
         - Is L0 convex? Why does it matter? No, it's non-convex. This matters due to optimization difficulty and computational complexity.
 
@@ -209,8 +209,8 @@ Stability and generalization require a task-specific comparison; they are not fi
 
 
     - [To be reviewed] Feature selection can reduce variance or computation but can increase bias by discarding useful information. Fit the selection procedure inside each training fold; selecting features on all data before cross-validation leaks evaluation information. Use task-appropriate held-out selection criteria.
-        - Backward Elimination: Start with all features, then iteratively remove the least significant feature.
-        - Forward Selection: Start with no features, then teratively add the most significant feature until no improvement.
+        - Backward Elimination: Start with all features, then remove a feature according to a prespecified validation or model-selection criterion.
+        - Forward Selection: Start with no features, then add the feature giving the best improvement under that criterion. Statistical significance is only one possible criterion.
         - Recursive Feature Elimination (RFE): Iteratively fits a model and removes least important features based on coefficients or importance metrics.
         - Embedded Methods (L1 Regularization / Lasso):
             - Feature selection happens simultaneously with model fitting
@@ -223,7 +223,7 @@ Stability and generalization require a task-specific comparison; they are not fi
             - SMOTE (Synthetic Minority Oversampling Technique): 1. Chooses a random minority instance; 2. Finds k nearest minority neighbors; 3. Creates synthetic points along the line segments joining neighbors.
             - ADASYN (Adaptive Synthetic Sampling): Generates more synthetic data for harder-to-classify minority instances (closer to majority class boundary).
         - Undersampling: Remove majority examples strategically.
-            - ENN (Edited Nearest Neighbor): Removes majority samples misclassified by a k-NN classifier (noisy or ambiguous instances).
+            - [To be reviewed] ENN (Edited Nearest Neighbours) removes eligible observations whose labels disagree with a specified nearest-neighbor rule. Which classes can be edited and whether all or a majority of neighbors must agree are configuration choices; it is not intrinsically restricted to majority-class misclassifications. [ENN API](https://imbalanced-learn.org/stable/references/generated/imblearn.under_sampling.EditedNearestNeighbours.html)
 
     - Distribution shifts: A distribution shift happens when the data seen during training differs from the data encountered during deployment or testing. It breaks the core assumption that train and test data come from the same distribution.
         - Covariate Shift (X changed): This occurs when the input distribution $`P(x)`$ changes, but the conditional distribution $`P(y \mid x)`$ stays the same. Example: A spam detection model trained on emails from last year might see different phrasing this year, even if what qualifies as spam hasn’t changed.
@@ -243,7 +243,7 @@ Stability and generalization require a task-specific comparison; they are not fi
         - Code: df.groupby(stratify_col, group_keys=False).apply(lambda x: x.sample(frac=frac))
     - Questions
         - When would you prefer reservoir sampling over uniform random sampling? If you're sampling tweets from a live Twitter stream (which is continuously updating and has unknown total size), reservoir sampling is the ideal method to guarantee uniformity while using fixed memory.
-        - How does stratified sampling reduce variance? If you're conducting a survey on voting preferences and you stratify by age groups (young, middle-aged, elderly), each subgroup's responses tend to be more similar internally than across the entire population. This homogeneity decreases the variance of estimates significantly compared to simple random sampling.
+        - [To be reviewed] When can stratification reduce variance? If strata are internally homogeneous for the target quantity and allocation is appropriate, it can improve precision relative to simple random sampling. This is not guaranteed for arbitrary strata or allocation. Use population/design weights for a population estimate when sampling fractions differ across strata; class-balanced sampling and population-representative estimation are different goals.
 
 
 
@@ -258,14 +258,13 @@ Stability and generalization require a task-specific comparison; they are not fi
         - Small $`K`$ :
             - [To be reviewed] Fewer folds generally reduce the number of fits and computational cost.
             - [To be reviewed] Each fit uses less training data, which can increase training-size bias. The estimator's variability depends on the dataset, learner, split design, and metric; it cannot be ordered by fold count alone.
-    - How to handle imbalanced datasets in K-fold CV? Use Stratified K-fold, ensuring each fold maintains the proportion of classes from the original dataset.
+    - How to handle imbalanced datasets in K-fold CV? Stratified K-fold approximately preserves class proportions when feasible. It does not resolve grouped-observation or temporal leakage; those constraints take priority.
     - Does K-fold cross-validation prevent overfitting? No, it helps evaluate and select models accurately but doesn't inherently prevent overfitting. Use regularization, early stopping, or simpler models to control overfitting.
     - [To be reviewed] Ordinary shuffled K-fold can leak future information in temporal data. Use forward/blocked time splits, group-aware splits, and gaps when required by the deployment task. Cross-validation itself is not inherently incompatible with time series. [Cross-validation design](https://scikit-learn.org/stable/modules/cross_validation.html)
 
 - Hyper-Parameter Tuning
     - Grid search: Exhaustively evaluates all possible combinations of hyper-parameters provided in a predefined grid.
-    - Random search: Randomly samples hyper-parameter values within predefined ranges.
-    - Bayesian optimization: Uses past evaluation results to model the hyper-parameter space.
+    - Random search and Bayesian optimization: see [Black-Box Optimization](#black-box-optimization) for their mechanisms and budget controls.
         - Popular libraries: `Hyperopt`, `Optuna`, `BayesSearchCV`.
     - Other autoML packages: `auto-sklearn`, `h2o`.
 
@@ -286,7 +285,7 @@ Stability and generalization require a task-specific comparison; they are not fi
                     - Penalizes confident but wrong predictions heavily.
                     - Works well when used with sigmoid activation in the output layer.
 
-                - categorial cross entropy: Extends cross-entropy loss to multi-class classification problems. For a ground truth one-hot encoded vector $`\mathbf{y}`$ and a prediction vector $`\hat{\mathbf{y}}`$ : $`\mathrm{CCE}=-\sum_{c=1}^C y_c \log \left(\hat{y}_c\right)`$.
+                - categorical cross-entropy: Extends cross-entropy loss to multi-class classification problems. For a ground truth one-hot encoded vector $`\mathbf{y}`$ and a prediction vector $`\hat{\mathbf{y}}`$ : $`\mathrm{CCE}=-\sum_{c=1}^C y_c \log \left(\hat{y}_c\right)`$.
                     - Used together with a softmax activation in the output layer.
                     - Encourages the model to assign high probability to the correct class.
 
@@ -300,7 +299,7 @@ Stability and generalization require a task-specific comparison; they are not fi
                     - Focuses on the margin between classes.
                     - Can also be adapted for multi-class classification with variations like multi-class hinge loss.
 
-        - Regression: Predicts continuous numerial outputs. (e.g., house price prediction, stock market forecasting). Algorithms: Linear regression, RF.
+        - Regression: Predicts continuous numerical outputs. (e.g., house price prediction, stock market forecasting). Algorithms: Linear regression, RF.
             - Loss function:These losses measure how close predicted values are to true values numerically.
                 - [To be reviewed] MSE
 
@@ -328,15 +327,15 @@ Stability and generalization require a task-specific comparison; they are not fi
                     - **Implementation:** use $`|r|+\log(1+e^{-2|r|})-\log 2`$ to avoid overflow from computing `cosh` directly. An explicit residual scale is needed when units vary. Like other symmetric robust losses, it does not generally estimate the conditional mean under asymmetric noise. [TensorFlow LogCosh reference](https://www.tensorflow.org/api_docs/python/tf/keras/losses/LogCosh)
 
 
-    - **Unsupervised Learning** is a type of machine learning that learns from data without human supervision. Unlike supervised learning, unsupervised machine learning models are given unlabeled data and allowed to discover patterns and insights without any explicit guidance or instruction. (e.g., Customer segmentation, dimensionality reduction)
-        - **Clustering** is a technique for exploring raw, unlabeled data and breaking it down into groups (or clusters) based on similarities or differences. It is used in a variety of applications, including customer segmentation, fraud detection, and image analysis. Clustering algorithms split data into natural groups by finding similar structures or patterns in uncategorized data.
+    - [To be reviewed] **Unsupervised learning** fits structure without externally supplied target labels for that learning objective. Humans still choose the representation, objective, metric, and model assumptions. Clustering and unsupervised dimensionality reduction are examples; self-supervised objectives construct targets from the observations themselves.
+        - **Clustering** is a technique for exploring raw, unlabeled data and breaking it down into groups (or clusters) based on similarities or differences. It is used in a variety of applications, including customer segmentation, fraud detection, and image analysis. The resulting groups depend on the representation, metric, and algorithm; they need not correspond to natural or scientifically meaningful classes.
             - [To be reviewed] K-means
 
-                - Partition observations by nearest centroid and minimize squared Euclidean reconstruction error; choose feature scaling and multiple initializations deliberately. See the detailed K-means section below. Example: grouping customers by annual spend without scaling can effectively ignore a purchase-frequency feature measured on a much smaller numerical scale.
+                - See [K-means: objective, initialization, updates, and evaluation](#ml-k-means). Feature scaling is part of the distance definition; large numerical units can dominate the partition.
 
             - [To be reviewed] DBSCAN
 
-                - Identify density-connected regions and label unsupported points as noise. Unlike K-means, DBSCAN does not require a prespecified number of clusters, but its distance metric and density thresholds strongly influence the answer. A single global threshold can struggle when genuine clusters have very different densities. See the detailed DBSCAN section below.
+                - See [DBSCAN: core points, border points, and expansion](#ml-dbscan). A single global density threshold can struggle with substantially different cluster densities.
 
             - [To be reviewed] Hierarchical clustering.
 
@@ -350,14 +349,14 @@ Stability and generalization require a task-specific comparison; they are not fi
 
         [To be reviewed] Apriori, Eclat, and FP-growth are common frequent-pattern mining approaches. Their relative suitability depends on support thresholds, sparsity, and implementation; avoid an unsupported universal popularity ranking.
 
-        - Dimensionality  Reduction is an unsupervised learning technique that reduces the number of features, or dimensions, in a dataset.
+        - Dimensionality reduction reduces the representation dimension. PCA and t-SNE are unsupervised examples; supervised approaches such as Linear Discriminant Analysis also exist.
             - [To be reviewed] PCA
 
-                - PCA finds orthogonal directions of maximal variance after centering. It is useful for compression and conditioning, but a low-variance direction can still contain the discriminative signal. See the detailed PCA entry under Dimension reduction techniques.
+                - See [PCA: variance, reconstruction, and leakage controls](#ml-pca). It is unsupervised; high explained variance does not establish predictive utility.
 
             - [To be reviewed] t-SNE
 
-                - t-SNE is primarily a local-neighborhood visualization method. Use multiple seeds and perplexities; do not infer class counts or quantitative global distances solely from separated islands. See the detailed t-SNE entry under Dimension reduction techniques.
+                - See [t-SNE: objective, perplexity, and interpretation limits](#ml-tsne). It primarily supports local-neighborhood visualization.
 
     - **Semi-supervised Learning** falls between unsupervised learning (without any labeled training data) and supervised learning (with completely labeled training data). It combines small amounts of labeled data with large amounts of unlabeled data. Useful when labeling data is expensive or difficult. The model leverages labeled data to guide learning, while also making use of unlabeled data to generalize better and improve performance.
     - [To be reviewed] **Reinforcement Learning** optimizes decisions under rewards in an environment or a specified decision process. Online RL collects new interactions; offline RL learns from an existing interaction dataset, so new environment interaction is not part of every RL training run.
@@ -395,9 +394,8 @@ Stability and generalization require a task-specific comparison; they are not fi
     - Logistic Regression
         - Formulation: Logistic regression models the probability of a binary outcome by applying the logistic (sigmoid) function to a linear combination of input features: $`P(y=1 \mid X)=\frac{1}{1+e^{-X \beta}} .`$
         - [To be reviewed] Parameters can be fitted by minimizing negative log-likelihood, often with regularization. Under complete separation, unregularized logistic regression need not have a finite MLE; solver convergence and penalty choice matter.
-        - Interpretability: Coefficients can be interpreted in terms of odds ratios, offering intuitive insights into feature effects.
+        - [To be reviewed] For a linear logit with other modeled covariates fixed, a one-unit increase in feature j multiplies modeled odds by $`\exp(\beta_j)`$. Interactions or transformed features change this interpretation; a fitted conditional association is not automatically causal.
 
-        - The cost for a single training example using the binary cross-entropy (log-loss) is: $`\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})]`$.
         - For $`m`$ training examples, the overall cost is: $`J(w, b)=\frac{1}{m} \sum_{i=1}^m \ell^{(i)}(w, b)=-\frac{1}{m} \sum_{i=1}^m\left[y^{(i)} \log \left(\hat{y}^{(i)}\right)+\left(1-y^{(i)}\right) \log \left(1-\hat{y}^{(i)}\right)\right]`$
         - Derivation of gradients
             - The cost for one sample is: $`\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})], \quad \text { with } \hat{y}=\sigma(z) \text { and } z=w^T x+b`$.
@@ -412,9 +410,9 @@ Stability and generalization require a task-specific comparison; they are not fi
     - Support Vector Machines
         - Formulation: SVMs seek a hyperplane that maximally separates classes with the greatest margin. For linearly separable data, the optimization problem is: $`\min _{w, b} \frac{1}{2}\|w\|^2 \quad \text { s.t. } y_i\left(w^T x_i+b\right) \geq 1, \quad \forall i`$.
         - [To be reviewed] Soft-margin SVM introduces nonnegative slack for margin violations, which include correctly classified points inside the margin as well as misclassifications. The regularization parameter balances margin and total violation penalty.
-        - Kernel Trick: For nonlinear classification, kernel functions (e.g., Gaussian, polynomial) implicitly map input data to a higher-dimensional space where linear separation is feasible.
+        - [To be reviewed] **Kernel trick:** a positive-semidefinite kernel evaluates inner products in an implicit feature space, which may be finite- or infinite-dimensional. This can support nonlinear boundaries in the original inputs; a kernel does not guarantee separability or generalization. [SVM reference](https://scikit-learn.org/stable/modules/svm.html#svm-kernels)
         - Dual Formulation: The Lagrange dual formulation and application of Karush-Kuhn-Tucker (KKT) conditions are central to SVM theory, providing insights into support vectors and decision boundaries.
-        - The optimization is convex, ensuring global optimum, but can be computationally challenging for large datasets.
+        - The standard soft-margin problem with a valid positive-semidefinite kernel is convex, so a local optimum is global. Numerical solvers still use tolerances and can fail to converge; arbitrary indefinite similarities do not inherit that convexity guarantee.
 
 
     - Naive Bayes
@@ -445,7 +443,7 @@ Stability and generalization require a task-specific comparison; they are not fi
         - Recursive Partitioning: At each node, the algorithm selects the feature and threshold that best “purifies” the subsets.
         - Stopping Criteria & Pruning: Trees can easily overfit; thus, criteria such as maximum depth, minimum samples per leaf, or post-pruning (e.g., cost-complexity pruning) are essential.
         - Interpretability: Decision trees produce models that are easily interpretable; however, their hierarchical nature can also be sensitive to small changes in data (high variance).
-    - Decision trees are highly flexible non-parametric models. Their analysis often involves bias–variance trade-offs: while they are low bias (fit complex relationships well), they can suffer from high variance if unpruned.
+    - Deep, weakly constrained trees can fit complex relationships and be unstable across training samples. Shallow or strongly pruned trees may instead underfit; bias and variance depend on the tree restrictions, data, and fitting procedure.
 
     - [To be reviewed] Leaves
 
@@ -483,9 +481,9 @@ Stability and generalization require a task-specific comparison; they are not fi
     - Boosting: Sequential Learning for Bias Reduction
         - Boosting represents a family of ensemble algorithms that construct a strong predictive model by iteratively training a sequence of base learners (typically weak learners), where each new learner focuses on correcting the errors made by the ensemble built so far. Unlike Bagging's parallel approach, Boosting is inherently sequential.
         - [To be reviewed] Boosting can reduce approximation bias by adding learners sequentially, but its bias/variance and noise sensitivity depend on loss, base learners, shrinkage, subsampling, and stopping. There is no universal ordering that boosting overfits more than bagging.
-        - [To be reviewed] **Adaboost**
+        - [To be reviewed] **AdaBoost**
 
-            - In binary AdaBoost with labels in $`\{-1,+1\}`$, a weak learner with weighted error $`\epsilon_t`$ receives coefficient $`\alpha_t=\tfrac12\log[(1-\epsilon_t)/\epsilon_t]`$. Update example weights proportionally to $`w_i\exp[-\alpha_t y_i h_t(x_i)]`$; mistakes gain weight.
+            - In binary AdaBoost with labels in $`\{-1,+1\}`$, a weak learner with weighted error $`\epsilon_t`$ receives coefficient $`\alpha_t=\tfrac12\log[(1-\epsilon_t)/\epsilon_t]`$. For $`0<\epsilon_t<1/2`$ this coefficient is positive; perfect or non-improving learners need an explicit stopping/handling rule. Update example weights proportionally to $`w_i\exp[-\alpha_t y_i h_t(x_i)]`$; mistakes gain weight.
             - **Example:** error 0.2 gives coefficient about 0.693 under this convention. Persistently mislabeled examples may absorb increasing weight, so inspect label noise. State the binary formulation explicitly: multiclass variants use different coefficients and conditions. [AdaBoost reference](https://scikit-learn.org/stable/modules/ensemble.html#adaboost)
 
         - [To be reviewed]  [[**Gradient Boosting**](https://www.youtube.com/watch?v=en2bmeB4QUo)]
@@ -500,10 +498,10 @@ Stability and generalization require a task-specific comparison; they are not fi
 
 
     - Stacking
-        - Concept: Stacking (or stacked generalization) involves training a meta-learner to combine the outputs of several base models, allowing for more flexible aggregation methods that can capture dependencies between predictions. In stacking, a model learns the optimal way to combine predictions.
+        - Concept: Stacking (or stacked generalization) involves training a meta-learner to combine the outputs of several base models, allowing for more flexible aggregation methods that can capture dependencies between predictions. The combination is fitted under a chosen loss and model class; no general optimality guarantee follows.
         - Architecture
             - Base level (Level 0):Multiple heterogeneous models (different algorithms). Each trained on the same training data. Examples: Random Forests, SVMs, Neural Networks, Gradient Boosting.
-            - Meta level: A model that takes base models' predictions as inputs. Learns to combine these predictions optimally. Can be any algorithm (logistic regression is common for simplicity and interpretability)
+            - Meta level: A model that takes base models' predictions as inputs. Fits a combination of these predictions. Can be any algorithm (logistic regression is common for simplicity and interpretability)
 
                 - [To be reviewed] **Leakage control:** train the meta-model on out-of-fold predictions. Each training row's level-0 prediction must come from a model that did not train on that row. Then refit the base estimators on all development data for deployment. In time series, out-of-fold construction must also respect chronology. Otherwise the meta-model learns from unrealistically optimistic base predictions. [Stacking implementation](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.StackingClassifier.html)
 
@@ -521,12 +519,12 @@ Stability and generalization require a task-specific comparison; they are not fi
 
         - [To be reviewed] Weighted Voting
 
-            - Assign nonnegative model weights and normalize by their sum for probability averaging. Tune weights on validation data or learn a regularized stacking model; never choose them from test-set performance.
+            - Assign nonnegative model weights with positive total weight and normalize by their sum for probability averaging. Tune weights on validation data or learn a regularized stacking model; never choose them from test-set performance.
             - **Example:** a domain-specialist model can receive higher weight on a validated target population, but its advantage may disappear under distribution shift. Report individual-model and ensemble results to show whether the additional inference cost buys a reproducible improvement.
 
 
 
-- While we can also divide the supervised learning classification algorithms by Training Methods into **Generative vs. Discriminative Models**
+- Another distinction concerns the **modeling target: generative versus discriminative models**
     - Discriminative models[[wiki](https://en.wikipedia.org/wiki/Discriminative_model)], also referred to as conditional models, are a class of models frequently used for classification.
         - Discriminative models learn the conditional distribution $`P(y \mid x)`$ (or decision boundary), focusing solely on predicting labels from observed inputs.
         - [To be reviewed] Discriminative models support binary, multiclass, structured, and continuous-output prediction. The defining distinction is conditional prediction or decision modeling, not a restriction to binary classification.
@@ -539,18 +537,18 @@ Stability and generalization require a task-specific comparison; they are not fi
 
 ### Unsupervised Learning
 
- [[Unsupervised learning](https://en.wikipedia.org/wiki/Unsupervised_learning)] is a framework in machine learning where, in contrast to supervised learning, algorithms learn patterns exclusively from unlabeled data.
+For the data/supervision taxonomy, see [Algorithm Categories](#algorithm-categories). This section gives the mechanisms and assumptions of individual unsupervised estimators.
 
 - Clustering
-    - K-means
+    - <a id="ml-k-means"></a> **K-means**
         - [To be reviewed] K-means minimizes $`J=\sum_{j=1}^k\sum_{x_i\in S_j}\|x_i-\mu_j\|^2`$, where $`\mu_j=|S_j|^{-1}\sum_{x_i\in S_j}x_i`$. It favors compact groups under a shared Euclidean metric, but does not impose equal cluster sizes. Unequal density, scale, anisotropy, and outliers can make the induced partition scientifically misleading. [K-means reference](https://scikit-learn.org/stable/modules/clustering.html#k-means)
         - Algorithm details
             - [To be reviewed] Initialization of centroids
 
                 - K-means++ selects the first center randomly and subsequent centers with probability proportional to squared distance from the nearest existing center. It reduces poor starts but does not guarantee the globally optimal clustering in each run.
-                - **Example:** compare multiple initializations at a fixed $`k`$, using final inertia and cluster stability. Standardize features when Euclidean distance should not be dominated by a feature's measurement units. [K-means++ paper](https://theory.stanford.edu/~sergei/papers/kMeansPP-soda.pdf)
+                - **Example:** compare multiple initializations at a fixed $`k`$, using final inertia and cluster stability. Standardize features when Euclidean distance should not be dominated by a feature's measurement units. [K-means++ paper](https://research.google/pubs/k-means-the-advantages-of-careful-seeding/)
 
-            - Assignment Step (E-step): Assign each data point $`x_i`$ to the cluster $`S_j`$ whose centroid $`\mu_j`$ is nearest (typically using squared Euclidean distance).
+            - Assignment step (a hard-assignment analogue of an EM E-step): Assign each data point $`x_i`$ to the cluster $`S_j`$ whose centroid $`\mu_j`$ is nearest (typically using squared Euclidean distance).
             - [To be reviewed] Update step
 
                 - Replace each center with the mean of its assigned points. Assignment and update steps do not increase the squared-distance objective, but convergence can reach a local optimum.
@@ -559,13 +557,13 @@ Stability and generalization require a task-specific comparison; they are not fi
             - Iteration: Repeat steps 2 and 3 until convergence criteria are met.
             - WCSS - elbow method for k optimization.
         - Evaluation Metrics
-            - Silhouette Score: Measures how similar a point is to its own cluster (cohesion) compared to other clusters (separation). For a point $`i`$, let $`a(i)`$ be the average distance to other points in its cluster, and $`b(i)`$ be the minimum average distance to points in another cluster. The score is $`s(i)=(b(i)-a(i)) / \max (a(i), b(i))`$. Scores range from -1 (misclassified) to +1 (well-clustered), with 0 indicating points near cluster boundaries. The overall score is the average $`s(i)`$ over all points. Higher scores are better.
+            - Silhouette Score: Measures how similar a point is to its own cluster (cohesion) compared to other clusters (separation). For a point $`i`$, let $`a(i)`$ be the average distance to other points in its cluster, and $`b(i)`$ be the minimum average distance to points in another cluster. The score is $`s(i)=(b(i)-a(i)) / \max (a(i), b(i))`$. [To be reviewed] Scores lie in [-1, 1]. A negative value means the point is closer on average to another cluster than to its assigned cluster; it is not proof of a ground-truth misclassification. A value near zero means similar within- and nearest-other-cluster distances. State singleton/zero-denominator conventions (scikit-learn assigns singleton scores zero); at least two clusters and fewer clusters than observations are required. Higher scores favor separation under the chosen metric, not necessarily task usefulness. [Silhouette definition](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_samples.html)
     - [To be reviewed] Hierarchical clustering
 
         - Agglomerative clustering starts with individual points and repeatedly merges clusters according to a linkage criterion. Single linkage uses the nearest pair and can create chains; complete linkage uses the farthest pair; average linkage averages cross-cluster distances. Ward linkage minimizes the increase in within-cluster squared error and requires Euclidean geometry.
         - **Example:** a narrow bridge of points can join two groups under single linkage while complete linkage keeps them apart. A dendrogram exposes the hierarchy, but its heights depend on linkage and feature scaling. Check sensitivity before treating a cut as a natural taxonomy. [Clustering documentation](https://scikit-learn.org/stable/modules/clustering.html#hierarchical-clustering)
 
-    - [[DBSCAN](https://www.youtube.com/watch?v=4AW_5nYQkuc&ab_channel=KilianWeinberger)] is a density-based clustering algorithm that groups together points that are closely packed, marking points in low-density regions as outliers (noise).
+    - <a id="ml-dbscan"></a> [[DBSCAN](https://www.youtube.com/watch?v=4AW_5nYQkuc&ab_channel=KilianWeinberger)] is a density-based clustering algorithm that groups together points that are closely packed, marking points in low-density regions as outliers (noise).
         - Parameters
             - eps ( $`\epsilon`$ ): The maximum distance (radius) between two points for one to be considered as in the neighborhood of the other.
             - min_samples (MinPts): The minimum number of points required within the e-neighborhood (including the point itself) for a point to be considered a core point.
@@ -612,7 +610,7 @@ Stability and generalization require a task-specific comparison; they are not fi
 
 - Dimension reduction techniques
     - Linear/Subspace Methods
-        - [To be reviewed] PCA
+        - <a id="ml-pca"></a> [To be reviewed] PCA
 
             - Center the training matrix and retain the leading right singular vectors. PCA solves a rank-constrained squared reconstruction problem; projected coordinates preserve directions of maximal sample variance, which need not be the most predictive directions.
             - **Example:** a large nuisance variation in sensor brightness can dominate the first component while a small diagnostic signal is discarded. Fit centering, scaling, and components on training folds only. Whitening changes the metric by rescaling component variances, so treat it as a separate modeling decision. [PCA documentation](https://scikit-learn.org/stable/modules/decomposition.html#pca)
@@ -628,7 +626,7 @@ Stability and generalization require a task-specific comparison; they are not fi
             - Build a neighborhood graph, estimate geodesic distances by shortest paths, then apply multidimensional scaling. This aims to preserve manifold distances rather than straight-line distances in the ambient space.
             - **Example:** on a rolled “Swiss roll,” nearby points across different layers may be close in Euclidean distance but far along the surface. Too many neighbors can create shortcuts across folds; too few can disconnect the graph. [Isomap documentation](https://scikit-learn.org/stable/modules/manifold.html#isomap)
 
-        - [To be reviewed] T-SNE
+        - <a id="ml-tsne"></a> [To be reviewed] t-SNE
 
             - t-SNE matches local similarity distributions by minimizing $`D_{\mathrm{KL}}(P\|Q)`$, with a heavy-tailed low-dimensional distribution. Perplexity controls a notion of neighborhood size; initialization and optimization affect the result.
             - **Example:** a plot can show separated islands even when the original distribution has continuous structure. Cluster area, inter-island distance, and empty space are not automatically faithful quantitative summaries. Vary seeds and perplexity, and verify conclusions in the original representation. [t-SNE paper](https://www.jmlr.org/papers/v9/vandermaaten08a.html)

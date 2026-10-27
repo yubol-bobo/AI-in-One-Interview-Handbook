@@ -10,7 +10,7 @@
 <rect width="1900" height="1440" fill="#ffffff"/>
 
 <text x="950" y="45" font-size="30" fill="#172b4d" font-weight="700" text-anchor="middle">TRANSFORMER · ARCHITECTURE AND COMPUTATION</text>
-<text x="950" y="79" font-size="20" fill="#5c6d80" font-weight="400" text-anchor="middle">[To be reviewed]  Read bottom → top. Numbered modules match the README deep dive.</text>
+<text x="950" y="79" font-size="20" fill="#5c6d80" font-weight="400" text-anchor="middle">[To be reviewed]  Read bottom → top. Numbered modules match the Transformer chapter.</text>
 <rect x="30" y="105" width="1070" height="1240" rx="18" fill="#f8fafc" stroke="#d7e0eb" stroke-width="2"/>
 <rect x="1160" y="105" width="730" height="1240" rx="18" fill="#f7fbf9" stroke="#d2e5dd" stroke-width="2"/>
 <text x="565" y="137" font-size="23" fill="#172b4d" font-weight="700" text-anchor="middle">A  Original encoder–decoder · Post-LayerNorm</text>

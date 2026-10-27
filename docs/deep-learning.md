@@ -30,20 +30,20 @@
 
 
 - Activation functions [[ref](https://www.v7labs.com/blog/neural-networks-activation-functions)]
-    - **Sigmoid (1980s)** and its limitations: $`\sigma(x)=\frac{1}{1+e^{-x}}`$, which outputs to the range (0, 1) and is useful for probabilistic interpretations.
+    - **Sigmoid** and its limitations: $`\sigma(x)=\frac{1}{1+e^{-x}}`$, which outputs to the range (0, 1) and is useful for probabilistic interpretations.
         - Limitations
             - Vanishing Gradients: In regions where the input is very positive or very negative, the output saturates close to 1 or 0. This can lead to extremely small gradients, slowing or even halting the training process in deep networks.
             - Non Zero-Centered: The sigmoid function’s outputs being always positive can lead to inefficient gradient updates, as the activations are not centered around zero.
-    - **Tanh (The hyperbolic tangent) (1980s)**: $`\tanh (z)=\frac{e^z-e^{-z}}{e^z+e^{-z}}=\frac{2}{1+e^{-2 z}}-1`$.
-        - It's the improvement based on Sigmoid. It produces outputs in the range (-1, 1) and tends to center the data (0) better compared to the sigmoid.
+    - **Tanh (hyperbolic tangent)**: $`\tanh (z)=\frac{e^z-e^{-z}}{e^z+e^{-z}}=\frac{2}{1+e^{-2 z}}-1`$.
+        - It is related to sigmoid by $`\tanh(z)=2\sigma(2z)-1`$ and supplies signed outputs in (-1, 1). A symmetric output range does not ensure that arbitrary input distributions produce zero-mean activations.
 
     [To be reviewed] Sigmoid gates take values in (0, 1), while tanh supplies signed bounded candidate/state transformations. Tanh outputs are not probabilities. ReLU is useful in many hidden layers but is not a direct bounded-probability parameterization.
 
-    - **ReLU (2010) family (Rectified Linear Unit) (ReLU, Leaky ReLU, PReLU, ELU, SELU)**: $`f(x)=\max (0, x)`$ ReLU outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
-        - Dying issue: In some cases during training, a significant number of neurons can end up outputting zero for all inputs. This happens when the weights and biases of these neurons adjust in such a way that the input to ReLU is consistently negative. Once a neuron falls into this state, its gradient becomes zero for any input value (since the derivative of ReLU is zero for negative inputs). And Because it outputs zero consistently, the neuron effectively "dies," meaning it no longer contributes to the learning process.
+    - **ReLU family (Rectified Linear Unit, Leaky ReLU, PReLU, ELU, SELU)**: $`f(x)=\max (0, x)`$ ReLU outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
+        - [To be reviewed] **Inactive ReLU:** if a unit's preactivation is negative for every example it currently sees, its local derivative and direct parameter-gradient contribution are zero on those examples. This can stall learning. It is not a statement about every possible input or an irreversible theorem: upstream changes, optimizer state, or new inputs can change the preactivations.
         - Solution-Leaky ReLU (2013): Instead of outputting zero for negative inputs, Leaky ReLU allows a small, non-zero gradient (e.g., $`f(x)=\alpha x`$ for $`x<0`$ with $`\alpha`$ being a small constant such as 0.01 ). This helps prevent neurons from dying.
         - Parametric ReLU (PReLU) (2015): Similar to Leaky ReLU, but the coefficient $`\alpha`$ is learned during training.
-        - ELU (Exponential Linear Unit) （2015） and SELU (Scaled ELU) （2017）: These functions introduce an exponential factor for negative inputs which can improve learning dynamics and sometimes contribute to self-normalizing properties in deeper networks.
+        - ELU (Exponential Linear Unit) and SELU (Scaled ELU) use exponential negative branches. SELU's self-normalization claim additionally requires its specified scale/constants and architectural/initialization conditions; ordinary ELU is not equivalent. See [initialization conditions](#dl-initialization).
 
     [To be reviewed] Centering activations can improve some optimization conditions, but it is not a universal requirement for stable or fast training. Signal/gradient scales, nonlinearities, initialization, residual structure, and normalization interact; zero mean alone does not prevent saturation.
 
@@ -55,7 +55,7 @@
         - Swish has been shown to outperform ReLU on deeper models in certain cases, due to its ability to maintain non-zero gradients across a wider range of inputs.
 
     - **GLU (Gated Linear Unit)**
-        - Given an input $`x \in \mathbb{R}^d`$, two learned projections $`W, V \in \mathbb{R}^{d \times h}`$. $`\text{GLU}(x)=(x W) \otimes \sigma(x V)`$, where $`\otimes`$ is elementwise product.
+        - Given an input $`x \in \mathbb{R}^d`$, two learned projections $`W, V \in \mathbb{R}^{d \times h}`$. $`\text{GLU}(x)=(x W) \odot \sigma(x V)`$, where $`\odot`$ is elementwise product.
         - Intuition: One projection $`(x W)`$ carries "content," the other $`(x V)`$ gates it via a sigmoid. Allows the network to learn when to pass or suppress information.
 
 
@@ -66,11 +66,10 @@
 
     - **SwiGLU (Swish with Gating)**: SwiGLU combines the Swish activation with a gating mechanism, which allows the network to control the flow of information dynamically.
         - [To be reviewed] SwiGLU uses a SiLU gate in place of GLU's sigmoid gate; with one naming convention, $`\operatorname{SwiGLU}(x)=\operatorname{SiLU}(xW)\odot(xV)`$. Swapping names of the two learned projections gives an equivalent convention. A complete Transformer MLP usually includes an output projection as well. [GLU variants](https://arxiv.org/abs/2002.05202)
-        - By incorporating gating, SwiGLU can further improve the representation power and stability of gradient propagation.
-        - Often applied in transformer and language models, where dynamic control over activations can benefit deeper network architectures.
+        - Compare gated and ordinary MLPs at matched parameter/compute budgets; gating alone guarantees neither stability nor quality. See the full [Transformer MLP and SwiGLU computation](transformer.md#tf-mlp).
 
     - **Softmax**: The softmax function converts a vector of raw scores (logits) into a probability distribution: $`\text{Softmax}\left(z_i\right)=\frac{e^{z_i}}{\sum_j e^{z_j}}`$
-        - Each output value represents a probability (all outputs sum to 1), making it ideal for multi-class classification tasks.
+        - Finite logits define nonnegative probabilities summing to one, commonly used for mutually exclusive categorical outcomes. Use a stable implementation that subtracts the largest logit before exponentiating.
         - [To be reviewed] Softmax gives a normalized categorical distribution, not automatically calibrated confidence. Assess probability calibration and use the output distribution appropriate to the task; independent multilabel outputs typically use separate sigmoid probabilities.
 
     - Properties and selection criteria
@@ -80,15 +79,17 @@
 
 
     <div align="center">
-        <img src="../figs/activations.png" width="85%">
+        <img src="../figs/activation-functions.png" width="85%" alt="Activation functions computed from their defining equations">
     </div>
 
+    [To be reviewed] [Vector version](../figs/activation-functions.svg). These curves use the displayed parameters and exact GELU; tanh is bounded by -1 and 1. Leaky ReLU/PReLU share a functional form at a fixed slope, but PReLU learns that slope. GLU/SwiGLU are multivariate gated projections and are specified by equations rather than a single scalar curve.
 
-- Weight initialization [[YouTube](https://www.youtube.com/watch?v=tYFO434Lpm0)]
+
+- <a id="dl-initialization"></a> Weight initialization [[YouTube](https://www.youtube.com/watch?v=tYFO434Lpm0)]
 
     Weight initialization is a critical aspect of neural network training that can significantly impact convergence speed and overall performance.
     - Why weight initialization matters?
-        - Symmetry breaking: Initializing all weights to the same value (for example, zeros) would lead to symmetry where neurons learn identical features, effectively reducing the model’s capacity. Random initialization helps ensure that neurons evolve differently during training.
+        - Symmetry breaking: identical initialization of interchangeable hidden units can keep their updates identical. Random asymmetric weights help break that symmetry. Zero biases are often valid; zero initialization is also valid for some convex models such as linear regression, so the prohibition is not universal.
         - Maintaining signal flow: As data passes through layers, improper initialization can cause the variance of activations to either diminish (vanishing gradients) or grow uncontrollably (exploding gradients). A good initialization strategy maintains a balanced flow of gradients during backpropagation.
         - Convergence Speed: Appropriate weight initialization can help reduce the number of training iterations needed for the loss to converge by starting the optimization process in a "good" region of the parameter space.
         - Avoiding saturation: Keep neurons in active regions of their activation functions
@@ -104,18 +105,17 @@
     - **Xavier/Glorot initialization** (by Xavier Glorot and Yoshua Bengio in 2010)
 
         Xavier initialization was designed to keep the scale of the gradients roughly the same in all layers.
-        - The initialization maintains the variance of the activations across layers. For a weight matrix $`W`$ connecting layers with fan_in (number of input units) and fan_out (number of output units), the variance is balanced by considering both quantities.
-        - When to use? Xavier initialization is most appropriate when using activation functions that are symmetric around zero (like **tanh**) or where the derivative saturates (**sigmoid**).
-        - weights can be drawn from a normal distribution with: $`W \sim \mathcal{N}\left(0, \frac{2}{\text { fan } \_ \text {in }+ \text { fan } \_ \text {out }}\right)`$.
+        - The initialization balances forward/backward second moments under simplifying independence and activation assumptions; it does not guarantee constant variance through an arbitrary network. For a weight matrix $`W`$ connecting layers with fan_in (number of input units) and fan_out (number of output units), the variance is balanced by considering both quantities.
+        - It is a common starting point for tanh/approximately linear regimes, with an activation-dependent gain. It does not eliminate sigmoid saturation; verify scales in the actual architecture. [Glorot and Bengio](https://proceedings.mlr.press/v9/glorot10a.html)
+        - weights can be drawn from a normal distribution with: $`W \sim \mathcal{N}\left(0, \frac{2}{\mathrm{fan\_in}+ \mathrm{fan\_out}}\right)`$.
 
 
     - **He initialization**, proposed by Kaiming He et al., is tailored for networks that use **ReLU** or its variants. ReLU activations are not symmetric and have a different behavior, particularly because they zero out negative inputs.
-        - Weights are drawn from a normal distribution: $`W \sim \mathcal{N}\left(0, \frac{2}{\text { fan } \_ \text {in }}\right)`$.
+        - Weights are drawn from a normal distribution: $`W \sim \mathcal{N}\left(0, \frac{2}{\mathrm{fan\_in}}\right)`$.
         - [To be reviewed] For the standard ReLU assumptions, the factor 2 compensates for the change in the second moment. Leaky ReLU with negative slope a instead uses a gain such as sqrt(2 / (1 + a*a)); the same factor is not exact for all activation variants.
 
     - **LeCun initialization** is a weight initialization strategy designed to help maintain a consistent variance of activations as data flows through a network.
         - [To be reviewed] LeCun-normal initialization uses variance $`1/\mathrm{fan\_in}`$. SELU's self-normalization result additionally assumes a suitable feed-forward architecture, activation constants, input/weight conditions, and compatible regularization such as alpha dropout; initialization alone is insufficient. [Self-normalizing networks](https://arxiv.org/abs/1706.02515)
-        - weights can be drawn from a normal distribution with: $`W \sim \mathcal{N}\left(0, \frac{1}{\text { fan } \_ \text {in }}\right)`$.
 
     - [To be reviewed] Orthogonal initialization uses an orthogonal square matrix or a semi-orthogonal rectangular matrix. Only a compatible orientation satisfies $`W^TW=I`$; a wide matrix can instead satisfy $`WW^T=I`$. A linear orthogonal transform preserves the relevant norm, but nonlinear activations and an entire recurrent trajectory need not. [Initialization API](https://docs.pytorch.org/docs/stable/nn.init.html)
 
@@ -127,14 +127,20 @@
 
 
 
-    <div align="center">
-        <img src="../figs/initializations.png" width="85%">
-    </div>
+    [To be reviewed] **Initialization summary.** Variances below describe the sampled weights, before any additional architecture-specific scaling. These are starting conventions under their assumptions, not guarantees of signal preservation.
+
+    | Scheme | Normal-distribution variance | Scope |
+    | --- | --- | --- |
+    | Xavier / Glorot | $`g^2\,2/(\mathrm{fan\_in}+\mathrm{fan\_out})`$ | Gain g depends on the chosen activation/convention; sigmoid saturation is not eliminated |
+    | He / Kaiming, fan-in ReLU | $`2/\mathrm{fan\_in}`$ | For leaky ReLU with negative slope a, use $`2/[(1+a^2)\mathrm{fan\_in}]`$ under the corresponding assumptions |
+    | LeCun normal | $`1/\mathrm{fan\_in}`$ | SELU self-normalization also requires its architectural and input assumptions |
+
+    [PyTorch initialization and gain conventions](https://docs.pytorch.org/docs/stable/nn.init.html).
 
 
 
 - Backpropagation [[YouTube](https://www.youtube.com/watch?v=SmZmBKc7Lrs)] [[YouTube](https://www.youtube.com/watch?v=1GnfvhBUs_E&list=PLgPbN3w-ia_PeT1_c5jiLW3RJdR7853b9&index=8)]
-    - The chain rule in calculus is a method for computing the derivative of a composite function. If you have a function defined as a composition of several functions, for example:$`z=f(g(h(x)))`$, then the derivative with respect to $`x`$ is computed as: $`\frac{d z}{d x}=\frac{d z}{d f} \cdot \frac{d f}{d g} \cdot \frac{d g}{d h} \cdot \frac{d h}{d x}`$. This principle is essential in backpropagation because deep neural networks are, by nature, compositions of many nested functions.
+    - [To be reviewed] For scalar intermediates $`a=h(x)`$, $`b=g(a)`$, and $`z=f(b)`$, the chain rule gives $`dz/dx=f'(b)g'(a)h'(x)`$. For vector layers, compose Jacobians; reverse-mode autodiff efficiently accumulates vector–Jacobian products for a scalar loss. Derivatives are with respect to intermediate values, not function names.
     - Forward vs. backward pass
         - Forward pass: The forward pass is the process of feeding input data through the network and computing the output. Here, each node (or layer) processes the input it receives and passes on its output to subsequent nodes according to the network’s architecture. During this pass, the computational graph is effectively created, and intermediate values (activations) are stored because they will be needed during backpropagation.
         ```python
@@ -191,9 +197,9 @@
 
             return W1, b1, W2, b2
         ```
-        - This two-phase process (forward and backward) ensures that each weight update is informed by the contribution of every parameter to the overall error.
+        - The backward pass computes loss derivatives for differentiable paths in this graph; the optimizer then uses those derivatives and any state or regularization to update trainable parameters.
     - Gradient flow refers to how error gradients propagate backward through the network during training. Effective gradient flow is essential because:
-        - It ensures that all layers—regardless of depth—receive meaningful updates.
+        - Inspect whether layers receive useful updates; good gradient flow is a design goal, not a guarantee for every depth or input.
         - It affects how quickly and effectively the network converges to a minimum of the loss function.
     - Automatic differentiation [[YouTube-DL System](https://www.youtube.com/watch?v=56WUlMEeAuA)]: Automatic differentiation is a set of techniques to compute derivatives automatically and efficiently. Deep learning frameworks (e.g., TensorFlow, PyTorch) rely on autodiff to handle the complexities of differentiating networks with millions of parameters without manual intervention.
     - Vanishing/exploding gradient problems
@@ -255,7 +261,7 @@
 
 
 
-- Regualization and Normalization [[YouTube-Regualization](https://www.youtube.com/watch?v=EehRcPo1M-Q)]
+- Regularization and Normalization [[YouTube-Regularization](https://www.youtube.com/watch?v=EehRcPo1M-Q)]
 
     [To be reviewed] Regularization constrains a model or fitting procedure according to a chosen inductive bias. Weight magnitude is parameterization-dependent; a large individual weight does not by itself prove overfitting or excessive influence of one training example.
 
@@ -281,7 +287,7 @@
         - Mixup and CutMix: Data augmentation techniques that form new training samples by combining pairs of images (and their labels) either through interpolation (Mixup) or by cutting and pasting regions (CutMix).
         - Weight constraints: Imposes restrictions (e.g., max-norm constraints) on the weights, ensuring they do not become too large during training.
 
-    - Normalization [[Medium](https://medium.com/techspace-usict/normalization-techniques-in-deep-neural-networks-9121bf100d8)]
+    - Normalization [[PyTorch APIs](https://docs.pytorch.org/docs/stable/nn.html#normalization-layers)]
         - **Batch normalization** (2015) [[YouTube](https://www.youtube.com/watch?v=yXOMHOpbon8)] is a method that normalizes activations in a network across the mini-batch of definite size. For each feature, batch normalization computes the mean and variance of that feature in the mini-batch. It then subtracts the mean and divides the feature by its mini-batch standard deviation. Good for CNN.
         - Problems
             - [To be reviewed] Small normalization groups make batch statistics noisy. For convolutional BatchNorm, statistics use batch and spatial dimensions, so batch size 1 can still supply multiple values per channel. A training configuration with only one value per channel is degenerate. Distributed replicas can share affine parameters while observing different local statistics; SyncBatchNorm synchronizes the chosen statistics. Equal local batch sizes are not required to make gamma/beta equal. [BatchNorm2d](https://docs.pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html)
@@ -289,16 +295,16 @@
 
         - [To be reviewed] Weight normalization parameterizes $`w=g\,v/\|v\|`$, separating a weight vector's magnitude from direction. It reparameterizes weights rather than normalizing minibatch activation statistics, so it should not be equated with BatchNorm's variance computation. [Weight normalization](https://arxiv.org/abs/1602.07868)
 
-        - **Layer normalization** (2016) [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)] normalizes input across the features instead of normalizing input features across the batch dimension in batch normalization. Good for RNN.
-            - $`\mathrm{y}=\frac{\mathrm{x}-\mathrm{E}(\mathrm{x})}{\sqrt{\mathrm{V} \text{ar}(\mathrm{x})+\epsilon}} * \gamma+\beta`$.
+        - **Layer normalization** (2016) [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)] normalizes the explicitly selected feature axes separately for each sample/time position. It is common in RNNs and Transformers; the axes and affine parameter shape must be specified.
+            - $`\operatorname{LN}(x)=\gamma\odot(x-\mu)/\sqrt{\sigma^2+\epsilon}+\beta`$, with mean and population variance over the configured normalization axes.
             - [To be reviewed] Post-LN: $`x_{i+1}=\operatorname{LayerNorm}(x_i+\operatorname{Sublayer}(x_i))`$. BERT and the original Transformer use post-normalization forms; **T5 uses a pre-normalization RMS-style variant**, so it is not a Post-LN example. [T5](https://jmlr.org/papers/v21/20-074.html)
-            - Pre-layerNorm: $`x_{i+1}=x_i+\text{Sublayer}\left(\text{LayerNorm}\left(x_i\right)\right)`$. Normalize before the sublayer (e.g., attention or MLP). Residual connection happens after the sublayer.  (GPT, LLaMa)
+            - Pre-layerNorm: $`x_{i+1}=x_i+\text{Sublayer}\left(\text{LayerNorm}\left(x_i\right)\right)`$. Normalize before the sublayer (e.g., attention or MLP). Residual connection happens after the sublayer.  (GPT-style models; Llama uses a pre-normalization RMSNorm variant)
             - [To be reviewed] **Pre-LN versus Post-LN:** Pre-LN often improves initialization-time gradient behavior and training stability; final quality depends on the architecture, optimizer, depth, schedule, and tuning. Neither is universally superior. [Normalization analysis](https://arxiv.org/abs/2002.04745)
                 - [To be reviewed] The residual stream and normalized branch can have different relative scales as depth grows; assess those scales under the actual parameterization.
                 - [To be reviewed] Claims that deep Pre-LN layers contribute less describe specific analyses or settings, not proof that every Pre-LN model is functionally shallow.
                 - [To be reviewed] Compare held-out quality, gradient norms, update scales, and training failures at matched compute instead of inferring effective depth from normalization placement alone.
                 - [To be reviewed] DeepNet motivates DeepNorm using its theoretical assumptions and translation experiments; those results do not establish a universal quality ranking for modern LLMs.
-            - DeepNet introduces **DeepNorm** to merge the high performance of Post‑LN with the stability of Pre‑LN, enabling reliable training of ultra‑deep Transformers .
+            - DeepNet introduces **DeepNorm**, combining residual scaling and initialization to stabilize the deep configurations studied in that paper.
                 - [To be reviewed] DeepNorm uses $`x_{l+1}=\operatorname{LayerNorm}(\alpha x_l+G_l(x_l;\theta_l))`$: **alpha scales the residual/skip term** in this formulation, not the sublayer output. [DeepNet / DeepNorm](https://arxiv.org/abs/2203.00555)
                 - [To be reviewed] Its beta factor rescales selected initialization matrices; alpha/beta depend on encoder/decoder configuration and depth. Reproduce the paper's initialization and assumptions together rather than transplanting one constant into an arbitrary architecture.
 
@@ -375,8 +381,8 @@ In a typical CNN architecture, a few convolutional layers are connected in a cas
     </div>
 
     - Advantages
-        - Long-Term Dependency Capture: The cell state allows LSTM to preserve information over extended sequences.
-        - Mitigation of Vanishing Gradients: Gating mechanisms help maintain stable gradients even for long sequences.
+        - Long-term dependency capture: gated cell paths can preserve information over extended sequences, subject to learned gates and optimization.
+        - Gradient path: the direct cell-state derivative includes the forget gate; repeated gates below one can still attenuate gradients. LSTM mitigates some difficulties without guaranteeing long-range credit assignment.
     - Trade-offs
         - Computational Complexity: LSTMs have more parameters (due to multiple gates) compared to basic RNNs, leading to increased computational cost and memory usage.
         - Overfitting Potential: The increased model capacity might require more data and careful regularization to prevent overfitting.
@@ -397,7 +403,7 @@ In a typical CNN architecture, a few convolutional layers are connected in a cas
     - Advantages
         - Simplicity: Fewer gating mechanisms lead to a more straightforward architecture.
         - Efficiency: Fewer parameters often mean faster training and potentially less risk of overfitting.
-        - Comparable Performance: In many tasks, GRUs perform on par with LSTMs despite their simpler structure.
+        - Task performance: compare GRU and LSTM at matched data, tuning effort, and suitable capacity; the gate count does not establish equivalent quality.
     - Trade-offs
         - Expressiveness: With fewer gates, some nuances of long-term dependencies might be less finely controlled compared to LSTMs.
         - Task-Dependence: The performance benefits of GRUs versus LSTMs can vary; some tasks might benefit from the additional gating complexity of LSTMs.
