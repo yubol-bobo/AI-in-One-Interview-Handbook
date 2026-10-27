@@ -1,4 +1,4 @@
-# AI-in-One-Interview-Handbook 
+# AI-in-One-Interview-Handbook
 
 ⭐⭐⭐ Welcome! I recently went through the Amazon Applied Scientist Intern interview process and successfully received an offer, with the entire timeline spanning just 25 days. A critical part of my success was a rapid, 12-day review using a handbook I put together covering key areas in ML, DL, NLP, and LLMs.
 
@@ -11,9 +11,9 @@ Preparing this guide was immensely helpful for integrating concepts and solidify
 - [Machine Learning](#Machine-Learning)
     - [ML Basic](#ML-Basic)
     - [ML Algorithms](#ML-Algorithms)
-        - [Algorithm Categories](#Algorithm-Categories)  
-        - [Supervised Learning](#supervised-Learning)  
-        - [Unsupervised Learning](#Unsupervised-Learning)  
+        - [Algorithm Categories](#Algorithm-Categories)
+        - [Supervised Learning](#supervised-Learning)
+        - [Unsupervised Learning](#Unsupervised-Learning)
     - [XAI](#xai)
 
 - [Deep Learning](#Deep-Learning)
@@ -25,7 +25,7 @@ Preparing this guide was immensely helpful for integrating concepts and solidify
         - [Generative Models](#generative-models-gans--autoencoders)
         - [Transformers](#transformer)
 
-- [Natural Language Processing](#nlp)
+- [Natural Language Processing](#nlp-pre-llm-era)
     - [Rule-Based Era](#rule-based-era-1960s-1980s)
     - [Statistical & ML Methods Era](#statistical--ml-era)
     - [Embedding & DL Methods Era](#embedding--deeplearning-era)
@@ -35,7 +35,13 @@ Preparing this guide was immensely helpful for integrating concepts and solidify
     - [Embedding](#embedding)
     - [Tokenization](#tokenization)
     - [Architecture](#architecture)
-    - [Stages](#stages)
+    - [Training Lifecycle](#llm-training-lifecycle)
+        - [Stage Map](#stage-map)
+        - [Pre-training](#pre-training)
+        - [Mid-training](#mid-training)
+        - [Post-training / SFT](#post-training)
+        - [Online RL / RLVR / GRPO](#online-rl)
+        - [Distillation and OPD](#distillation-and-opd)
 
 - [LLM Engineering](#llm-engineering)
     - [Mixed Precision](#mixed-precision)
@@ -50,13 +56,13 @@ Preparing this guide was immensely helpful for integrating concepts and solidify
     - [Chunking and Vectorization](#chunking-and-vectorization)
     - [Re-ranking](#re-ranking)
     - [Generation](#generation)
-    
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=yubol-bobo/AI-in-One-Interview-Handbook&type=Date)](https://www.star-history.com/#yubol-bobo/AI-in-One-Interview-Handbook&Date)
 
 
- 
+
 
 ----
 ## Statistics
@@ -65,13 +71,13 @@ Preparing this guide was immensely helpful for integrating concepts and solidify
 [[Wiki](https://en.wikipedia.org/wiki/Statistical_hypothesis_test)]
 A statistical hypothesis test is a method of statistical inference used to decide whether the data provide **sufficient evidence to reject** a particular hypothesis. A statistical hypothesis test typically involves a calculation of a test statistic. Then a decision is made, either by comparing the test statistic to a critical value or equivalently by evaluating a p-value computed from the test statistic.
 
-- The p-value represents the probability of obtaining results at least as extreme as the observed results, assuming the null hypothesis is true. 
-    - In simpler terms, it tells you how likely it is that your data could have occurred under the null hypothesis. A low p-value suggests your observed data is unlikely under the null, hinting that your findings are significant.
+- The p-value represents the probability of obtaining results at least as extreme as the observed results, assuming the null hypothesis is true.
+    - [To be reviewed] A p-value is a tail probability for a specified test statistic under the null model; it is not the probability that the null is true, the probability of the observed dataset, or an effect-size measure. Report the effect estimate, uncertainty, assumptions, and multiplicity/selection protocol. [ASA statement](https://doi.org/10.1080/00031305.2016.1154108)
 
 ### MLE
 - Definition: Maximum Likelihood Estimation (MLE) is a statistical method used to estimate the parameters of a probability distribution by maximizing a likelihood function. It's a fundamental technique in both statistics and machine learning.
 - The basic idea behind MLE is to find the parameter values that make the observed data most probable. Given a set of observations and a statistical model with unknown parameters, MLE selects the parameter values that maximize the likelihood function.
-- In everyday conversation, "probability" and "likelihood" mean the same thing. However, in Stats-Land, "likelihood" specifically refers to this situation we've covered here; where you are trying to find the optimal value for the mean or standard deviation for a distribution given a bunch of observed measurements.
+- [To be reviewed] A likelihood treats the observed data as fixed and varies the model parameter. For continuous observations it is typically a joint density, not the probability of an exact dataset, and it need not integrate to one over parameters. MLE applies to general parameterized models, beyond means and standard deviations.
 ----
 ## Machine Learning
 
@@ -86,23 +92,23 @@ A statistical hypothesis test is a method of statistical inference used to decid
     - (Batch) GD: All data points at once
     - SGD: one data point per iteration
         - Updates parameters using only one randomly chosen training example at each step.
-        - Formula: $`\theta_{t+1}=\theta_t-\alpha \nabla J\left(\theta_t\right)`$, where $`\theta_t`$ are the parameters, $`\alpha`$ is the learning rate, and $`\nabla J\left(\theta_t\right)`$ is the gradient.
+        - [To be reviewed] Formula: $`\theta_{t+1}=\theta_t-\alpha_t\nabla_\theta\ell(\theta_t;x_{i_t},y_{i_t})`$ for a sampled observation. A minibatch uses the appropriately normalized sum of sample gradients. The randomness is in the sampled data; the gradient is not automatically that of the full empirical objective at each step.
     - Mini-batch GD: Small subset per iteration.
     - Cons:
         - Sensitivity to learning rate
         - Risk of getting stuck at saddle points
-        - Premature convergence in flat regions: local minimum.
+        - [To be reviewed] Slow progress in nearly flat or ill-conditioned regions; a flat region is not necessarily a local minimum. Saddle points, local minima, and inadequate learning-rate schedules are distinct optimization issues.
 
-All following advanced optimization algorithms improve parameter updates by adjusting both the **gradient calculation (gc)** and the **learning rate strategy (lr)**.
+[To be reviewed] These optimizers modify the update direction, its history, and/or its coordinatewise scale. Momentum is not itself an adaptive per-coordinate learning-rate method, and no listed method guarantees improved convergence or generalization on every task.
 
 - **Momentum (gc)** enhances standard gradient descent by adding a velocity term that accumulates past gradients. This velocity term smooths the updates, reducing oscillations and accelerating convergence, particularly in scenarios with noisy gradients or ill-conditioned optimization surfaces.
     - $`v_t=\beta v_{t-1}+(1-\beta) \nabla J\left(\theta_t\right)`$
     - $`\theta_{t+1}=\theta_t-\alpha v_t`$
-    - Pros: faster, jump out of local minimum, stable training.
+    - [To be reviewed] Momentum can reduce oscillation and accelerate progress on suitable objectives, but it does not guarantee escape from a local minimum or stable training for arbitrary hyperparameters.
 
 - Nesterov Accelerated Gradient
     - Update rule
-        - $`\tilde{\theta}_t=\theta_t+\beta v_{t-1} \quad`$ ("look-ahead")
+        - [To be reviewed] $`\tilde{\theta}_t=\theta_t-\beta v_{t-1}`$ (look ahead using the subtractive-velocity convention below). The sign must agree with $`\theta_{t+1}=\theta_t-v_t`$; an alternative convention stores a negative velocity and uses addition throughout.
         - $`v_{t}=\beta v_{t-1} + \eta \nabla_\theta \mathcal{L}\left(\tilde{\theta}_t\right)`$
         - $`\theta_{t+1}=\theta_t-v_{t}`$
     - Intuition
@@ -115,7 +121,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
       $`G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)`$
 
-- **RMSprop (lr)**: Adagrad adapts the learning rate individually for each parameter, but its main drawback is the continual accumulation of squared gradients. Over time, this causes the learning rate to shrink excessively, sometimes stopping learning prematurely. RMSprop addresses this limitation by introducing an exponential moving average of squared gradients instead of a cumulative sum. This prevents the learning rate from becoming excessively small over time, making RMSprop better at handling non-stationary problems and maintaining stable and efficient convergence.
+- [To be reviewed] **RMSprop (lr)** replaces Adagrad's cumulative squared-gradient sum with an exponential moving average. This avoids the particular monotonic denominator growth of Adagrad, but effective steps can still become too small or large; numerical stability and convergence depend on the objective and hyperparameters.
 
 
 - **Adam**: Adam combines the advantages of (1)Momentum (first-order moment): Helps smooth updates, and (2) RMSprop (second-order moment): Provides adaptive per-parameter learning rates.
@@ -141,18 +147,22 @@ All following advanced optimization algorithms improve parameter updates by adju
         - $`\beta_1=0.9, \beta_2=0.999, \epsilon=10^{-8}`$
 
 
-- AdamW: Adam combines adaptive learning rates (like RMSprop) with momentum, leading to fast, efficient convergence. However, its implicit handling of weight decay can hurt generalization. AdamW improves upon Adam by explicitly decoupling weight decay from gradient-based updates, resulting in better regularization and improved generalization—making AdamW particularly beneficial for training large, modern models like transformers.
+- [To be reviewed] **AdamW** decouples weight decay from Adam's adaptive gradient update. Adding an L2 penalty to the loss and applying decoupled weight decay are generally different for adaptive optimizers. AdamW is widely used, but its generalization advantage and appropriate decay rate remain empirical. [AdamW paper](https://arxiv.org/abs/1711.05101)
 
-- Muon (Recent): Muon is an optimizer tailored for optimizing the hidden layers of neural networks, specifically focusing on 2D weight matrices (e.g., those in linear and convolutional layers). It operates by applying a Newton-Schulz iteration to the momentum-based gradient updates, effectively orthogonalizing them before applying to the weights. This orthogonalization helps in maintaining diverse directions in the parameter updates, which can lead to better convergence properties. [[GitHub](https://github.com/KellerJordan/Muon?utm_source=chatgpt.com)]
+- [To be reviewed] **Muon** applies an approximate orthogonalization, commonly using Newton-Schulz iterations, to momentum updates for suitable matrix-shaped parameters. Embeddings, output heads, vectors, or unsupported tensors may use another optimizer, depending on the recipe. It changes matrix-update geometry; it is not a coordinatewise adaptive-rate method like Adam, and orthogonal updates do not prove diverse learned representations. [Author implementation](https://github.com/KellerJordan/Muon)
 
-| Method | Adaptive LR | Momentum | Memory | Stability | Typical Use |
-|--------|-------------|----------|--------|-----------|-------------|
-| SGD | ❌ No | ❌ No | Low | Medium | Fast updates |
-| Momentum | ❌ No | ✅ Yes | Low | Medium | Reduces oscillations |
-| RMSprop | ✅ Yes | ❌ No | Medium | High | Adaptive LR |
-| Adam | ✅ Yes | ✅ Yes | Medium | High | Most popular default |
-| AdamW | ✅ Yes | ✅ Yes | Medium | High | Improved regularization |
-| Muon | ✅ Yes | ✅ Yes | Low | High | Recent advancement |
+[To be reviewed] **Optimizer comparison.** State counts below refer to a common optimizer's persistent auxiliary tensors, excluding parameters, gradients, master weights, activations, and temporary workspaces. Options and implementations can change the count.
+
+| Method | Coordinatewise adaptive scale? | Common auxiliary state | Update / interpretation |
+| --- | --- | --- | --- |
+| SGD without momentum | No | None | Current gradient direction |
+| Momentum SGD | No | One velocity | Accumulated gradient history |
+| RMSprop, uncentered/no momentum | Yes | One squared-gradient average | Coordinatewise rescaling |
+| Adam | Yes | First and second moments | Momentum plus coordinatewise rescaling |
+| AdamW | Yes | First and second moments | Adam with decoupled decay |
+| Muon | No Adam-style coordinatewise scale | Momentum plus implementation workspaces | Approximate matrix-update orthogonalization |
+
+Stability and generalization require a task-specific comparison; they are not fixed “Medium/High” attributes. [Optimizer options](https://docs.pytorch.org/docs/stable/optim.html), [Muon implementation](https://github.com/KellerJordan/Muon)
 
 
 #### Black-Box Optimization
@@ -199,10 +209,10 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Precision vs Recall: Precision clearly matters when the cost of a FP is high. (e.g., classifying email as spam—high precision avoids wrongly marking important emails). Recall (TPR) clearly matters when the cost of missing positives (FN) is very high (e.g., disease diagnosis—high recall ensures positive cases aren't missed).
 
     - ROC (Receiver Operating Characteristic) curve (TPR vs FPR, threshold selection)
-        - ROC curve plots TPR (Recall) vs FPR (1 - Specificity) at various threshold levels.Y-axis (TPR/Recall): Correctly identified positives; X-axis (FPR): Incorrectly identified positives (False Alarms). Choose threshold clearly to maximize TPR and minimize FPR.
+        - [To be reviewed] ROC plots TPR against FPR as the decision threshold changes. Threshold choice balances costs, prevalence, and constraints; maximizing TPR and minimizing FPR simultaneously is generally impossible. Inspect the operating region relevant to deployment.
     - AUC (model comparison)
-        - AUC clearly measures the model’s overall capability to distinguish classes irrespective of threshold. Model with higher AUC is generally better at distinguishing classes clearly.
-        - Range [0.5, 1]
+        - [To be reviewed] ROC-AUC summarizes ranking across thresholds: it equals the probability that a randomly drawn positive scores above a randomly drawn negative, with half credit for ties under the standard convention. It does not establish probability calibration or performance at one deployment threshold. [ROC-AUC reference](https://scikit-learn.org/stable/modules/model_evaluation.html#roc-metrics)
+        - [To be reviewed] Range **[0, 1]**. A score independent of labels has expected AUC 0.5; a perfectly reversed ranking has AUC 0. Reversing a continuous score transforms AUC to $`1-\mathrm{AUC}`$ under consistent tie handling.
     - Confusion matrix: Confusion matrix clearly visualizes all predictions vs actual classes:
 
     <div align="center">
@@ -210,11 +220,11 @@ All following advanced optimization algorithms improve parameter updates by adju
     </div>
 
 - Bias/Variance [[ref](https://traintestsplit.com/bias-vs-variance-in-machine-learning/)]
-    - Bias: The bias is the simplifying assumption made by the model to make the target function easy to learn. Low bias suggests fewer assumptions made about the form of the target function. High bias suggests more assumptions made about the form of the target data. The smaller the bias error the better the model is. If, however, it is high, this means that the model is **underfitting** the training data. 
+    - [To be reviewed] For squared-error regression, bias at an input is the difference between the estimator's average prediction over repeated training samples and the true regression function. Squared bias is one component of expected prediction error; it is not simply the number of modeling assumptions.
 
-    - Variance: Represents the model's sensitivity to small fluctuations in the training data. It measures how much the model's predictions would change if it were trained on a different training dataset drawn from the same distribution. High variance suggests the model is too complex and captures noise in the training data, leading to overfitting and poor generalization to unseen data.
+    - [To be reviewed] Variance measures the spread of fitted predictions across repeated training datasets at a fixed input. It depends on data, model class, regularization, and fitting procedure. High variance can contribute to overfitting, but parameter count alone does not determine it.
 
-    - If our model is too simple and has very few parameters then it may have high bias and low variance. On the other hand if our model has large number of parameters then it’s going to have high variance and low bias. So we need to find the right/good balance without overfitting and underfitting the data. 
+    - [To be reviewed] Under squared loss with suitable finite moments, expected test error decomposes into noise, squared bias, and variance. The textbook complexity trade-off is useful but not a universal monotone law; modern interpolating models can display double descent. Evaluate held-out behavior rather than inferring it from parameter count. [Double-descent study](https://arxiv.org/abs/1812.11118)
 
     <div align="center">
         <img src="figs/bias-vs-variance.png" width="60%">
@@ -235,12 +245,12 @@ All following advanced optimization algorithms improve parameter updates by adju
 
             Use case: Feature Selection: L0 regularization is particularly useful in scenarios where the number of features is large, and only a small subset is expected to be relevant. It helps to automatically select a subset of features that contribute significantly to the model's performance.
 
-        - L1 penalizes **absolute magnitude** of weight: 
+        - L1 penalizes **absolute magnitude** of weight:
 
             $`R(w)=\sum\left|w_i\right|`$.
 
             Encourages sparsity through geometry.
-        
+
         - L2 penalizes **square magnitude** of weights:
 
             $`R(w)=\sum\left(w_i^2\right)`$
@@ -255,13 +265,13 @@ All following advanced optimization algorithms improve parameter updates by adju
 
         - When prefer L1 over L2? For explicit feature selection or interpretability
         - When prefer L2 over L1? L2 (Ridge) shrinks correlated features toward each other, effectively managing correlated features.
-        - What happens as $`\lambda \rightarrow \infty`$ for L1 and L2?  For both: parameters approach zero; L1 produces exact zeros faster.
+        - [To be reviewed] As $`\lambda\to\infty`$, penalized coefficients typically approach zero under the stated objective, while an unpenalized intercept need not. L1 can make coefficients exactly zero at finite penalty values; L2 generally shrinks them continuously. There is no parameterization-independent sense in which L1 always reaches zero “faster.”
         - Is L0 convex? Why does it matter? No, it's non-convex. This matters due to optimization difficulty and computational complexity.
 
 
 
 
-    - Feature selection: Proper Feature Selection removes irrelevant features thereby reducing both bias and variance. It can be done through various methods like backward elimination, forward selection, and recursive feature elimination.
+    - [To be reviewed] Feature selection can reduce variance or computation but can increase bias by discarding useful information. Fit the selection procedure inside each training fold; selecting features on all data before cross-validation leaks evaluation information. Use task-appropriate held-out selection criteria.
         - Backward Elimination: Start with all features, then iteratively remove the least significant feature.
         - Forward Selection: Start with no features, then teratively add the most significant feature until no improvement.
         - Recursive Feature Elimination (RFE): Iteratively fits a model and removes least important features based on coefficients or importance metrics.
@@ -270,9 +280,9 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 - Data
     - Missing data
-        - MICE (Multiple Imputation by Chained Equations): It's an iterative method of imputing missing data where each missing feature is repeatedly modeled and filled based on other features. It creates multiple datasets to capture uncertainty properly.
-    - Imbalanced data: Imbalanced data occurs when one class significantly outnumbers the other(s), causing biased models toward the majority class.
-        - Oversampling: Duplicate minority examples 
+        - [To be reviewed] MICE iterates conditional imputation models and, in a proper multiple-imputation workflow, generates multiple plausible completed datasets to represent uncertainty. A deterministic chained-regression fill produces one completion, not multiple-imputation uncertainty by itself. Check missingness assumptions and pool downstream uncertainty appropriately. [MICE reference](https://www.jstatsoft.org/article/view/v045i03)
+    - [To be reviewed] Imbalance means class frequencies differ; its consequences depend on the objective, prevalence, sampling, and error costs. Assess per-class metrics, precision-recall behavior, and calibration. Fit resampling only on training folds and account for altered class priors when interpreting probabilities. [Resampling leakage](https://imbalanced-learn.org/stable/common_pitfalls.html)
+        - Oversampling: Duplicate minority examples
             - SMOTE (Synthetic Minority Oversampling Technique): 1. Chooses a random minority instance; 2. Finds k nearest minority neighbors; 3. Creates synthetic points along the line segments joining neighbors.
             - ADASYN (Adaptive Synthetic Sampling): Generates more synthetic data for harder-to-classify minority instances (closer to majority class boundary).
         - Undersampling: Remove majority examples strategically.
@@ -285,8 +295,8 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Concept Drift (f changed): The conditional distribution $`P(y \mid x)`$ itself changes. Example: A recommendation model may degrade as user preferences evolve.
 
 - Sampling
-    - Uniform sampling selects items from a dataset with equal probability for all elements.  Code: random.sample(data,k).  Time Complexity: $`O(k)`$
-    - Negative sampling primarily used in recommendation systems and NLP (Word2Vec) to train efficiently on sparse data. It reduce computational cost by sampling a subset of negative examples (items not interacted with or words not co-occurring). (Word2Vec)  Time Complexity: Reduces computation from $`O(N)`$ (all negatives) to $`O(k)`$ (sampled negatives).
+    - [To be reviewed] Uniform sampling without replacement selects a subset with equal inclusion probabilities. `random.sample(data, k)` requires a suitable population representation; its cost depends on population type, size, and implementation. Do not assign a universal $`O(k)`$ bound including access or materialization of the input.
+    - [To be reviewed] Negative sampling replaces an expensive all-candidate computation with sampled comparisons. In Word2Vec it uses a binary discrimination objective, not an unbiased exact-softmax replacement. With $`k`$ sampled negatives and embedding width $`d`$, update arithmetic is roughly $`O(kd)`$ rather than $`O(Vd)`$ for a full vocabulary comparison. The sampling distribution changes the learned objective. [Word2Vec negative sampling](https://arxiv.org/abs/1310.4546)
     - Reservoir sampling: Technique to uniformly sample $`k`$ items from a stream or large unknown-size dataset in one pass.
         - Use Cases: Sampling from streaming data or very large files/databases.
         - Algorithm: Maintain a reservoir of size $`k`$. For first $`k`$ items: directly fill reservoir. For each subsequent item $`i>k`$ : With probability $`k / i`$, randomly replace an item in the reservoir.
@@ -306,21 +316,21 @@ All following advanced optimization algorithms improve parameter updates by adju
     - $`K=5`$ or $`K=10`$ are most common.
     - Trade-off (Bias vs. Variance):
         - Large $`K`$ :
-            - Pros: Low bias, more accurate estimates.
-            - Cons: Higher variance, computationally expensive.
+            - [To be reviewed] More folds train each model on a larger fraction of the data, often reducing training-size bias in the performance estimate.
+            - [To be reviewed] Computation grows with the number of fitted models. Validation errors across folds are dependent; the variance of a cross-validation estimate is not universally increasing in $`K`$.
         - Small $`K`$ :
-            - Pros: Faster computation, lower variance in estimates.
-            - Cons: Higher bias, less stable estimates.
+            - [To be reviewed] Fewer folds generally reduce the number of fits and computational cost.
+            - [To be reviewed] Each fit uses less training data, which can increase training-size bias. The estimator's variability depends on the dataset, learner, split design, and metric; it cannot be ordered by fold count alone.
     - How to handle imbalanced datasets in K-fold CV? Use Stratified K-fold, ensuring each fold maintains the proportion of classes from the original dataset.
     - Does K-fold cross-validation prevent overfitting? No, it helps evaluate and select models accurately but doesn't inherently prevent overfitting. Use regularization, early stopping, or simpler models to control overfitting.
-    - Whey k-fold CV might not be ideal? Cross-validation isn’t always ideal because it can become computationally expensive, particularly with complex models or very large datasets. It's also unsuitable for time-series data due to temporal dependencies that violate the assumption of independence.
+    - [To be reviewed] Ordinary shuffled K-fold can leak future information in temporal data. Use forward/blocked time splits, group-aware splits, and gaps when required by the deployment task. Cross-validation itself is not inherently incompatible with time series. [Cross-validation design](https://scikit-learn.org/stable/modules/cross_validation.html)
 
 - Hyper-Parameter Tuning
     - Grid search: Exhaustively evaluates all possible combinations of hyper-parameters provided in a predefined grid.
     - Random search: Randomly samples hyper-parameter values within predefined ranges.
     - Bayesian optimization: Uses past evaluation results to model the hyper-parameter space.
-        - Popular libraries: `Hyperopt`, `Optuna`, `BayesSearchCV`. 
-    - Other autoML packages: `Auto-skearn`, `h2o`.
+        - Popular libraries: `Hyperopt`, `Optuna`, `BayesSearchCV`.
+    - Other autoML packages: `auto-sklearn`, `h2o`.
 
 
 
@@ -328,13 +338,14 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 ### ML Algorithms
+<a id="algorithm-categories"></a>
 #### Algorithm Categories [[Super Quick Overview](https://www.youtube.com/watch?v=E0Hmnixke2g)]
 - Types by (labeled) data
     - **Supervised Learning** is a type of machine learning where the algorithm is trained on a labeled dataset. Labeled data consists of input-output pairs, meaning the algorithm learns to map input data to corresponding output labels. The goal is for the algorithm to generalize from the training data and make accurate predictions on new, unseen data.
         - Classification: Predicts categorical outputs (e.g., spam detection, image recognition). Algorithms: Logistic regression, Decision tree, RF,KNN, SVM.
             - Loss function [[YouTube](https://www.youtube.com/watch?v=v_ueBW_5dLg)]: These losses measure how correctly and confidently a model classifies examples into categories.
                 - logistic loss/ binary cross entropy: Used for binary classification problems. For a predicted probability $`p`$ and ground truth label $`y \in\{0,1\}`$ : $`\mathrm{BCE}=-[y \log (p)+(1-y) \log (1-p)]`$.
-                    - Outputs probabilities between 0 and 1.
+                    - [To be reviewed] A sigmoid output parameterizes a binary probability in [0, 1]; binary cross-entropy is the loss, not the operation that produces probabilities. A fused loss on logits is usually numerically preferable.
                     - Penalizes confident but wrong predictions heavily.
                     - Works well when used with sigmoid activation in the output layer.
 
@@ -381,7 +392,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
     - **Unsupervised Learning** is a type of machine learning that learns from data without human supervision. Unlike supervised learning, unsupervised machine learning models are given unlabeled data and allowed to discover patterns and insights without any explicit guidance or instruction. (e.g., Customer segmentation, dimensionality reduction)
-        - **Clustering** is a technique for exploring raw, unlabeled data and breaking it down into groups (or clusters) based on similarities or differences. It is used in a variety of applications, including customer segmentation, fraud detection, and image analysis. Clustering algorithms split data into natural groups by finding similar structures or patterns in uncategorized data. 
+        - **Clustering** is a technique for exploring raw, unlabeled data and breaking it down into groups (or clusters) based on similarities or differences. It is used in a variety of applications, including customer segmentation, fraud detection, and image analysis. Clustering algorithms split data into natural groups by finding similar structures or patterns in uncategorized data.
             - [To be reviewed] K-means
 
                 - Partition observations by nearest centroid and minimize squared Euclidean reconstruction error; choose feature scaling and multiple initializations deliberately. See the detailed K-means section below. Example: grouping customers by annual spend without scaling can effectively ignore a purchase-frequency feature measured on a much smaller numerical scale.
@@ -394,15 +405,15 @@ All following advanced optimization algorithms improve parameter updates by adju
 
                 - Construct a nested grouping represented by a dendrogram, then choose a cut using the task and a stated linkage criterion. The same data can yield different hierarchies under single, complete, average, or Ward linkage; the linkage is part of the model, rather than a plotting option.
 
-        - Association rule mining is a rule-based approach to reveal interesting relationships between data points in large datasets. Unsupervised learning algorithms search for frequent if-then associations—also called rules—to discover correlations and co-occurrences within the data and the different connections between data objects. 
-        
-        It is most commonly used to analyze retail baskets or transactional datasets to represent how often certain items are purchased together. These algorithms uncover customer purchasing patterns and previously hidden relationships between products that help inform recommendation engines or other cross-selling opportunities. You might be most familiar with these rules from the “Frequently bought together” and “People who bought this item also bought” sections on your favorite online retail shop. 
+        - Association rule mining is a rule-based approach to reveal interesting relationships between data points in large datasets. Unsupervised learning algorithms search for frequent if-then associations—also called rules—to discover correlations and co-occurrences within the data and the different connections between data objects.
 
-        Association rules are also often used to organize medical datasets for clinical diagnoses. Using unsupervised machine learning and association rules can help doctors identify the probability of a specific diagnosis by comparing relationships between symptoms from past patient cases. 
+        It is most commonly used to analyze retail baskets or transactional datasets to represent how often certain items are purchased together. These algorithms uncover customer purchasing patterns and previously hidden relationships between products that help inform recommendation engines or other cross-selling opportunities. You might be most familiar with these rules from the “Frequently bought together” and “People who bought this item also bought” sections on your favorite online retail shop.
 
-        Typically, Apriori algorithms are the most widely used for association rule learning to identify related collections of items or sets of items. However, other types are used, such as Eclat and FP-growth algorithms.
+        [To be reviewed] Association rules identify observed co-occurrence patterns. In clinical datasets, a rule's confidence is an empirical conditional frequency under the sampled population, not automatically a calibrated diagnostic probability or causal relationship. Diagnostic claims require supervised validation and appropriate sampling assumptions.
 
-        - Dimensionality  Reduction is an unsupervised learning technique that reduces the number of features, or dimensions, in a dataset. 
+        [To be reviewed] Apriori, Eclat, and FP-growth are common frequent-pattern mining approaches. Their relative suitability depends on support thresholds, sparsity, and implementation; avoid an unsupported universal popularity ranking.
+
+        - Dimensionality  Reduction is an unsupervised learning technique that reduces the number of features, or dimensions, in a dataset.
             - [To be reviewed] PCA
 
                 - PCA finds orthogonal directions of maximal variance after centering. It is useful for compression and conditioning, but a low-variance direction can still contain the discriminative signal. See the detailed PCA entry under Dimension reduction techniques.
@@ -412,18 +423,18 @@ All following advanced optimization algorithms improve parameter updates by adju
                 - t-SNE is primarily a local-neighborhood visualization method. Use multiple seeds and perplexities; do not infer class counts or quantitative global distances solely from separated islands. See the detailed t-SNE entry under Dimension reduction techniques.
 
     - **Semi-supervised Learning** falls between unsupervised learning (without any labeled training data) and supervised learning (with completely labeled training data). It combines small amounts of labeled data with large amounts of unlabeled data. Useful when labeling data is expensive or difficult. The model leverages labeled data to guide learning, while also making use of unlabeled data to generalize better and improve performance.
-    - **Reinforcement Learning** learn through trial-and-error, reward-based systems. Gaining feedback from interactive environment instead of given data.
-    - **Self-supervised Learning** involves creating "pseudo-labels" from the unlabeled data itself. The model learns a meaningful representation of the data by predicting parts of the input or generating transformations of the input. (BERT)
+    - [To be reviewed] **Reinforcement Learning** optimizes decisions under rewards in an environment or a specified decision process. Online RL collects new interactions; offline RL learns from an existing interaction dataset, so new environment interaction is not part of every RL training run.
+    - [To be reviewed] **Self-supervised Learning** constructs training targets from the observed data, such as masked tokens, next tokens, or augmented-view correspondence. This differs from pseudo-labeling, where a model predicts labels for otherwise unlabeled examples; both can appear in one pipeline.
 
-- Parametric vs non-parametric algorithms (if we assume a fixed functional form or not) 
+- Parametric vs non-parametric algorithms (if we assume a fixed functional form or not)
 
     (Functional form = Mathematical shape or structure that the model assumes to represent how the input relates to the output.)
-    - Parametric Algorithms(e.g., Logistic Regression, Naive Bayes, Neural Networks) assume that the dataset comes from a certain function with some set of parameters that should be tuned to reach the optimal performance. For such models, the number of parameters is determined prior to training, thus the degree of freedom is limited and reduces the chances of overfitting. They are computationally efficient and often easier to interpret, but less flexible.
+    - [To be reviewed] **Parametric models** use a parameterization whose dimension is fixed for a specified model as sample size grows; examples include fixed-architecture neural networks and logistic regression. This does not guarantee simplicity, interpretability, few parameters, or protection against overfitting.
 
-    - Non-parametric methods (e.g., KNN, Decision Trees, Random Forests) don't assume anything about the function from which the dataset was sampled. For these models, the number of parameters is not determined prior to training, thus they are free to generalize the model based on the data. Sometimes these models overfit themselves while generalizing. To generalize they need more data in comparison with Parametric Models. They are relatively more difficult to interpret compared to Parametric Models. Their complexity grows with the data, making them suitable for capturing complex patterns.
+    - [To be reviewed] **Nonparametric model families** permit effective complexity to grow with available data, for example unconstrained trees or neighbor-based estimators. They still impose assumptions through metrics, kernels, smoothness, partition rules, and regularization. Fixed-size restrictions can bound a particular implementation's capacity; “nonparametric” does not mean assumption-free.
 
 - Linear vs Nonlinear algorithms
-    - Linear algorithms (Linear Regression, Logistic Regression, Linear SVM) assume a linear relationship and provide simplicity and interpretability.
+    - [To be reviewed] Linear regression is linear in its coefficients; logistic regression makes the log-odds linear in the supplied features. Fixed nonlinear feature maps can make either model nonlinear in raw inputs. A linear SVM has a linear decision function in its chosen feature representation.
     - Nonlinear algorithms (Decision Trees, Random Forest, Neural Networks, Kernel SVM) capture more complex patterns and relationships, offering flexibility but potentially at the cost of interpretability and efficiency.
 
 
@@ -436,17 +447,17 @@ All following advanced optimization algorithms improve parameter updates by adju
 - Linear Algorithms
     - **Linear Regression** [[Code](https://www.youtube.com/watch?v=4swNt7PiamQ&list=PLqnslRFeH2Upcrywf-u2etjdxxkL8nl7E&index=2)]  is a supervised statistical model to predict dependent variable quantity based on independent variables. Linear regression is a parametric model and the objective of linear regression is that it has to learn coefficients using the training data and predict the target value given only independent values.
         - Assumptions:
-            - Linear relationship between independent and dependent variables.
-            - Independence of errors: The residuals (differences between observed and predicted values) should be independent of each other. This assumption is particularly important in time series data, where observations might be related to previous observations.
-            - Homoscedasticity: The variance of the residuals should be constant across all levels of the independent variables. This means the spread of residuals should be roughly the same across all predicted values.
-            - Normality of residuals: The residuals should follow a normal distribution. This assumption is important for valid hypothesis testing and confidence interval estimation.
-            - No multicollinearity: When multiple independent variables are used, they should not be highly correlated with each other. High correlation between predictors makes it difficult to determine the individual effect of each variable.
+            - [To be reviewed] Specify a conditional-mean model such as $`\mathbb{E}[y\mid X]=X\beta`$ and the exogeneity assumption $`\mathbb{E}[\epsilon\mid X]=0`$ when claiming unbiased OLS coefficients.
+            - [To be reviewed] Dependence across observations affects standard errors and effective sample size. Independent errors are a common textbook condition; clustered or serial dependence requires suitable covariance estimators or an explicit dependence model.
+            - [To be reviewed] Homoscedasticity is required for the usual Gauss-Markov efficiency statement and conventional covariance formula, not for computing OLS. Heteroscedasticity-robust inference can be appropriate under its own assumptions.
+            - [To be reviewed] Gaussian errors support exact small-sample t/F inference under the classical linear model. Normality is not needed to compute OLS or to establish unbiasedness given exogeneity; asymptotic inference has separate conditions.
+            - [To be reviewed] Full column rank identifies a unique unregularized coefficient vector. Strong collinearity can inflate coefficient uncertainty; it does not by itself make predictions impossible. Perfect collinearity requires constraints, a generalized inverse, or regularization. [Linear-model reference](https://www.statsmodels.org/stable/regression.html)
         - Formulation: Linear regression models the relationship between a dependent variable $`y`$ and one or more independent variables $`X`$ as a linear combination: $`y=X \beta+\epsilon,`$, where $`\beta`$ is a vector of coefficients and $`\epsilon`$ is the error term.
         - Regularization: Extensions such as Ridge (L2) and Lasso (L1) regression add penalty terms to handle multicollinearity and promote sparsity.
 
     - Logistic Regression
         - Formulation: Logistic regression models the probability of a binary outcome by applying the logistic (sigmoid) function to a linear combination of input features: $`P(y=1 \mid X)=\frac{1}{1+e^{-X \beta}} .`$
-        - Estimation: Parameters are typically estimated via Maximum Likelihood Estimation (MLE), where the cost function (the log-loss) is minimized using iterative optimization methods (e.g., gradient descent or iterative reweighted least squares).
+        - [To be reviewed] Parameters can be fitted by minimizing negative log-likelihood, often with regularization. Under complete separation, unregularized logistic regression need not have a finite MLE; solver convergence and penalty choice matter.
         - Interpretability: Coefficients can be interpreted in terms of odds ratios, offering intuitive insights into feature effects.
 
         - The cost for a single training example using the binary cross-entropy (log-loss) is: $`\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})]`$.
@@ -463,7 +474,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
     - Support Vector Machines
         - Formulation: SVMs seek a hyperplane that maximally separates classes with the greatest margin. For linearly separable data, the optimization problem is: $`\min _{w, b} \frac{1}{2}\|w\|^2 \quad \text { s.t. } y_i\left(w^T x_i+b\right) \geq 1, \quad \forall i`$.
-        - Soft Margin: For non-separable data, slack variables are introduced to allow misclassifications, leading to a trade-off between margin size and classification error.
+        - [To be reviewed] Soft-margin SVM introduces nonnegative slack for margin violations, which include correctly classified points inside the margin as well as misclassifications. The regularization parameter balances margin and total violation penalty.
         - Kernel Trick: For nonlinear classification, kernel functions (e.g., Gaussian, polynomial) implicitly map input data to a higher-dimensional space where linear separation is feasible.
         - Dual Formulation: The Lagrange dual formulation and application of Karush-Kuhn-Tucker (KKT) conditions are central to SVM theory, providing insights into support vectors and decision boundaries.
         - The optimization is convex, ensuring global optimum, but can be computationally challenging for large datasets.
@@ -486,10 +497,10 @@ All following advanced optimization algorithms improve parameter updates by adju
 
     - Linear discriminant analysis (LDA)
         - Concept & Assumptions: LDA models class conditional densities as multivariate Gaussians with equal covariance matrices for all classes. Under this assumption, the discriminant function is linear in the features: $`\delta_k(x)=x^T \Sigma^{-1} \mu_k-\frac{1}{2} \mu_k^T \Sigma^{-1} \mu_k+\log \pi_k`$. Here, $`\mu_k`$ is the mean vector, $`\Sigma`$ the common covariance matrix, and $`\pi_k`$ the prior probability of class $`k`$.
-        - Bayes Optimality: Under the LDA assumptions, the resulting classifier is Bayes-optimal.
+        - [To be reviewed] With the true Gaussian class parameters and priors known, the LDA rule is Bayes-optimal for 0–1 classification loss under its assumptions. A finite-sample fitted plug-in classifier is an estimate of that rule, not a guarantee of Bayes-optimal performance.
         - Dimensionality Reduction: LDA also serves as a dimensionality reduction technique by projecting data onto a subspace that maximizes between-class variance while minimizing within-class variance (related to Fisher’s Linear Discriminant).
         - Applications: Particularly effective when the Gaussian assumption holds and when class covariances are similar.
-      
+
 - Decision Trees
 
     - Structure: Decision trees recursively partition the input feature space by selecting splits that maximize a certain criterion (e.g., information gain, Gini impurity for classification, or mean squared error reduction for regression).
@@ -534,7 +545,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
     - Boosting: Sequential Learning for Bias Reduction
         - Boosting represents a family of ensemble algorithms that construct a strong predictive model by iteratively training a sequence of base learners (typically weak learners), where each new learner focuses on correcting the errors made by the ensemble built so far. Unlike Bagging's parallel approach, Boosting is inherently sequential.
-        - Boosting primarily focuses on reducing bias. It sequentially builds an ensemble, typically using weak learners (simple models with high bias and low variance, like shallow decision trees or decision stumps). Each subsequent learner is trained to correct the errors (residuals or misclassifications weighted by importance) of the preceding ensemble. This iterative process gradually reduces the overall bias of the strong learner. While boosting primarily targets bias, the sequential fitting process can sometimes also reduce variance, although it is more susceptible to overfitting than bagging if not properly regularized. 
+        - [To be reviewed] Boosting can reduce approximation bias by adding learners sequentially, but its bias/variance and noise sensitivity depend on loss, base learners, shrinkage, subsampling, and stopping. There is no universal ordering that boosting overfits more than bagging.
         - [To be reviewed] **Adaboost**
 
             - In binary AdaBoost with labels in $`\{-1,+1\}`$, a weak learner with weighted error $`\epsilon_t`$ receives coefficient $`\alpha_t=\tfrac12\log[(1-\epsilon_t)/\epsilon_t]`$. Update example weights proportionally to $`w_i\exp[-\alpha_t y_i h_t(x_i)]`$; mistakes gain weight.
@@ -579,23 +590,23 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 - While we can also divide the supervised learning classification algorithms by Training Methods into **Generative vs. Discriminative Models**
-    - Discriminative models[[wiki](https://en.wikipedia.org/wiki/Discriminative_model)], also referred to as conditional models, are a class of models frequently used for classification. 
+    - Discriminative models[[wiki](https://en.wikipedia.org/wiki/Discriminative_model)], also referred to as conditional models, are a class of models frequently used for classification.
         - Discriminative models learn the conditional distribution $`P(y \mid x)`$ (or decision boundary), focusing solely on predicting labels from observed inputs.
-        - They are typically used to solve binary classification problems, i.e. assign labels, such as pass/fail, win/lose, alive/dead or healthy/sick, to existing datapoints.
+        - [To be reviewed] Discriminative models support binary, multiclass, structured, and continuous-output prediction. The defining distinction is conditional prediction or decision modeling, not a restriction to binary classification.
         - logistic regression (LR), Support Vector Machines (SVMs), Decision Trees & Random Forests, KNN, conditional random fields (CRFs).
-    - Generative models [[wiki](https://en.wikipedia.org/wiki/Generative_model)] learn the joint distribution $`P(x, y)`$, modeling how data and labels are generated so they can both classify and synthesize new samples.
+    - [To be reviewed] In classification, a generative model may learn $`p(x,y)`$ or class-conditional densities with class priors. More generally, generative models learn a distribution or sampling process over observations, possibly with latent variables or conditioning; an unconditional GAN or VAE need not model labeled $`p(x,y)`$.
         - Naive Bayes, Gaussian Mixture Models (GMMs), Hidden Markov Models (HMMs), Latent Dirichlet Allocation (LDA), Boltzmann Machines / RBMs, Variational Autoencoders (VAEs), Generative Adversarial Networks (GANs), Normalizing Flows, Diffusion Models
 
-----      
-   
+----
+
 
 #### Unsupervised Learning
 
  [[Unsupervised learning](https://en.wikipedia.org/wiki/Unsupervised_learning)] is a framework in machine learning where, in contrast to supervised learning, algorithms learn patterns exclusively from unlabeled data.
- 
+
 - Clustering
     - K-means
-        - Objective Function: K-Means seeks to minimize the within-cluster sum of squares (WCSS), also known as inertia or squared error sum (SSE). Given a set of observations $`\left\{x_1, x_2, \ldots, x_n\right\}`$ where each $`x_i \in \mathbb{R}^d`$, and a set of $`k`$ clusters $`S=\left\{S_1, S_2, \ldots, S_k\right\}`$, the objective is to find the clusters and their centroids $`\left\{\mu_1, \mu_2, \ldots, \mu_k\right\}`$ that minimize: $`J=\sum_{j=1}^k \sum_{x_i \in S_j}\left\|x_i-\mu_j\right\|^2`$, where $`\mu_j`$ is the mean (centroid) of points in cluster $`S_j`$, calculated as $`\mu_j=\frac{1}{\left|S_j\right|} \sum_{x_i \in S_j} x_i`$. Minimizing WCSS is equivalent to minimizing the variance within each cluster. This objective function inherently favors spherical, equally sized clusters because it penalizes squared Euclidean distances from the mean.
+        - [To be reviewed] K-means minimizes $`J=\sum_{j=1}^k\sum_{x_i\in S_j}\|x_i-\mu_j\|^2`$, where $`\mu_j=|S_j|^{-1}\sum_{x_i\in S_j}x_i`$. It favors compact groups under a shared Euclidean metric, but does not impose equal cluster sizes. Unequal density, scale, anisotropy, and outliers can make the induced partition scientifically misleading. [K-means reference](https://scikit-learn.org/stable/modules/clustering.html#k-means)
         - Algorithm details
             - [To be reviewed] Initialization of centroids
 
@@ -621,17 +632,17 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Parameters
             - eps ( $`\epsilon`$ ): The maximum distance (radius) between two points for one to be considered as in the neighborhood of the other.
             - min_samples (MinPts): The minimum number of points required within the e-neighborhood (including the point itself) for a point to be considered a core point.
-        - Core Point: A point p is a core point if its $`\epsilon`$-neighborhood, $`N \epsilon(p)=\{q \in D \mid d i s t(p, q) \leq \epsilon\}`$, contains at least min_samples points.
+        - [To be reviewed] A core point has at least `min_samples` observations, including itself, within $`N_\epsilon(p)=\{q\in D:\operatorname{dist}(p,q)\leq\epsilon\}`$. A border point can join a cluster without itself being a core point.
         - Algorithm
             - 1. Start with an arbitrary unvisited point $`p`$.
             - 2. Mark $`p`$ as visited.
-            - 3. Retrieve the $`\epsilon`$-neighborhood of $`p, N \epsilon(p)`$.
-            - 4. If $`|\mathrm{Ne}(\mathrm{p})|<`$ min_samples, mark $`p`$ as noise (temporarily).
-            - 5. If $`|\mathrm{N} \epsilon(\mathrm{p})| \geq`$ min_samples, p is a core point. Create a new cluster C and add p to it. Add all points in $`\mathrm{N} \mathrm{\epsilon}(\mathrm{p})`$ to a seed set.
+            - [To be reviewed] 3. Retrieve the $`\epsilon`$-neighborhood $`N_\epsilon(p)`$.
+            - [To be reviewed] 4. If $`|N_\epsilon(p)|<\mathrm{min\_samples}`$, mark $`p`$ as noise provisionally; later expansion can relabel it as a border point.
+            - [To be reviewed] 5. If $`|N_\epsilon(p)|\geq\mathrm{min\_samples}`$, create a cluster, add $`p`$, and initialize its expansion set with the neighborhood.
             - 6. Expand the cluster: For each point q in the seed set:
-                - If q is unvisited, mark it visited, retrieve its neighborhood $`\mathrm{N} \mathrm{\epsilon}(\mathrm{q})`$. If $`|\mathrm{N} \mathrm{\epsilon}(\mathrm{q})| \geq`$ min_samples, add points in $`N \epsilon(q)`$ to the seed set.
-                - If q is not yet a member of any cluster, add q to cluster C. 
-            - 7. Repeat step 6 until the seed set is empty. 
+                - [To be reviewed] If $`q`$ is unvisited, mark it visited and retrieve $`N_\epsilon(q)`$. If $`q`$ is core, add its neighbors to the expansion set; avoid repeated processing. Border-point assignment can depend on traversal order when it touches multiple clusters.
+                - If q is not yet a member of any cluster, add q to cluster C.
+            - 7. Repeat step 6 until the seed set is empty.
             - 8. Go back to step 1 and pick another unvisited point, until all points are visited.
         - [[Interview Questions](https://www.youtube.com/watch?v=cCw1yqqvOCI&ab_channel=UnfoldDataScience)]
     - [To be reviewed] Gaussian Mixture Models ([[GMMs](https://www.youtube.com/watch?v=hJLaHWaLsyg&ab_channel=AtifAdib)])
@@ -639,7 +650,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - A GMM models $`p(x)=\sum_{k=1}^K\pi_k\mathcal{N}(x;\mu_k,\Sigma_k)`$. EM alternates posterior responsibilities with weighted updates to component parameters. Unlike K-means, assignments are soft and full covariance matrices permit elliptical components.
         - **Example:** a point between two overlapping customer populations can have responsibilities 0.6 and 0.4. Multiple restarts and covariance regularization matter: unconstrained likelihood can diverge when a component collapses onto one observation. Select covariance structure and component count using held-out density and appropriate model-selection criteria. [Gaussian mixtures](https://scikit-learn.org/stable/modules/mixture.html)
 
-    
+
 
 - [To be reviewed] Latent Mixture Models
 
@@ -731,7 +742,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 
-## Deep Learning 
+## Deep Learning
 
 ### DL Basic
 
@@ -740,7 +751,7 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Architecture: Input layer + hidden layers + output layer in only one direction - forward - with no cycles or loops.
         - For each neuron,  output = activation(weights inputs + bias).
         - For each layer, $`\mathbf{y}=f(\mathbf{W} \mathbf{x}+\mathbf{b})`$.
-        - If we use linear activations for hidden layers, the hidden layers do nothing!
+        - [To be reviewed] A composition of affine layers without intervening nonlinearities is still affine. Extra linear hidden layers can change the parameterization, rank constraints, and optimization, but do not create a general nonlinear decision function.
     - Depth vs width
         - Deeper networks can learn more complex hierarchical representations. But face challenges like vanishing gradients and increased computational cost.
         - Wider layers can capture more information per layer. May require more training data to avoid overfitting.
@@ -758,24 +769,24 @@ All following advanced optimization algorithms improve parameter updates by adju
     - **Tanh (The hyperbolic tangent) (1980s)**: $`\tanh (z)=\frac{e^z-e^{-z}}{e^z+e^{-z}}=\frac{2}{1+e^{-2 z}}-1`$.
         - It's the improvement based on Sigmoid. It produces outputs in the range (-1, 1) and tends to center the data (0) better compared to the sigmoid.
 
-    Sigmoid and Tanh limits the output between (0,1) and (-1,1), which means that Sigmoid and tanh are suitable for processing probability values, such as various gates in LSTM; but ReLU is not suitable because ReLU there is no maximum value limit and very large values may appear.
+    [To be reviewed] Sigmoid gates take values in (0, 1), while tanh supplies signed bounded candidate/state transformations. Tanh outputs are not probabilities. ReLU is useful in many hidden layers but is not a direct bounded-probability parameterization.
 
     - **ReLU (2010) family (Rectified Linear Unit) (ReLU, Leaky ReLU, PReLU, ELU, SELU)**: $`f(x)=\max (0, x)`$ ReLU outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
         - Dying issue: In some cases during training, a significant number of neurons can end up outputting zero for all inputs. This happens when the weights and biases of these neurons adjust in such a way that the input to ReLU is consistently negative. Once a neuron falls into this state, its gradient becomes zero for any input value (since the derivative of ReLU is zero for negative inputs). And Because it outputs zero consistently, the neuron effectively "dies," meaning it no longer contributes to the learning process.
         - Solution-Leaky ReLU (2013): Instead of outputting zero for negative inputs, Leaky ReLU allows a small, non-zero gradient (e.g., $`f(x)=\alpha x`$ for $`x<0`$ with $`\alpha`$ being a small constant such as 0.01 ). This helps prevent neurons from dying.
         - Parametric ReLU (PReLU) (2015): Similar to Leaky ReLU, but the coefficient $`\alpha`$ is learned during training.
         - ELU (Exponential Linear Unit) （2015） and SELU (Scaled ELU) （2017）: These functions introduce an exponential factor for negative inputs which can improve learning dynamics and sometimes contribute to self-normalizing properties in deeper networks.
-    
-    Why we expect zero-mean activations? When activations have a non-zero mean, especially if it's strongly positive or negative, it can cause what's called a "bias shift" in the next layer’s input. That means the inputs to each layer get skewed, and the network keeps needing to compensate for that. Zero-mean activation help: center the input distribution, keep the gradient more stable, and prevent saturation. Faster convergence.
+
+    [To be reviewed] Centering activations can improve some optimization conditions, but it is not a universal requirement for stable or fast training. Signal/gradient scales, nonlinearities, initialization, residual structure, and normalization interact; zero mean alone does not prevent saturation.
 
     - **GELU （2016）** uses the Gaussian cumulative distribution function to weight the inputs, often defined approximately as: $`f(x)=0.5 x\left(1+\tanh \left[\sqrt{\frac{2}{\pi}}\left(x+0.044715 x^3\right)\right]\right)`$.
         - GELU provides a smooth output which can help gradient flow.
-        - It considers the probability that a neuron will be activated, which has shown benefits in several state-of-the-art architectures, especially in natural language processing.
+        - [To be reviewed] GELU is a deterministic activation $`x\Phi(x)`$ using the standard normal CDF; the CDF factor motivates its weighting interpretation. It does not sample a neuron-activation event during the usual forward pass. [GELU](https://arxiv.org/abs/1606.08415)
     - **Swish/SiLU (2017)**: The Swish, also known as SiLU (Sigmoid-weighted Linear Unit), is defined as: $`f(x)=x \cdot \sigma(x)`$, where $`\sigma(x)`$ is the sigmoid function.
         - The function is differentiable everywhere and its non-monotonicity can sometimes lead to better performance in deep networks.
         - Swish has been shown to outperform ReLU on deeper models in certain cases, due to its ability to maintain non-zero gradients across a wider range of inputs.
 
-    - **GLU (Gated Linear Unit)** 
+    - **GLU (Gated Linear Unit)**
         - Given an input $`x \in \mathbb{R}^d`$, two learned projections $`W, V \in \mathbb{R}^{d \times h}`$. $`\text{GLU}(x)=(x W) \otimes \sigma(x V)`$, where $`\otimes`$ is elementwise product.
         - Intuition: One projection $`(x W)`$ carries "content," the other $`(x V)`$ gates it via a sigmoid. Allows the network to learn when to pass or suppress information.
 
@@ -786,13 +797,13 @@ All following advanced optimization algorithms improve parameter updates by adju
         - It has been reported to offer improvements in generalization and training stability compared to ReLU and some of its variants.
 
     - **SwiGLU (Swish with Gating)**: SwiGLU combines the Swish activation with a gating mechanism, which allows the network to control the flow of information dynamically.
-        - A simple GLU variant that replaces the "content" branch with Swish (SiLU): $`\text{SwiGLU}(x)=(\text{SiLU}(x W)) \otimes(x V) \quad \text { where } \quad \text{SiLU}(z)=z \cdot \sigma(z)`$. Equivalently, split a linear projection into two halves, apply Swish to one half, and gate with the other.
+        - [To be reviewed] SwiGLU uses a SiLU gate in place of GLU's sigmoid gate; with one naming convention, $`\operatorname{SwiGLU}(x)=\operatorname{SiLU}(xW)\odot(xV)`$. Swapping names of the two learned projections gives an equivalent convention. A complete Transformer MLP usually includes an output projection as well. [GLU variants](https://arxiv.org/abs/2002.05202)
         - By incorporating gating, SwiGLU can further improve the representation power and stability of gradient propagation.
         - Often applied in transformer and language models, where dynamic control over activations can benefit deeper network architectures.
 
     - **Softmax**: The softmax function converts a vector of raw scores (logits) into a probability distribution: $`\text{Softmax}\left(z_i\right)=\frac{e^{z_i}}{\sum_j e^{z_j}}`$
         - Each output value represents a probability (all outputs sum to 1), making it ideal for multi-class classification tasks.
-        - Typically used in the output layer of classification networks where interpretability of class probabilities is important.
+        - [To be reviewed] Softmax gives a normalized categorical distribution, not automatically calibrated confidence. Assess probability calibration and use the output distribution appropriate to the task; independent multilabel outputs typically use separate sigmoid probabilities.
 
     - Properties and selection criteria
         - Computational Efficiency: Functions like ReLU are extremely efficient compared to those that require computing exponentials, such as sigmoid or tanh.
@@ -824,7 +835,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
     - **Xavier/Glorot initialization** (by Xavier Glorot and Yoshua Bengio in 2010)
 
-        Xavier initialization was designed to keep the scale of the gradients roughly the same in all layers. 
+        Xavier initialization was designed to keep the scale of the gradients roughly the same in all layers.
         - The initialization maintains the variance of the activations across layers. For a weight matrix $`W`$ connecting layers with fan_in (number of input units) and fan_out (number of output units), the variance is balanced by considering both quantities.
         - When to use? Xavier initialization is most appropriate when using activation functions that are symmetric around zero (like **tanh**) or where the derivative saturates (**sigmoid**).
         - weights can be drawn from a normal distribution with: $`W \sim \mathcal{N}\left(0, \frac{2}{\text { fan } \_ \text {in }+ \text { fan } \_ \text {out }}\right)`$.
@@ -832,13 +843,13 @@ All following advanced optimization algorithms improve parameter updates by adju
 
     - **He initialization**, proposed by Kaiming He et al., is tailored for networks that use **ReLU** or its variants. ReLU activations are not symmetric and have a different behavior, particularly because they zero out negative inputs.
         - Weights are drawn from a normal distribution: $`W \sim \mathcal{N}\left(0, \frac{2}{\text { fan } \_ \text {in }}\right)`$.
-        - Purpose: Compensates for the halving of the signal due to the ReLU activation (or its variants), maintaining signal variance by effectively “doubling” the variance contribution during initialization.
+        - [To be reviewed] For the standard ReLU assumptions, the factor 2 compensates for the change in the second moment. Leaky ReLU with negative slope a instead uses a gain such as sqrt(2 / (1 + a*a)); the same factor is not exact for all activation variants.
 
-    - **LeCun initialization** is a weight initialization strategy designed to help maintain a consistent variance of activations as data flows through a network. 
-        - It is particularly useful for networks utilizing activation functions that naturally preserve variance, such as tanh, sigmoid, and more recently, self-normalizing networks with SELU activations.
+    - **LeCun initialization** is a weight initialization strategy designed to help maintain a consistent variance of activations as data flows through a network.
+        - [To be reviewed] LeCun-normal initialization uses variance $`1/\mathrm{fan\_in}`$. SELU's self-normalization result additionally assumes a suitable feed-forward architecture, activation constants, input/weight conditions, and compatible regularization such as alpha dropout; initialization alone is insufficient. [Self-normalizing networks](https://arxiv.org/abs/1706.02515)
         - weights can be drawn from a normal distribution with: $`W \sim \mathcal{N}\left(0, \frac{1}{\text { fan } \_ \text {in }}\right)`$.
 
-    - **Orthogonal initialization** is another powerful technique especially beneficial for deep networks, including **RNNs**. It initializes weight matrices to be orthogonal ($`W^T W=I`$, where $`I`$ is the identity matrix. This property ensures that the transformations performed by the layer are norm-preserving.), which helps with gradient flow in very deep networks.
+    - [To be reviewed] Orthogonal initialization uses an orthogonal square matrix or a semi-orthogonal rectangular matrix. Only a compatible orientation satisfies $`W^TW=I`$; a wide matrix can instead satisfy $`WW^T=I`$. A linear orthogonal transform preserves the relevant norm, but nonlinear activations and an entire recurrent trajectory need not. [Initialization API](https://docs.pytorch.org/docs/stable/nn.init.html)
 
     - [To be reviewed] Implementations
 
@@ -859,27 +870,30 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Forward vs. backward pass
         - Forward pass: The forward pass is the process of feeding input data through the network and computing the output. Here, each node (or layer) processes the input it receives and passes on its output to subsequent nodes according to the network’s architecture. During this pass, the computational graph is effectively created, and intermediate values (activations) are stored because they will be needed during backpropagation.
         ```python
+        import numpy as np
+
         def forward_pass(X, W1, b1, W2, b2):
             # Hidden layer
             Z1 = np.dot(W1, X) + b1  # Pre-activation
             A1 = np.maximum(0, Z1)   # ReLU activation
-            
+
             # Output layer
             Z2 = np.dot(W2, A1) + b2
-            A2 = 1 / (1 + np.exp(-Z2))  # Sigmoid activation
-            
+            A2 = np.exp(-np.logaddexp(0.0, -Z2))  # [To be reviewed] stable sigmoid
+
             # Store intermediate values for backprop
             cache = {"Z1": Z1, "A1": A1, "Z2": Z2, "A2": A2}
-            
+
             return A2, cache
 
-        def compute_loss(A2, Y):
+        def compute_loss(logits, Y):
+            # [To be reviewed] Pass cache["Z2"]; BCE from logits avoids log(0).
             m = Y.shape[1]
-            loss = -1/m * np.sum(Y * np.log(A2) + (1 - Y) * np.log(1 - A2))
+            loss = np.sum(np.logaddexp(0.0, logits) - Y * logits) / m
             return loss
         ```
 
-        - Backward Pass: The backward pass begins once the loss is computed by comparing the network’s output to the ground truth. This phase involves: Computing Gradients: Using the chain rule, the algorithm calculates how the loss function changes with respect to each parameter in the network. Traversing in Reverse: The computation moves backward through the network (or computational graph), propagating derivatives from the output layer back to the input layer. Weight Updates: The gradients are then used to update the network’s weights (often via gradient descent or one of its variants) to minimize the loss.
+        - [To be reviewed] Backpropagation computes gradients by reverse traversal of the computation graph. Applying those gradients to weights is a separate optimizer step. Keeping those phases distinct matters for accumulation, clipping, mixed precision, and distributed synchronization.
 
         ```python
         def backward_pass(X, Y, cache, W1, W2):
@@ -887,18 +901,18 @@ All following advanced optimization algorithms improve parameter updates by adju
             A1 = cache["A1"]
             A2 = cache["A2"]
             Z1 = cache["Z1"]
-            
+
             # Output layer gradients
             dZ2 = A2 - Y
             dW2 = 1/m * np.dot(dZ2, A1.T)
             db2 = 1/m * np.sum(dZ2, axis=1, keepdims=True)
-            
+
             # Hidden layer gradients
             dA1 = np.dot(W2.T, dZ2)
             dZ1 = dA1 * (Z1 > 0)  # ReLU derivative
             dW1 = 1/m * np.dot(dZ1, X.T)
             db1 = 1/m * np.sum(dZ1, axis=1, keepdims=True)
-            
+
             return {"dW1": dW1, "db1": db1, "dW2": dW2, "db2": db2}
 
         def update_parameters(W1, b1, W2, b2, grads, learning_rate):
@@ -906,7 +920,7 @@ All following advanced optimization algorithms improve parameter updates by adju
             b1 = b1 - learning_rate * grads["db1"]
             W2 = W2 - learning_rate * grads["dW2"]
             b2 = b2 - learning_rate * grads["db2"]
-            
+
             return W1, b1, W2, b2
         ```
         - This two-phase process (forward and backward) ensures that each weight update is informed by the contribution of every parameter to the overall error.
@@ -922,8 +936,8 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Detection methods
             - Monitoring Gradient Norms: By tracking the norm (or magnitude) of the gradients during training, you can detect when they are trending toward zero or growing uncontrollably.
             - Layer-wise Analysis: Evaluating the gradient distribution across layers can help diagnose whether early layers receive significantly diminished signals compared to later layers.
-            - Activation distribution visualization: Histograms of activations approaching zero indicate vanishing; Histograms with extreme values indicate explosion.
-            - Training curve inspection: Loss plateaus early → potential vanishing gradients; Loss becomes NaN/Inf → exploding gradients.
+            - [To be reviewed] Activation histograms can reveal saturation or excessive scales, but small activations alone do not prove vanishing gradients. Inspect actual layerwise gradients, Jacobian sensitivity when feasible, and the activation's derivative.
+            - [To be reviewed] A plateau or nonfinite loss is a symptom with multiple possible causes, including data errors, numerical overflow, a bad objective, or optimization instability. Diagnose gradients and intermediate values before assigning the cause.
         - Solutions
             - Proper Weight Initialization.
             - Normalization Techniques
@@ -975,12 +989,12 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 - Regualization and Normalization [[YouTube-Regualization](https://www.youtube.com/watch?v=EehRcPo1M-Q)]
 
-    Lower the weights: an extremely high weight on a specific neuron or data point can exaggerate its importance, leading to overfitting.
+    [To be reviewed] Regularization constrains a model or fitting procedure according to a chosen inductive bias. Weight magnitude is parameterization-dependent; a large individual weight does not by itself prove overfitting or excessive influence of one training example.
 
     - Solutions: L1/L2 regularization (Alpha: how much attention to pay to this penalty), dropout, early stopping; Data augmentation(adding more info)
 
     - Beyond traditional methods
-        - Label smoothing: Modifies the hard target labels(0,1) to soften the output probabilities $`(\varepsilon / 1-\varepsilon)`$. Encourages the model to be less confident, reduces overfitting, and helps smooth the decision boundaries. (effective in image classification)
+        - [To be reviewed] Label smoothing can define $`\tilde y_k=(1-\epsilon)\mathbf{1}[k=y]+\epsilon/K`$ for $`K`$ classes. For binary classification this convention gives $`1-\epsilon/2`$ to the target class and $`\epsilon/2`$ to the other. Some implementations distribute smoothing only over nontarget classes; state the convention. It changes targets and confidence incentives, not the inference-time label definition. [Cross-entropy API](https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)
         - [To be reviewed] Dropout
 
             - During training, inverted dropout multiplies an activation by $`m/(1-p)`$ with $`m\sim\operatorname{Bernoulli}(1-p)`$, preserving its conditional expectation. At evaluation, disable this stochastic masking for the usual deterministic prediction path.
@@ -1002,30 +1016,30 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Normalization [[Medium](https://medium.com/techspace-usict/normalization-techniques-in-deep-neural-networks-9121bf100d8)]
         - **Batch normalization** (2015) [[YouTube](https://www.youtube.com/watch?v=yXOMHOpbon8)] is a method that normalizes activations in a network across the mini-batch of definite size. For each feature, batch normalization computes the mean and variance of that feature in the mini-batch. It then subtracts the mean and divides the feature by its mini-batch standard deviation. Good for CNN.
         - Problems
-            - Variable Batch Size → If batch size is of 1, then variance would be 0 which doesn’t allow batch norm to work. Furthermore, if we have small mini-batch size then it becomes too noisy and training might affect. There would also be a problem in distributed training. As, if you are computing in different machines then you have to take same batch size because otherwise γ and β will be different for different systems. It batch size too large, training might need more epochs.
-            - Recurrent Neural Network → In an RNN, the recurrent activations of each time-step will have a different story to tell(i.e. statistics). This means that we have to fit a separate batch norm layer for each time-step. This makes the model more complicated and space consuming because it forces us to store the statistics for each time-step during training.
-        
-        - **Weight normalization** reparameterizes the weights $`(\omega)`$ as: $`\boldsymbol{w}=\frac{g}{\|\boldsymbol{v}\|} \boldsymbol{v}`$. It separates the weight vector from its direction, this has a similar effect as in batch normalization with variance. The only difference is in variation instead of direction.
+            - [To be reviewed] Small normalization groups make batch statistics noisy. For convolutional BatchNorm, statistics use batch and spatial dimensions, so batch size 1 can still supply multiple values per channel. A training configuration with only one value per channel is degenerate. Distributed replicas can share affine parameters while observing different local statistics; SyncBatchNorm synchronizes the chosen statistics. Equal local batch sizes are not required to make gamma/beta equal. [BatchNorm2d](https://docs.pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html)
+            - [To be reviewed] Recurrent normalization must account for sequence length and changing state distributions. Time-specific statistics are one design, not a universal requirement. LayerNorm computes per-example/time-step feature statistics and avoids dependence on batch composition. [LayerNorm](https://arxiv.org/abs/1607.06450)
+
+        - [To be reviewed] Weight normalization parameterizes $`w=g\,v/\|v\|`$, separating a weight vector's magnitude from direction. It reparameterizes weights rather than normalizing minibatch activation statistics, so it should not be equated with BatchNorm's variance computation. [Weight normalization](https://arxiv.org/abs/1602.07868)
 
         - **Layer normalization** (2016) [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)] normalizes input across the features instead of normalizing input features across the batch dimension in batch normalization. Good for RNN.
             - $`\mathrm{y}=\frac{\mathrm{x}-\mathrm{E}(\mathrm{x})}{\sqrt{\mathrm{V} \text{ar}(\mathrm{x})+\epsilon}} * \gamma+\beta`$.
-            - Post-layerNorm: $`x_{i+1}=\text { LayerNorm }\left(x_i+\text{Sublayer}\left(x_i\right)\right)`$. Apply the residual connection first, then normalize. Used in BERT, T5, and many earlier models. (BERT, T5)
+            - [To be reviewed] Post-LN: $`x_{i+1}=\operatorname{LayerNorm}(x_i+\operatorname{Sublayer}(x_i))`$. BERT and the original Transformer use post-normalization forms; **T5 uses a pre-normalization RMS-style variant**, so it is not a Post-LN example. [T5](https://jmlr.org/papers/v21/20-074.html)
             - Pre-layerNorm: $`x_{i+1}=x_i+\text{Sublayer}\left(\text{LayerNorm}\left(x_i\right)\right)`$. Normalize before the sublayer (e.g., attention or MLP). Residual connection happens after the sublayer.  (GPT, LLaMa)
-            - Why post LN is better? [[科学空间](https://kexue.fm/archives/9009)] Under same setting, pre-LN is easier to be trained, but performance is not as good as post-LN. 
-                - In Pre-LN, because the input is normalized before the residual path, the updates across layers become smaller as depth increases.
-                - As a result, deeper layers contribute less and less, and the model starts acting like a shallow but wide network — you're stacking more layers, but they don't add much unique information.
-                - So while the model has many layers on paper, in practice, it’s not effectively using its depth — it becomes “deep in form but shallow in function.”
-                - Quote from DeepNet: The gradients of Pre-LN at bottom layers tend to be larger than at top layers, leading to a degradation in performance compared with Post-LN.
+            - [To be reviewed] **Pre-LN versus Post-LN:** Pre-LN often improves initialization-time gradient behavior and training stability; final quality depends on the architecture, optimizer, depth, schedule, and tuning. Neither is universally superior. [Normalization analysis](https://arxiv.org/abs/2002.04745)
+                - [To be reviewed] The residual stream and normalized branch can have different relative scales as depth grows; assess those scales under the actual parameterization.
+                - [To be reviewed] Claims that deep Pre-LN layers contribute less describe specific analyses or settings, not proof that every Pre-LN model is functionally shallow.
+                - [To be reviewed] Compare held-out quality, gradient norms, update scales, and training failures at matched compute instead of inferring effective depth from normalization placement alone.
+                - [To be reviewed] DeepNet motivates DeepNorm using its theoretical assumptions and translation experiments; those results do not establish a universal quality ranking for modern LLMs.
             - DeepNet introduces **DeepNorm** to merge the high performance of Post‑LN with the stability of Pre‑LN, enabling reliable training of ultra‑deep Transformers .
-                - In a vanilla Post‑LN Transformer, each sublayer updates via： $`x_{l+1} = LayerNorm(x_l + G_l(x_l))`$, where $`G_l`$ is the sublayer function (self-attention or feed-forward). DeepNorm replaces this with $`x_{l+1} = LayerNorm(x_l + α·G_l(x_l))`$.
-                - scaling the residual branch by a constant $`\alpha`$. Additionally, after standard initialization, the weights inside each residual branch (feed-forward projections and attention value/output projections) are multiplied by a constant $`\beta`$. These two scaling factors jointly bound the magnitude of model updates and gradients, stabilizing training even at depths of hundreds or thousands of layers.
+                - [To be reviewed] DeepNorm uses $`x_{l+1}=\operatorname{LayerNorm}(\alpha x_l+G_l(x_l;\theta_l))`$: **alpha scales the residual/skip term** in this formulation, not the sublayer output. [DeepNet / DeepNorm](https://arxiv.org/abs/2203.00555)
+                - [To be reviewed] Its beta factor rescales selected initialization matrices; alpha/beta depend on encoder/decoder configuration and depth. Reproduce the paper's initialization and assumptions together rather than transplanting one constant into an arbitrary architecture.
 
-        - **RMSnorm** simplifies LayerNorm by removing the mean and bias terms.  $`\text{RMS}(\mathbf{x})=\sqrt{\frac{1}{n} \sum_{i=1}^n x_i^2}`$, $`\text{RMSNorm}(\mathbf{x})=\frac{\mathbf{x}}{\text{RMS}(\mathbf{x})} \cdot \mathbf{g}`$.
-        - **pRMSNrom** is a normalization technique similar to RMSNorm, but with a twist: instead of computing the normalization over the entire vector, it does so over only part of it (hence the "partial").
-            - Instead of using all $`d`$ dimensions, pRMSNorm uses just a subset $`d_p`$ of them for computing the RMS: $`\text{pRMSNorm}(x)=\frac{x}{\sqrt{\frac{1}{d_p} \sum_{i=1}^{d_p} x_i^2+\epsilon}} \cdot g`$  (Mistral, Yi)
+        - [To be reviewed] RMSNorm uses $`\operatorname{RMSNorm}(x)=g\odot x/\sqrt{d^{-1}\sum_i x_i^2+\epsilon}`$ in a common implementation convention. It omits mean subtraction and usually the additive bias of standard LayerNorm. Placement of epsilon and affine options are implementation choices. [RMSNorm](https://arxiv.org/abs/1910.07467)
+        - [To be reviewed] **pRMSNorm** estimates the RMS from a selected subset of feature coordinates, reducing the work under the method's assumptions.
+            - [To be reviewed] For a specified subset $`S`$, one form uses $`x/\sqrt{|S|^{-1}\sum_{i\in S}x_i^2+\epsilon}`$ followed by a learned scale. Do not identify ordinary RMSNorm in a model such as Mistral or Yi as partial RMSNorm without implementation evidence. [pRMSNorm paper](https://arxiv.org/abs/1910.07467)
 
-        - **Instance/Constrast normalization** (2017): Layer normalization and instance normalization is very similar to each other but the difference between them is that instance normalization normalizes across each channel in each training example instead of normalizing across input features in an training example. Unlike batch normalization, the instance normalization layer is applied at test time as well(due to non-dependency of mini-batch). This technique is originally devised for style transfer, the problem instance normalization tries to address is that the network should be agnostic to the contrast of the original image.
-        - **Group normalization** (2018) normalizes over group of channels for each training examples. We can say that, Group Norm is in between Instance Norm and Layer Norm. When we put all the channels into a single group, group normalization becomes Layer normalization. And, when we put each channel into different groups it becomes Instance normalization.
+        - [To be reviewed] **Instance normalization** normalizes spatial positions separately within each sample/channel. A common configuration uses input statistics during both training and evaluation; running-statistics options also exist. Its use in style transfer does not make it equivalent to normalization over all features of a sample. [InstanceNorm2d](https://docs.pytorch.org/docs/stable/generated/torch.nn.InstanceNorm2d.html)
+        - [To be reviewed] GroupNorm normalizes spatial positions and channel subsets within each sample. One group shares the normalization axes of LayerNorm over the full channel/spatial volume, but affine parameter sharing can differ. One group per channel shares InstanceNorm's input-statistics axes, again subject to affine/running-statistics choices. [GroupNorm](https://docs.pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)
         - [To be reviewed] (**Spectral normalization**: for GAN)
 
             - Normalize a weight matrix by an estimate of its largest singular value: $`\bar W=W/\sigma_{\max}(W)`$. Power iteration provides an efficient estimate and limits the layer's operator norm under the chosen matrix representation.
@@ -1034,7 +1048,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
         - **Understanding**: Imagine a stack of N (batch) books, each with C (channels) pages, every page has H lines, and each line contains W characters.
             - BN: It's like averaging across the same page in different books. For example, all the 36th pages from all N books are added together, and the average is computed over all characters on those pages (total of N×H×W characters).
-            - LN: It averages all characters in a single book. Each book is normalized independently, computing the average over C×H×W characters.
+            - [To be reviewed] LN: normalize the explicitly selected feature axes. For an image tensor, a LayerNorm over C×H×W normalizes a whole book; a Transformer usually normalizes hidden features separately at each token, not the whole token sequence.
             - IN: It averages all characters on a single page of a book. Each page is treated separately, averaging over H×W characters.
             - GN: Each book (with C pages) is split into G groups of pages. Each group (C/G pages) is treated like a mini-book, and normalization is done within each group.
 
@@ -1046,16 +1060,16 @@ All following advanced optimization algorithms improve parameter updates by adju
 ----
 
 ### DL Algorithms
-#### CNN 
+#### CNN
 [[YouTube](https://www.youtube.com/watch?v=oGpzWAlP5p0)] [[Code](https://www.youtube.com/watch?v=pDdP0TFzsoQ&list=PLqnslRFeH2UrcDBWF5mfPGpqQDSta6VK4&index=15)]
 
 In a typical CNN architecture, a few convolutional layers are connected in a cascade style. Each convolutional layer is followed by a Rectified Linear Unit (ReLU) layer or other activation function, then a pooling layer*, then one or more convolutional layers (+ReLU), then another pooling layer.
 
-The output from each convolution layer is a set of objects called feature maps, generated by a single kernel filter. The feature maps are used to define a new input to the next layer. A common trend is to keep on increasing the number of filters as the size of the image keeps dropping as it passes through the Convolutional and Pooling layers. The size of each kernel filter is usually 3×3 kernel because it can extract the same features which extract from large kernels and faster than them.
+[To be reviewed] A convolutional output channel is formed by one filter spanning the input channels; its parameters are shared across spatial positions. Stacking two stride-1 3×3 layers gives a 5×5 receptive field under ordinary assumptions, but does not equal one 5×5 convolution: intermediate channels and nonlinearities change expressiveness and cost. Smaller kernels are a design choice, not guaranteed to extract the same features faster.
 
-After that, the final small image with a large number of filters(which is a 3D output from the above layers) is flattened and passed through fully connected layers. At last, we use a softmax layer with the required number of nodes for classification or use the output of the fully connected layers for some other purpose depending on the task.
+[To be reviewed] A CNN may flatten activations for a dense head or use global pooling and another task head. Softmax is appropriate for a categorical output; binary, multilabel, regression, detection, and dense-prediction tasks use different heads and losses.
 
-The number of these layers can increase depending on the complexity of the data and when they increase you need more data. Stride, Padding, Filter size, Type of Pooling, etc all are Hyperparameters and need to be chosen (maybe based on some previously built successful models)
+[To be reviewed] Depth, width, stride, padding, kernel size, and pooling affect capacity, receptive fields, cost, and inductive bias. More layers do not mechanically imply a fixed requirement for more labeled data; pretraining, augmentation, regularization, and optimization also matter.
 
 - Pooling: it is a way to reduce the number of features by choosing a number to represent its neighbor. And it has many types max-pooling, average pooling, and global average.
 - Max pooling: it takes the max number of window 2×2 as an example and represents this window by using the max number in it then slides on the image to make the same operation.
@@ -1065,15 +1079,15 @@ The number of these layers can increase depending on the complexity of the data 
         <img src="figs/cnn.png" width="80%">
     </div>
 
-#### RNN 
+#### RNN
 [[YouTube](https://www.youtube.com/watch?v=LHXXI4-IEns)]
 - Architecture: RNNs are designed to process sequences by recursively updating a hidden state. At each time step $`t`$, the network takes an input $`x_t`$ and the previous hidden state $`h_{t-1}`$ to produce a new hidden state $`h_t`$ : $`h_t=f\left(W_x x_t+W_h h_{t-1}+b\right)`$, where $`W_x`$ and $`W_h`$ are weight matrices, $`b`$ is a bias term, and $`f`$ is a nonlinear activation function (commonly tanh or ReLU). The same set of weights is used at every time step, which makes the network well-suited for variable-length sequences but also introduces challenges during training.
-- BPTT: BPTT is an extension of the standard backpropagation algorithm. The network is “unrolled” along the time axis, and gradients are computed for each time step, then aggregated to update the shared weights. 
+- BPTT: BPTT is an extension of the standard backpropagation algorithm. The network is “unrolled” along the time axis, and gradients are computed for each time step, then aggregated to update the shared weights.
     - Unrolling over long sequences can be both memory-intensive and computationally heavy.
     - The repeated multiplication of gradients across many time steps often results in extremely small (vanishing) or large (exploding) gradients.
 
 
-#### LSTM & GRU 
+#### LSTM & GRU
 [[YouTube](https://www.youtube.com/watch?v=8HyCNIVRbSU)]
 - **LSTM** networks were introduced specifically to address the vanishing gradient problem inherent in basic RNNs. They do this by incorporating a memory cell that can maintain information over long periods.
     - Architecture
@@ -1105,11 +1119,13 @@ The number of these layers can increase depending on the complexity of the data 
             <img src="figs/gru_gates.png" width="90%">
         </div>
 
+        - [To be reviewed] **GRU equation conventions:** the illustration omits biases and uses z as the fraction of the candidate written to state. PyTorch's GRU uses z as a retention gate: $`h_t=(1-z_t)\odot n_t+z_t\odot h_{t-1}`$. Its candidate is $`n_t=\tanh(W_{in}x_t+b_{in}+r_t\odot(W_{hn}h_{t-1}+b_{hn}))`$; applying reset after the hidden affine map differs from multiplying the old hidden state before that map. Match the equations to the implementation rather than mixing these conventions. [PyTorch GRU](https://docs.pytorch.org/docs/stable/generated/torch.nn.GRU.html)
+
     <div align="center">
         <img src="figs/gru.png" width="65%">
     </div>
 
-    - Unlike LSTM, GRU does not have cell state Ct. It only has a hidden state ht, and due to the simple architecture, GRU has a lower training time compared to LSTM models. The GRU architecture is easy to understand as it takes input xt and the hidden state from the previous timestamp ht-1 and outputs the new hidden state ht. You can get in-depth knowledge about GRU at [[here](https://towardsdatascience.com/gru-recurrent-neural-networks-a-smart-way-to-predict-sequences-in-python-80864e4fe9f6/)].
+    - [To be reviewed] GRU maintains one hidden state rather than separate LSTM hidden/cell states. With matched input/hidden sizes it usually has fewer gate parameters; observed training or inference speed depends on kernels, sequence shapes, hardware, and implementation. Fewer gates do not guarantee lower latency or equal task performance.
     - Advantages
         - Simplicity: Fewer gating mechanisms lead to a more straightforward architecture.
         - Efficiency: Fewer parameters often mean faster training and potentially less risk of overfitting.
@@ -1121,13 +1137,15 @@ The number of these layers can increase depending on the complexity of the data 
 
 - **Comparison Among These Models**
 
+[To be reviewed] **Illustrative recurrent-model comparison; compare matched dimensions and implementations.**
+
 | **Aspect**                | **Standard RNN**                                          | **LSTM**                                                      | **GRU**                                                       |
 |---------------------------|-----------------------------------------------------------|---------------------------------------------------------------|---------------------------------------------------------------|
 | **Architecture**          | Simple recurrence using a single hidden state             | Memory cell with three gates: input, forget, and output gates  | Streamlined design with two gates: update and reset           |
-| **Handling of Long-Term Dependencies** | Struggles due to vanishing/exploding gradients            | Excellent, via gating mechanisms that preserve cell state      | Good; mitigates gradient issues with a simpler gating mechanism |
+| **Handling of Long-Term Dependencies** | Struggles due to vanishing/exploding gradients            | Can retain information through gated cell-state paths; no general long-range guarantee      | Good; mitigates gradient issues with a simpler gating mechanism |
 | **Parameter Complexity**  | Fewer parameters                                          | More parameters due to complex gate structure                  | Fewer parameters compared to LSTM                              |
-| **Computational Cost**    | Lower, faster computation for short sequences             | Higher, computationally intensive due to extra gates           | More efficient than LSTM, balancing complexity and performance  |
-| **Usage Considerations**  | Best for short sequences; limited long-range memory       | Ideal for tasks with long-range dependencies; robust memory    | Suitable when speed and simplicity are needed, with competitive performance |
+| **Computational Cost**    | Lower, faster computation for short sequences             | Higher, computationally intensive due to extra gates           | Often fewer gate operations at matched width; benchmark actual kernels  |
+| **Usage Considerations**  | Best for short sequences; limited long-range memory       | A candidate for long dependencies; compare against alternatives    | Suitable when speed and simplicity are needed, with competitive performance |
 
 
 
@@ -1159,7 +1177,7 @@ The number of these layers can increase depending on the complexity of the data 
             - WGAN replaces the original divergence-driven formulation with a Wasserstein-1 dual objective over 1-Lipschitz critics. The original method uses weight clipping; WGAN-GP instead penalizes deviation of gradient norms from one on sampled interpolations.
             - Feature matching asks the generator to match statistics of discriminator features, providing a different training signal. These approaches address different aspects of training and do not guarantee the elimination of collapse. Compare seeds and matched compute, rather than selecting one attractive sample grid. [WGAN](https://arxiv.org/abs/1701.07875), [WGAN-GP](https://arxiv.org/abs/1704.00028)
 
-        
+
 - Autoencoders
     - Basic Autoencoders
         - [To be reviewed] Encoder and decoder structure
@@ -1191,34 +1209,34 @@ The number of these layers can increase depending on the complexity of the data 
 
 
 ----
-#### Transformer 
+#### Transformer
 
 [[李沐](https://www.youtube.com/watch?v=nzqlFIcCSWQ)]  [[ANLP](https://www.youtube.com/watch?v=vlAIa1eZVR4&list=PL8PYTP1V4I8D4BeyjwWczukWq9d8PNyZp&index=4)] [[YouTube](https://www.youtube.com/watch?v=GGLr-TtKguA)] [[Coding](https://www.youtube.com/watch?v=ISNdQcPhsts&t=96s)]
-[[The Annotated Transformer](https://nlp.seas.harvard.edu/2018/04/03/attention.html)] [[Coding]]
+[[The Annotated Transformer](https://nlp.seas.harvard.edu/2018/04/03/attention.html)]
 
 - Attention
     - Basic idea (by Bahdanau et al. 2015): Encode each token in the sequence into a vector. When decoding, perform a linear combination of these vectors, weighted by "attention weights".
     - Cross attention: Each element in a sequence attends to elements of another sequence.
-    - Self attention (Cheng et al. 2016): Each element in the sequence attends to elements of that sequence $`\rightarrow`$ context sensitive encodings!  In this foundational paper, authors explicitly define $`\mathrm{Q}, \mathrm{K}, \mathrm{V}`$ as separate linear transformations: $`Q=X W_q, \quad K=X W_k, \quad V=X W_v`$,  where:
+    - [To be reviewed] Self-attention contextualizes elements using other permitted positions in the same sequence. In the Transformer formulation, learned projections give $`Q=XW_Q`$, $`K=XW_K`$, and $`V=XW_V`$. Attribute this specific scaled multi-head Q/K/V construction to the 2017 Transformer rather than asserting that every earlier attention paper used it. [Transformer](https://arxiv.org/abs/1706.03762)
         - $`X`$ is the original input embedding or hidden representation.
         - $`W_q, W_k, W_v`$ are learnable parameter matrices. Each transformation matrix allows the Transformer to specialize and refine the embeddings differently, to optimize the embeddings specifically for each respective purpose (attention computation for Q and K, content retrieval for V).
         - Why apply self attention on the same sentence? Distribution hypothesis: Approximate the word meaning by its surrounding words. Ex. Run in English.
         - Query (Q): Used to "ask" for relevant information.
         - Key (K): Used to "answer" how relevant a token is to the query.
         - Value ( $`V`$ ): Contains the actual content/information to be aggregated.
-        - Attention Weights: Use "query" vector (decoder state) and "key" vectors (all encoder states). For each query-key pair, calculate weight. Then, normalize to add to one using softmax. Compute softmax $`\left(\frac{Q K^T}{\sqrt{d}}\right)`$, which determines how much focus each token gets.
+        - [To be reviewed] Attention scores compare each query with allowed keys, then apply rowwise softmax: $`\operatorname{softmax}(QK^T/\sqrt{d_k}+M)`$. Q/K may come from the same sequence or different sequences. Softmax weights sum to one over allowed keys when at least one key is valid.
         - Output: Multiply the attention weights with $`V`$ to produce the final context-aware representation.
 
     - Why dot product instead of additive attention? While the two are similar in theoretical complexity, the exp in the paper shows much faster and more space-efficient in practice, since it can be implemented using highly optimized matrix multiplication code.
 
-    - Why divide $`\sqrt{d_k}`$?  We suspect that for large values of $`d_k`$, the dot products grow large in magnitude, pushing the softmax function into regions where it has  extremely small gradients. To counteract this effect, we scale the dot products by $`\sqrt{d_k}`$. Besides, it is due to Variance stabilization. when using Xavier (or Glorot) initialization, the weights have a variance of 1/d (where d is the embedding dimension). Multiplying by √d scales the variance to 1, which helps maintain a stable variance throughout the network.
-    - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features. It was mentioned in the paper that Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions. 
+    - [To be reviewed] With independent zero-mean unit-variance Q/K coordinates, a dot product has variance $`d_k`$. **Dividing** by $`\sqrt{d_k}`$ controls this scale before softmax. This argument concerns the dot-product distribution; it does not follow by multiplying Xavier weight variance by $`\sqrt d`$. Learned dependencies can violate the simplifying assumptions.
+    - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features. It was mentioned in the paper that Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions.
         - Intuition: Information from different parts fo the sentence can be useful to disambiguate in different ways.   Ex. **I** run a small **business**.
         <div align="center">
             <img src="figs/multi_head_att.png" width="75%">
         </div>
-    - Multi-query attention: all heads share the same W_k and W_v. 
-        - Uptraining: fine-tuning based on the MQA checkpoint.
+    - Multi-query attention: all heads share the same W_k and W_v.
+        - [To be reviewed] The GQA paper studies uptraining an existing **multi-head attention (MHA)** checkpoint into MQA/GQA using additional training. It does not define uptraining as starting from an MQA checkpoint. [GQA](https://arxiv.org/abs/2305.13245)
         - All attention heads share exactly the same key (W_k) and value (W_v) projection matrices
         - Each head still maintains its own query (W_q) projection matrix
     - Grouped Query Attention: A middle-ground approach introduced to balance efficiency and performance
@@ -1236,8 +1254,8 @@ The number of these layers can increase depending on the complexity of the data 
 
         $`\begin{aligned} P E_{(p o s, 2 i)} & =\sin \left(p o s / 10000^{2 i / d_{\text {model }}}\right) \\ P E_{(p o s, 2 i+1)} & =\cos \left(p o s / 10000^{2 i / d_{\text {model }}}\right)\end{aligned}`$
 
-        where pos is the position and $`i`$ is the dimension. That is, each dimension of the positional encoding corresponds to a sinusoid. The wavelengths form a geometric progression from $`2 \pi`$ to $`10000 \cdot 2 \pi`$. We chose this function because we hypothesized it would allow the model to easily learn to attend by relative positions, since for any fixed offset $`k, P E_{p o s+k}`$ can be represented as a linear function of $`P E_{\text {pos }}`$.
-        We also experimented with using learned positional embeddings [8] instead, and found that the two versions produced nearly identical results (see Table 3 row (E)). We chose the sinusoidal version because it may allow the model to extrapolate to sequence lengths longer than the ones encountered during training.
+        [To be reviewed] The index `pos` denotes position and $`i`$ the paired frequency index. The original Transformer uses sine/cosine pairs so a fixed positional offset can be expressed through a linear transformation of each pair. With finitely many frequencies, the largest represented wavelength is slightly below $`10000\cdot2\pi`$ under the stated indexing.
+        [To be reviewed] The original paper compared sinusoidal and learned encodings in its translation setup. A formula defined at arbitrarily large positions does not guarantee useful extrapolation by a trained model; test actual long-context tasks. [Original positional-encoding experiment](https://arxiv.org/abs/1706.03762)
 
 
 [[Lil'Log](https://lilianweng.github.io/posts/2018-06-24-attention/)]
@@ -1256,7 +1274,7 @@ The number of these layers can increase depending on the complexity of the data 
     - Cross-attention gets queries from one sequence and keys/values from another. In encoder-decoder translation, decoder states query the encoded source; the source keys and values can be reused across output steps.
     - **Example:** generating a translated word can select information from several source positions. Decoder self-attention still requires causal masking, while source cross-attention usually has access to the entire provided source sequence.
 
-    
+
 
 - BERT (Bidirectional Encoder Representations from Transformers)
 [[李沐](https://www.youtube.com/watch?v=ULD3uIb2MHQ)] [[arXiv](https://arxiv.org/abs/1810.04805)]
@@ -1264,11 +1282,11 @@ The number of these layers can increase depending on the complexity of the data 
 
     - Architecture: transformer **encoder** stack, masked language modeling, and next sentence prediction.
     - Applications in NLP tasks (e.g., sentense classification, extraction-based QA, sentiment analysis).
-    - Next Sentence Prediction task: In NSP, given two sentences A and B, BERT predicts whether B naturally follows A in the original text. NSP was thought to help tasks like QA or entailment, but its contribution turned out to be marginal once enough pretraining is done.
+    - [To be reviewed] BERT's NSP predicts whether a sentence segment follows another versus a sampled negative. RoBERTa showed strong results without NSP under its revised pretraining recipe; this is an empirical result under changed data/training settings, not a universal theorem that sentence-order supervision is useless. [RoBERTa](https://arxiv.org/abs/1907.11692)
     - Fine-tuning BERT implementation [[YouTube](https://www.youtube.com/watch?v=4QHg8Ix8WWQ&t=19s)]
 
 - RoBERTa
-    - same architecture as BERT, but is trained using a larger amount (10 times) pf text date and for a longer time, which makes it even better at understanding language.
+    - [To be reviewed] RoBERTa retains a BERT-style encoder while changing the training recipe, including substantially more text and training, dynamic masking, larger batches, and removal of NSP. Its reported improvements are benchmark-specific; architecture identity alone does not imply every resulting representation is better.
     - Improvements over BERT (training strategies, data size, no NSP, dynamic masking, larger batch size )
 - GPT Series (Generative Pre-trained Transformer)
     - [To be reviewed] GPT-2, GPT-3, GPT-4: Architecture and scaling, autoregressive language modeling
@@ -1285,7 +1303,7 @@ The number of these layers can increase depending on the complexity of the data 
 - Other Architectures
      - Encoder-decoder models: T5 (Text-To-Text Transfer Transformer): Unified text-to-text paradigm; MBART.
      - Decoder Only Models: GPT, LLaMa
-     - XLNet: Permutation-based language modeling: advantages over BERT in capturing bidirectional context
+     - [To be reviewed] XLNet uses a permutation language-modeling objective and two-stream attention to learn from multiple factorization orders without physically permuting the input's positional identities. Its benchmark comparisons do not establish universal superiority to BERT or causal decoders. [XLNet](https://arxiv.org/abs/1906.08237)
 
 
 
@@ -1303,7 +1321,7 @@ Natural Language Processing (NLP) encompasses the interaction between computers 
     - ❌ Brittle, no real “understanding,” poor scalability.
 
 ### Statistical & ML Era
-    
+
 Statistical models learned parameters from data—first n‑grams, then classical ML.
 
 - Text Pre‑processing
@@ -1316,22 +1334,23 @@ Statistical models learned parameters from data—first n‑grams, then classica
                 stemmer = PorterStemmer()
                 stem = stemmer.stem("running")
                 ```
-        - **Lemmatization**, on the other hand, uses a linguistic approach that considers the word's context. It maps inflected forms to their base or dictionary form (lemma). Example: The lemma of "running" is "run".
+        - [To be reviewed] **Lemmatization** maps inflected forms to dictionary lemmas using morphological information; handling ambiguity may require POS and context. NLTK WordNetLemmatizer with a supplied POS does not itself infer the full sentence context.
             - Code:
                 ```Python
                 from nltk.stem import WordNetLemmatizer
+                # Requires WordNet data: nltk.download("wordnet") once after importing nltk.
                 lemmatizer = WordNetLemmatizer()
                 lemma = lemmatizer.lemmatize("running", pos="v")  # Need to specify part of speech (pos)
                 ```
         - When to choose?
             - Stemming: Useful for tasks like text classification when speed is a priority. The technique is simpler and quicker than lemmatization, but it may sacrifice precision and produce non-real words.
-            - Lemmatization: Ideal when semantic accuracy is crucial, such as in question-answering systems or topic modeling. It ensures that the root form retains its existing meaning in the text, potentially leading to better results in tasks that require understanding and interpretation of the text.
-            In general, if you require interpretability (the capability to interpret the outcome of an ML model, for example) or have a need for precise language understanding, lemmatization is often the better choice. However, if your task is purely computational, derives more complex models or intended to process a large volume of text in a relatively short time, you might opt for stemming instead.
+            - [To be reviewed] Lemmatization can help a sparse lexical pipeline when preserving dictionary forms improves retrieval or interpretability, but its benefit is task/language dependent. Evaluate it against unchanged text.
+            [To be reviewed] Modern pretrained neural tokenizers generally expect text processed according to their original normalization rules. Adding stemming or lemmatization can remove tense, negation-related structure, or entity distinctions and induce distribution shift.
 
 
-    - **Stopwords** are words that are often removed from texts during processing as they carry little meaning on their own (e.g., 'is', 'the', 'and') in bag-of-words models. By eliminating stopwords, we can focus on content-carrying words and reduce data dimensionality, thus enhancing computational efficiency and, in some applications, improving the accuracy of text classification or clustering.
+    - [To be reviewed] Stopword removal can reduce sparse-feature dimensionality, but words such as negation and function words can carry crucial task information. Preserve them when needed and compare on validation data. Do not automatically apply a bag-of-words stopword policy to a pretrained language model.
 
-- Shllow Text Representations
+- Shallow Text Representations
     - Bag‑of‑Words (BoW): The Bag of Words model, or BoW, is a fundamental technique in Natural Language Processing (NLP). This model disregards the word order and syntax within a text, focusing instead on the presence and frequency of words.
         - Working Mechanism
             - Text Collection: Gather a set of documents or a corpus.
@@ -1364,10 +1383,10 @@ Statistical models learned parameters from data—first n‑grams, then classica
             - Loss of word meaning: Fails to distinguish meanings of polysemous words (words with multiple meanings) or homonyms.
             - Dimensionality: The vector's length equals the vocabulary size, getting unwieldy with large corpora.
             - Out-of-Vocabulary Words: Struggles to handle new words or spelling variations.
-        
+
     - TF–IDF [[YouTube](https://www.youtube.com/watch?v=zLMEnNbdh4Q)] (Term Frequency-Inverse Document Frequency) is a numerical statistic used in natural language processing and information retrieval to indicate the importance of a word in a document relative to a collection of documents (corpus).
         - Term Frequency (TF): The term frequency measures how often a term appears in a document. $`\text{TF}(t, d)=\frac{f_{t, d}}{\sum_{t^{\prime} \in d} f_{t^{\prime}, d}}`$, $`f_{t, d}`$ represents the raw count of term $`t`$ in document $`d`$. The denominator sums the raw counts for all terms in document $`d`$ to normalize the frequency.
-        - Inverse Document Frequency (IDF) reflects how unique or rare a term is across an entire corpus.  $`\text{IDF}(t, D)=\log \left(\frac{N}{1+|\{d \in D: t \in d\}|}\right)`$, $`N`$ is the total number of documents in the corpus $`D`$. $`|\{d \in D: t \in d\}|`$ counts the number of documents that contain the term $`t`$. The addition of 1 in the denominator avoids division by zero for terms that might not appear in the corpus, though typically every term considered appears at least once.
+        - [To be reviewed] One common smoothed IDF convention is $`\operatorname{idf}(t)=\log[(1+N)/(1+\operatorname{df}(t))]+1`$, as used by scikit-learn when smoothing is enabled. Other systems use different formulas. State the convention, TF weighting, and vector normalization rather than mixing formulas across implementations. [TF-IDF reference](https://scikit-learn.org/stable/modules/feature_extraction.html#tfidf-term-weighting)
         - $`\text{TF}-\text{IDF}(t, d, D)=\text{TF}(t, d) \times \text{IDF}(t, D)`$. This formulation ensures that if **a term is very frequent in a document but rare in the corpus**, it gets a high TF-IDF score.
 
 - Language Modeling
@@ -1375,7 +1394,7 @@ Statistical models learned parameters from data—first n‑grams, then classica
         - Types: Unigrams: Single words $`w_i`$; Bigrams: Pairs of words $`w_{i-1}, w_i`$; Trigrams: Three-word sequences $`w_{i-2}, w_{i-1}, w_i`$.
         - Code
         ```python
-        !pip install nltk
+        # In a notebook, first install NLTK with: %pip install nltk
         import nltk
         nltk.download('punkt_tab')
 
@@ -1426,7 +1445,7 @@ Statistical models learned parameters from data—first n‑grams, then classica
         - Rank documents with a sparse vector-space score or BM25, which combines query-term matches with term-frequency saturation and document-length normalization. Sparse matching is especially useful for exact identifiers, rare entities, and terminology.
         - **Example:** the exact error code `E137` can be decisive even if a semantic encoder treats it as an opaque string. Evaluate retrieval with relevance judgments rather than assuming lexical overlap implies relevance. [Stanford IR textbook](https://nlp.stanford.edu/IR-book/html/htmledition/okapi-bm25-a-non-binary-model-1.html)
 
-    - Topic Modeling 
+    - Topic Modeling
         - [To be reviewed] LSA
 
             - Latent Semantic Analysis applies a truncated SVD to a term-document matrix, often TF-IDF weighted, to obtain a low-rank approximation. Nearby coordinates reflect shared corpus co-occurrence structure rather than explicit symbolic topics.
@@ -1449,17 +1468,17 @@ Statistical models learned parameters from data—first n‑grams, then classica
 
 Neural nets brought continuous representations and end‑to‑end learning.
 
-- Word & Subword Embeddings [[YouTube](https://www.youtube.com/watch?v=hVM8qGRTaOA)] Word embedding is a technique in natural language processing (NLP) where words are represented as dense numerical vectors in a continuous vector space. (n-dim vector). Two similar vectors are two similar words and the direction have some meaning.
+- [To be reviewed] Word embeddings represent lexical items by dense vectors learned from a specified objective and corpus. Similarity depends on training, context definitions, and geometry; nearby words may be related or even antonyms rather than substitutable synonyms.
     - Word2Vec (2013) [[知乎](https://zhuanlan.zhihu.com/p/61635013)]
-        - Word2Vec use recently proposed techniques for measuring the quality of the resulting vector representations, with the expectation that not only will similar words tend to be close to each other, but that words can have multiple degrees of similarity. This has been observed earlier in the context. syntactic regulanties. Using a word offet technique where simple algebratc operations are performed on the word vectors, it was shown for example that vector("King") - vector("Man") + vector("Woman") results in a vector that is closest to the vector representation of the word Queen.
+        - [To be reviewed] Word2Vec demonstrated useful distributional and analogy regularities in particular trained embeddings. Vector offsets such as king − man + woman can retrieve queen in some models, but success depends on corpus, vocabulary, scoring, and relations; it is not a guaranteed algebra of meaning.
 
-        They propose two new model architectures for learning distributed representations of words that try to minimize computational complexity. They found most of the complexity is caused by the non-linear hidden layer in the model. While this is what makes neural networks so attractive, we decided to explore simpler models that might not be able to represent the data as precisely as neural networks, but can possibly be trained on much more data efficiently.
-        - CBOW: predicts the current word based on the context. 
-            
+        [To be reviewed] CBOW and skip-gram simplify the hidden computation used in earlier neural language models to make word-representation training efficient at large corpus scale. Their particular prediction objectives and approximation schemes determine what similarities the learned vectors capture. [Word2Vec](https://arxiv.org/abs/1301.3781)
+        - CBOW: predicts the current word based on the context.
+
         - Skip-gram predicts surrounding words given the current word.
             - Objective function: Maximize the probability of any context word given the current center word.
 
-        - Hierarchical Softmax reduces the cost of computing softmax from $`\mathrm{O}(\mathrm{V})`$ to $`\mathrm{O}(\log \mathrm{V})`$ using a binary tree specifically a Huffman Tree.
+        - [To be reviewed] Hierarchical softmax computes a word's probability along a tree path. A balanced tree gives $`O(\log V)`$ path length; a frequency-based Huffman tree makes common words cheap on average, but does not guarantee logarithmic worst-case depth for every word. Include embedding width when comparing arithmetic cost.
         - In the follow-up work, negative sampling is purposed.
 
 
@@ -1468,7 +1487,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - GloVe learns word vectors from global word-word co-occurrence statistics using a weighted regression objective on log counts. A common fitted relation is $`w_i^T\tilde w_j+b_i+\tilde b_j\approx\log X_{ij}`$ for observed co-occurrences.
         - **Example:** related context profiles can make “ice” and “snow” similar. A single static vector still merges different senses of “bank.” Analogy arithmetic is an empirical phenomenon, not a general algebra of meaning. [GloVe paper](https://aclanthology.org/D14-1162/)
 
-    - [To be reviewed] FastTest
+    - [To be reviewed] fastText
 
         - This entry refers to **fastText**: represent a word using learned character n-gram vectors in addition to word-level information. Shared subword structure improves estimates for rare forms and can construct vectors for unseen strings with supported character n-grams.
         - **Example:** “walk,” “walked,” and “walking” share subword features. Morphological similarity is not guaranteed semantic equivalence; spelling errors and domain-specific identifiers still require evaluation. [fastText paper](https://arxiv.org/abs/1607.04606)
@@ -1530,10 +1549,10 @@ Neural nets brought continuous representations and end‑to‑end learning.
 ### LLM Basic
 
 #### LLM Concept
-- Current mainstream
+- [To be reviewed] Representative architectural families and historical examples; these names are not a ranking of current frontier models.
     - GPT (decoder) (Generative Pre-trained Transformer) series : A series of language models based on the Transformer architecture released by OpenAI, including GPT, GPT-2, GPT-3, etc. The GPT model has strong generation and language understanding capabilities by pre-training on large-scale unlabeled text and then fine-tuning on specific tasks.
     - BERT (encoder) (Bidirectional Encoder Representations from Transformers) : A bidirectional pre-trained language model based on the Transformer architecture released by Google. The BERT model has strong language understanding and representation capabilities by pre-training on large-scale unlabeled text and then fine-tuning on downstream tasks.
-    - XLNet : An autoregressive pre-trained language model based on the Transformer architecture released by CMU and Google Brain. The XLNet model is pre-trained in an autoregressive manner, can model global dependencies, and has better language modeling and generation capabilities.
+    - [To be reviewed] XLNet is a generalized autoregressive pretraining approach using permutation factorization and two-stream attention. It can exploit bidirectional context under that objective; “better generation” is not a model-independent consequence of that design.
     - T5 (Text-to-Text Transfer Transformer) : A multi-task pre-trained language model based on the Transformer architecture released by Google. The T5 model is pre-trained on large-scale datasets and can be used for a variety of natural language processing tasks, such as text classification, machine translation, question answering, etc.
 
 - Prefix LM vs Causal LM
@@ -1542,29 +1561,37 @@ Neural nets brought continuous representations and end‑to‑end learning.
         <img src="figs/prefix_causal_lm.png" width="80%">
     </div>
 
-    Prefix LM and Causal LM are two different types of language models, which differ in the way they generate text and the training objectives.
+    [To be reviewed] Prefix-LM and causal-LM masks specify which token positions can attend to which others. Distinguish the mask/objective from whether the architecture has separate encoder and decoder stacks.
 
-    - Prefix LM is actually a variant of the Encoder-Decoder model. Why do we say this? The explanation is as follows: In the standard Encoder-Decoder model, the Encoder and Decoder each use a separate Transformer. In Prefix LM, Encoder and Decoder share the same Transformer structure, which is implemented through the Attention Mask mechanism inside the Transformer. Similar to the standard Encoder-Decoder, Prefix LM uses the Auto Encoding (AE) mode in the Encoder part, that is, any two tokens in the prefix sequence are visible to each other, and the Decoder part uses the Auto Regressive (AR) mode, that is, the token to be generated can see all tokens on the Encoder side (including the context) and the tokens already generated on the Decoder side, but cannot see the tokens that have not yet been generated in the future .
-        - Representative models of Prefix LM include UniLM and GLM
-    - Causal LM is a causal language model. Most of the popular models currently have this structure, for no other reason than that the internal structure of the GPT series of models is this, as well as the open source LLaMa. Causal LM only involves the Decoder part of Encoder-Decoder and adopts Auto Regressive mode. To put it bluntly, it predicts the next token based on the historical tokens, which is also done in the Attention Mask.
+    - [To be reviewed] A prefix LM allows bidirectional attention within a supplied prefix and causal attention for the generated continuation. It can use one shared stack, but this is not identical to a two-stack encoder-decoder's cross-attention architecture. Specify which prefix/continuation tokens receive loss. [UniLM](https://arxiv.org/abs/1905.03197)
+        - [To be reviewed] UniLM supports several attention-mask objectives. Some GLM formulations use autoregressive blank infilling with their own position/masking scheme; describe the actual variant rather than treating all GLM models as one prefix-LM implementation. [GLM](https://arxiv.org/abs/2103.10360)
+    - [To be reviewed] A causal decoder predicts the next token from a permitted prefix. Popular decoder-only models reuse this scalable formulation, but their stacks are designed for causal modeling rather than literally removing a trained encoder from an encoder-decoder model.
 
 - Training objectives
-    - At its core, an LLM’s training objective is Maximum Likelihood Estimation (MLE): we maximize the probability of the observed text under the model, which in practice means minimizing the cross‑entropy loss for next‑token prediction.
+    - [To be reviewed] Causal-LM pretraining and many SFT objectives use token negative log-likelihood. LLM training as a whole is broader: denoising, preference losses, reinforcement learning, and distillation can optimize different objectives. See [LLM Training Lifecycle](#llm-training-lifecycle).
     - What Is Maximum Likelihood Estimation (MLE)? Maximum Likelihood Estimation is a classical statistical method for fitting a parameterized model to data. Given training sequences $`\left\{x^{(i)}\right\}_{i=1}^N`$, MLE chooses $`\theta`$ to maximize the likelihood of observing that data under the model. Equivalently, one maximizes the log-likelihood. $`\mathcal{L}(\theta)=\sum_{i=1}^N \log p_\theta\left(x^{(i)}\right)`$ or, in practice, minimizes the negative log-likelihood.
     - MLE in LLM training: Training objective: $`\max _\theta \sum_{i=1}^N \sum_{t=1}^{\left|x^{(i)}\right|} \log p_\theta\left(x_t^{(i)} \mid x_{<t}^{(i)}\right)`$. In deep‑learning code this becomes the familiar cross‑entropy loss between the model’s predicted token‑distribution and the true next token.
 
         ```python
-        loss = CrossEntropyLoss(logits, targets)
+        import torch.nn.functional as F
+        # [To be reviewed] logits: [B, T, V]; labels: unshifted [B, T].
+        # labels use -100 for ignored targets; require at least one valid target.
+        # Do not shift again if the model's built-in loss already shifts labels.
+        loss = F.cross_entropy(
+            logits[:, :-1, :].reshape(-1, logits.size(-1)),
+            labels[:, 1:].reshape(-1),
+            ignore_index=-100,
+        )
         loss.backward()
 
         ```
-- Why decoder-only model is popular? 
-    - Encoder has low rank problem. In bidirectional encoders, each token can attend to all other tokens in the sequence, creating a fully-connected attention pattern. This creates a potential issue where the attention matrices can become "low-rank" - meaning they tend to distribute attention broadly rather than forming sharp, focused attention patterns.
-    - Better zero-shot capability, more suitable for large-corpus self-supervised learning. The decoder-only model has the best zero-shot performance without any tuning data, while the encoder-decoder needs multitask finetuning on a certain amount of labeled data to achieve the best performance.
-    - Efficiency issue : decoder-only supports the reuse of KV-Cache, which is more friendly to multi-round conversations because the representation of each Token is related to its previous input, which is difficult for encoder-decoder and PrefixLM to do.
+- Why decoder-only model is popular?
+    - [To be reviewed] Decoder-only models offer a uniform next-token training/generation interface. Bidirectional attention does not inherently force low-rank attention matrices, and low-rank or broadly distributed attention alone does not establish an encoder's inferiority.
+    - [To be reviewed] In-context and zero-shot performance depend on model scale, data, objectives, prompting, and evaluation. There is no universal ordering in which decoder-only models always outperform encoder-decoder models without fine-tuning. [Architecture/objective comparison](https://arxiv.org/abs/2205.05131)
+    - [To be reviewed] Causal self-attention can cache prior keys/values because future appends do not change earlier causal states. Encoder-decoder generation also caches decoder states and fixed encoder cross-attention K/V. A bidirectional prefix generally needs recomputation if the prefix itself changes; simple continuation can still cache a fixed prefix.
 
 
-- Temperature parameter controls how much randomness we want from the language model. T=0 (Deterministically select the most likely token).
+- [To be reviewed] For positive temperature, sampling uses $`p_T(i)=\operatorname{softmax}(z_i/T)`$. Greedy decoding is the limiting convention as $`T\to0^+`$, with a stated tie rule; division by zero is not the implementation. Greedy token choice does not by itself guarantee bitwise reproducibility across serving systems.
 
 
 #### Embedding
@@ -1587,14 +1614,14 @@ Neural nets brought continuous representations and end‑to‑end learning.
 - positional embedding
 
 
-    Self‑attention alone is permutation‑invariant—it treats an input sequence as a set, so without extra signals the model cannot tell “this token comes before that one.” Injecting position information is therefore essential to recover order in Transformers.
+    [To be reviewed] Unmasked self-attention without position-dependent signals is **permutation-equivariant** at token outputs; invariant pooling can make a sequence representation invariant. A causal mask itself breaks arbitrary permutation symmetry. Positional mechanisms encode additional order/distance information under the chosen architecture.
 
     - What is Extrapolation in Positional Encoding? Whether the model can still understand position and order when you feed it a longer sequence than it was originally trained on. For example: If a model was trained with a maximum sequence length of 2,048 tokens, can it still work on 8,000 tokens or 100,000 tokens?
 
-    To extrapolate well, a positional encoding must:
-        - Be continuous (no hard index limits).
-        - Preserve relative position information.
-        - Have regular patterns that extend naturally beyond training range
+    [To be reviewed] Long-context generalization depends on the encoding, training lengths/data, attention behavior, and numerical/system limits. Useful design considerations include:
+        - [To be reviewed] A defined representation for the requested positions; mathematical continuity is not a necessary general condition for discrete token positions.
+        - [To be reviewed] A suitable way to represent order/distances for the task; explicit relative encoding is one choice, not a universal requirement.
+        - [To be reviewed] Empirical generalization under length and evidence-position shifts; regular patterns alone are not sufficient.
 
 
     - **Absolute positinal encodings**  attach a vector $`p_k`$ (depending only on position $`k`$ ) to each token embedding $`x_k`$, typically via addition $`x_k \leftarrow x_k+p_k`$.
@@ -1602,8 +1629,8 @@ Neural nets brought continuous representations and end‑to‑end learning.
             - Pros: highly expressive.
             - Cons: no inherent extrapolation beyond $`P_{\max }`$ without further fine-tuning.
         - Sinusoidal ("triangular") encodings $`p_{k, 2 i}=\sin \left(k / 10000^{2 i / d}\right), \quad p_{k, 2 i+1}=\cos \left(k / 10000^{2 i / d}\right)`$.
-            - Pros: closed-form, constant memory, some theoretical extrapolation via periodicity.
-            - Cons: distant positions eventually "wrap around" and become hard to distinguish without decay tweaks.
+            - [To be reviewed] A closed-form encoding can be generated at unseen positions and need not use a learned lookup table, but numerical computability is not proof of length generalization.
+            - [To be reviewed] Periodic components and changed position distributions can create ambiguity or extrapolation failures; do not assume a shared finite wraparound period for all frequencies.
         - Recursive / ODE-based encodings: Define $`p_{k+1}=f\left(p_k\right)`$ (e.g. an RNN) or even an ODE $`d p_t / d t=h\left(p_t, t\right)`$ (FLOATER).
             - Pros: highly flexible, can be shown to generalize sinusoidal as a special case.
             - Cons: sequential dependency hurts parallelism and speed.
@@ -1659,23 +1686,130 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 
 
-#### Stages
+<a id="stages"></a>
+<a id="llm-training-lifecycle"></a>
+### [To be reviewed] LLM Training Lifecycle
 
-<div align="center">
-    <img src="figs/llm_stages.png" width="90%">
-</div>
+<a id="stage-map"></a>
+#### [To be reviewed] Stage Map and Terminology
 
-- Pre training (99% of the training computation work happens here) --> base model 
-    Pre-training involves several steps. First, a massive dataset of text data, often in terabytes, is gathered. Next, a model architecture is chosen or created specifically for the task at hand. Additionally, a tokenizer is trained to appropriately handle the data, ensuring that it can efficiently encode and decode text. The dataset is then pre-processed using the tokenizer's vocabulary, converting the raw text into a format suitable for training the model. This step involves mapping tokens to their corresponding IDs, and incorporating any necessary special tokens or attention masks. Once the dataset is pre-processed, it is ready to be used for the pre-training phase.
+**Pre-training → mid-training → post-training** is a useful organizing map, not a mandatory sequence with universal boundaries. Some reports count annealing or context extension as late pre-training; others call them mid-training. Describe a run by its **starting checkpoint, data distribution, objective, trainable parameters, and evaluation target** before assigning a stage name. A model can return to continued pre-training after instruction tuning and subsequently restore its behavior. [Qwen3 training stages](https://arxiv.org/html/2505.09388v1), [on-policy distillation case study](https://thinkingmachines.ai/blog/on-policy-distillation/)
 
-    During pre-training, the model learns to predict the next word in a sentence or to fill in missing words by utilizing the vast amount of data available. This process involves optimizing the model's parameters through an iterative training procedure that maximizes the likelihood of generating the correct word or sequence of words given the context.
+| Stage / method | Typical data and supervision | Main purpose | Evidence needed before advancing |
+| --- | --- | --- | --- |
+| Broad pre-training | Large text/code mixtures; self-supervised token targets | Learn general representations, language, knowledge, and transferable capabilities | Held-out loss by domain/language, capability tests, stable optimization, contamination controls |
+| Mid-training / continued pre-training | Reweighted high-quality, domain-specific, long-context, or capability-focused data; often the same LM loss | Change capability or domain coverage and prepare a base checkpoint for downstream use | Target-domain improvement, general-capability retention, length/position tests, matched-budget ablations |
+| SFT / instruction tuning | Verified demonstrations and structured conversations | Teach task behavior, response format, tool protocols, and useful solution patterns | Task success, correct serialization/masking, out-of-domain instruction following, retention |
+| Preference optimization | Ranked/paired or desirability-labeled responses, from humans or AI judges | Shift policy preferences according to an explicit rubric | Independent preference/correctness evaluation, bias and overoptimization checks |
+| Online RL / RL with verifiable rewards | Policy-generated trajectories with learned, executable, or rule-based feedback | Improve rewarded decisions through exploration and credit assignment | Verifier validity, held-out task success, rollout/update stability, compute-accounted comparisons |
+| On-policy distillation (OPD) | Student-generated prefixes with teacher distribution or token-level feedback | Transfer teacher behavior on the states the student actually visits | Teacher reliability on student states, token/probability alignment, retention, teacher-inclusive cost |
 
-    To accomplish this, the pre-training phase typically employs a variant of the self-supervised learning technique. The model is presented with partially masked input sequences, where certain tokens are intentionally hidden, and it must predict those missing tokens based on the surrounding context. By training on massive amounts of data in this manner, the model gradually develops a rich understanding of language patterns, grammar, and semantic relationships. This specific approach is for [[Masked Language Modeling](https://huggingface.co/docs/transformers/main/tasks/masked_language_modeling)] (BERT). The most commonly used method today, however, is [[Causal Language Modeling](https://huggingface.co/docs/transformers/main/tasks/language_modeling)]. Unlike masked language modeling, where certain tokens are masked and the model predicts those missing tokens, causal language modeling focuses on predicting the next word in a sentence given the preceding context.
+These are overlapping axes. **RLHF/RLAIF** describe feedback provenance; **PPO/GRPO** describe policy-update families; **DPO** is a direct preference objective; **OPD** describes student-policy data collection with teacher supervision. **Full fine-tuning/LoRA** describe the parameterization of an update, rather than an additional chronological training stage. A synthetic demonstration can be used for SFT; its synthetic origin does not make its optimization algorithm RL.
 
-    - Framework
-        - DeepSpeed is a deep learning optimization library that makes distributed training easy, efficient, and effective. It has been integrated into the Huggingface library.
-        - Megatron-LM is a large, powerful transformer model framework developed by the Applied Deep Learning Research team at NVIDIA.
+<a id="pre-training"></a>
+#### [To be reviewed] Pre-training: Objectives, Data, and Scaling
 
+**Objective.** A causal LM commonly minimizes $`\mathcal{L}_{\mathrm{CLM}}(\theta)=-\mathbb{E}_{x\sim D}\sum_{t\in\mathcal{M}(x)}\log p_\theta(x_t\mid x_{<t})`$, with an explicit target mask $`\mathcal{M}`$ and normalization convention. Masked/span-denoising objectives use different visibility and targets. Next-token prediction, document packing, and loss masking must agree: accidental cross-document attention or training on unintended padding changes the problem. [Llama 3 training report](https://arxiv.org/abs/2407.21783)
+
+**Objective branches.** Fill-in-the-middle (FIM) training serializes a code prefix and suffix before asking the model to generate the missing middle, typically as a mixture with ordinary causal examples. Multi-token prediction adds training targets or modules for more than one future token; specify whether those predictions are independent auxiliary heads or a sequential dependency design. Neither method implies that arbitrary full outputs can be generated in parallel without an appropriate decoding algorithm. [FIM](https://arxiv.org/abs/2207.14255), [multi-token prediction](https://arxiv.org/abs/2404.19737)
+
+**Data is part of the model specification.** Record provenance and permissions, extraction, language/domain identification, exact and near deduplication, filtering, mixture weights, and benchmark decontamination. Prefer source- or time-separated evaluations; randomly separating duplicated web pages does not test independent generalization. Filtering for “educational quality” can improve a chosen capability while changing domain coverage, so inspect both retained and rejected slices. [FineWeb data ablations](https://arxiv.org/abs/2406.17557)
+
+**Compute/data trade-off.** The approximation $`C\approx6ND`$ for training a dense Transformer with $`N`$ parameters on $`D`$ tokens is a rough parameter-matmul FLOP model; attention, vocabulary work, context length, recomputation, and implementation overhead matter. It is not a complete model for sparse MoE systems. Compute-optimal scaling results describe a specified training budget and empirical regime. Training a smaller model for more tokens may be preferable when lifetime inference cost matters; a single tokens-per-parameter rule is not universally optimal. [Chinchilla scaling study](https://arxiv.org/abs/2203.15556)
+
+**Execution and recovery.** Record the optimizer, learning-rate/token schedule, global batch, sequence-length schedule, precision, parallelism, and packing policy. A training-resume checkpoint may need optimizer/scheduler/scaler state, random-number states, and data-sampler position in addition to weights. A weights-only restart changes the optimization/data trajectory. Exact reproduction can additionally depend on hardware, kernels, and deterministic execution settings.
+
+**Example experiment.** Compare two domain-mixture policies using the same architecture, tokenizer, number of processed tokens, and optimization budget. Report weighted aggregate loss *and* each domain's loss, contamination-resistant capability evaluations, and useful tokens/second. Changing the evaluation mixture can create an apparent improvement without improving any model conditional distribution. Do not assign a fixed “99% of all training compute” share to this stage: report the actual accounting, including post-training rollouts and teacher/judge inference where applicable.
+
+<a id="mid-training"></a>
+#### [To be reviewed] Mid-training: Continued Pre-training and Capability Adaptation
+
+Mid-training commonly continues from a pretrained checkpoint while changing the data mixture, context regime, or capability emphasis. The objective can remain causal LM loss; the scientific distinction is the distribution and capability being adapted. **Domain-adaptive pre-training (DAPT)** uses domain text; **task-adaptive pre-training (TAPT)** uses a task's unlabeled input distribution. Their names do not imply supervised response training. The original DAPT/TAPT results concern particular encoder models and classification tasks; extrapolating to a modern decoder requires a new experiment. [DAPT/TAPT](https://arxiv.org/abs/2004.10964)
+
+- **Data annealing / specialization:** increase high-quality code, mathematics, multilingual, or target-domain exposure while controlling forgetting. Compare the reweighted mixture against simply training longer at the old mixture. DeepSeekMath provides a concrete continued-pretraining example, rather than proof that every model needs the same recipe. [DeepSeekMath](https://arxiv.org/abs/2402.03300)
+- **Long-context adaptation:** change sequence lengths, position encoding/scaling, and the training mixture together when needed. Merely increasing an advertised context limit does not establish reliable long-range use. Evaluate evidence retrieval at multiple positions, multi-document synthesis, code dependencies, short-context retention, and memory/latency. Synthetic needle tests measure a limited subproblem. [Long-context model report](https://arxiv.org/abs/2407.21783), [Lost in the Middle](https://arxiv.org/abs/2307.03172)
+- **Other transitions:** adding modalities, token vocabularies, or architectural components changes more than data distribution. Initialize and align new components, specify which weights train, and budget the required adaptation. Such runs may be called additional pre-training, mid-training, or multimodal alignment in different reports.
+
+**Example.** Continue an instruction-tuned model on internal technical manuals using LM loss. Domain prediction can improve while conversation behavior degrades because document continuation and assistant response generation induce different training distributions. Compare the original checkpoint, continued-pretraining checkpoint, and a checkpoint with behavior-restoring SFT/OPD. Evaluate held-out manual questions with independent evidence; memorizing a document is not the same as updating a retrieval corpus. The published OPD case study illustrates this adaptation/behavior-restoration pattern. [Case study](https://thinkingmachines.ai/blog/on-policy-distillation/)
+
+<a id="post-training"></a>
+#### [To be reviewed] Post-training: SFT, Preferences, and Behavior
+
+SFT commonly minimizes demonstration negative log-likelihood, $`\mathcal{L}_{\mathrm{SFT}}=-\mathbb{E}_{(x,y)\sim D_{\mathrm{demo}}}\sum_t m_t\log\pi_\theta(y_t\mid x,y_{<t})`$. The mask $`m_t`$ identifies intended targets: it may include selected assistant turns and EOS while excluding user/system tokens. Record whether reduction is by token, response, or example; these conventions weight long and short demonstrations differently. [SFT implementation reference](https://huggingface.co/docs/trl/sft_trainer)
+
+**Data branches** include general instruction following, structured outputs, tool-use trajectories, grounded answers, and reasoning demonstrations. Tool calls and observations have distinct roles: a teacher-produced observation is not evidence that a real tool would return it. Verify generated demonstrations and hold out source problems or environments, not only paraphrased rows.
+
+**Example.** A support model learns a JSON schema from demonstrations. Evaluate schema validity separately from label correctness and evidence support. Include valid abstentions and difficult edge cases. If long reasoning demonstrations improve accuracy, compare against matched answer-only training and account for extra training/output tokens before attributing the gain to the rationale format.
+
+Preference methods adjust which responses are favored; they are not a substitute for a factual verifier. DPO, PPO-based RLHF, desirability-label objectives, and AI-feedback pipelines differ in data requirements and optimization. See [Detailed Adaptation and Preference Methods](#adaptation-and-preference-methods) for the existing SFT/PPO/DPO/RLAIF notes. SFT and RL can be interleaved or revisited; an RL-only stage after a base checkpoint is possible, and a multi-stage recipe should not be reduced to a universal one-pass SFT → RL rule. [DeepSeek-R1](https://arxiv.org/abs/2501.12948)
+
+<a id="online-rl"></a>
+#### [To be reviewed] Online RL: RLHF, RLVR, PPO, and GRPO
+
+An illustrative sequence-level objective is $`J(\theta)=\mathbb{E}_{x,y\sim\pi_\theta}[R(x,y)]-\beta\,\mathbb{E}_x D_{\mathrm{KL}}(\pi_\theta(\cdot\mid x)\|\pi_{\mathrm{ref}}(\cdot\mid x))`$. A particular algorithm may approximate, clip, omit, or differently implement the KL regularizer. Separate the **current policy**, **rollout/old policy**, **reference policy**, **reward model/verifier**, and an optional **value estimator**. Conflating these roles leads to incorrect loss implementations. [PPO](https://arxiv.org/abs/1707.06347), [RLHF pipeline](https://arxiv.org/abs/2203.02155)
+
+**RLVR** uses verifiable rewards, such as executable tests, mathematical answer checks, or proof checking. “Verifiable” means verified against the chosen specification: incomplete tests, parser exploits, leaked answers, or a defective checker can reward incorrect solutions. For multi-step tool environments, rewards may also include terminal success, intermediate events, cost, and invalid-action penalties; these choices change behavior.
+
+**GRPO.** Sample a group of responses to a prompt and form group-relative advantages, for example $`A_i=(r_i-\bar r)/(s_r+\epsilon)`$ under one explicit normalization convention. This can remove the need for a separately learned value model. Define the standard-deviation convention, zero-variance behavior, token/sequence reduction, clipping, and any KL term. Equal-reward groups provide no relative learning signal; group normalization also changes how prompts contribute, so it is not an unbiased universal replacement for a critic. [DeepSeekMath / GRPO](https://arxiv.org/abs/2402.03300)
+
+**Failure modes and instrumentation.** Track reward components, independent correctness, entropy, length/truncation, advantage distribution, clipping frequency, policy/reference KL, rollout age, and useful samples per unit compute. A rising learned reward with flat independent accuracy suggests proxy exploitation or poor generalization. Old rollouts need a justified off-policy correction or controlled policy lag; merely computing a likelihood ratio does not guarantee stability. [DAPO systems/optimization study](https://arxiv.org/abs/2503.14476)
+
+**Example.** A code model gets reward 1 for passing a visible test suite. Keep a separate suite of unseen edge cases and track syntax errors, timeouts, and sandbox violations as well as pass rate. Compare SFT, best-of-N sampling, PPO/GRPO, and a no-update baseline at a matched rollout and evaluation budget. RL's additional search cost belongs in the comparison.
+
+<a id="distillation-and-opd"></a>
+#### [To be reviewed] Distillation: Offline Traces and On-policy Distillation (OPD)
+
+Distillation transfers supervision from a teacher, which need not always be larger: a stronger checkpoint, privileged-context model, ensemble, or task-specialist can supply a useful teacher signal. State what additional information or compute makes that teacher helpful.
+
+| Procedure | Prefix distribution used in training | Supervision | Main limitation to test |
+| --- | --- | --- | --- |
+| Offline trace SFT / sequence distillation | Fixed teacher/reference responses | Teacher-produced target tokens or validated solutions | Student mistakes can lead to prefixes absent from the dataset |
+| Offline logit distillation | Fixed dataset prefixes | Teacher conditional probabilities or logits | Better targets on the same fixed states do not remove state-distribution mismatch |
+| OPD | Refreshed student-generated prefixes | Teacher probabilities, local divergences, or sampled-token feedback | Teacher reliability on student states, support/serialization mismatch, rollout cost |
+| Reward-based RL | Policy/environment trajectories | Scalar or structured rewards and an advantage estimator | Reward validity, exploration, credit assignment, variance |
+
+OPD addresses exposure to **the student's own states**: generate a response using the student and evaluate the teacher at those exact prompt-plus-prefix states. This differs from asking the teacher to produce a separate ideal answer and applying SFT to it. Both can be useful and can be combined. [Generalized Knowledge Distillation](https://arxiv.org/abs/2306.13649)
+
+##### [To be reviewed] OPD Objectives and the Gradient Distinction
+
+At a fixed prefix $`s`$, let $`p_\theta(\cdot\mid s)`$ be the student distribution and $`p_T(\cdot\mid s)`$ a fixed teacher. **Forward KL**, $`D_{\mathrm{KL}}(p_T\|p_\theta)`$, gives soft-target cross-entropy up to a teacher-only constant. **Reverse KL**, $`D_{\mathrm{KL}}(p_\theta\|p_T)=\sum_v p_\theta(v\mid s)\log[p_\theta(v\mid s)/p_T(v\mid s)]`$, weights discrepancies by the student's probabilities. KL direction alone does not define whether the prefix data are on-policy. [GKD objective family](https://arxiv.org/abs/2306.13649)
+
+An illustrative local objective is $`\mathcal{L}_{\mathrm{local}}(\theta;\theta_{\mathrm{old}})=\mathbb{E}_{s\sim d_{\pi_{\mathrm{old}}}}D_{\mathrm{KL}}(p_\theta(\cdot\mid s)\|p_T(\cdot\mid s))`$, where the sampled prefix distribution is held fixed during the update. Refreshing rollouts makes the state collection on-policy relative to the rollout student, subject to policy lag and the actual sampler.
+
+**Do not equate the local update with the exact gradient of sequence-level reverse KL.** The chain rule for KL decomposes the sequence-level *value* into expected conditional KLs, but the current-policy prefix distribution also depends on $`\theta`$. Detaching sampled prefixes omits that occupancy-distribution gradient. Sequence-policy-gradient treatments include downstream effects through returns; local token-feedback recipes deliberately make a different credit-assignment/variance trade-off. This distinction matters when interpreting claims that two implementations “minimize reverse KL.” [OPD implementation case study](https://thinkingmachines.ai/blog/on-policy-distillation/), [2026 analysis of OPD bias and variance](https://arxiv.org/abs/2603.25562)
+
+**Implementation trap.** Sampling discrete token IDs and naively differentiating only their mean `log p_student - log p_teacher` is not a complete reverse-KL gradient estimator. Use an explicitly derived policy-gradient surrogate with the appropriate detached feedback, or differentiate a full conditional-distribution KL at fixed states. State the estimator, masking, baseline, and normalization; these choices are not interchangeable.
+
+**Illustrative state.** The student generates an arithmetic intermediate result that is already wrong. OPD queries the teacher's next-token distribution *conditioned on that erroneous prefix*. The teacher may suggest recovery, continue an incorrect pattern, or become unreliable off its typical support. Dense feedback helps only when that conditional guidance is useful; it does not certify a correct final answer.
+
+##### [To be reviewed] OPD Implementation and Evaluation
+
+1. Select prompts with source-separated development/test splits and freeze a versioned teacher. Document whether it has privileged solutions or additional context.
+2. Generate student rollouts and record the actual behavior probabilities, temperature, top-p/top-k settings, EOS, and truncation masks. Sampling filters change the behavior distribution; raw-model likelihoods cannot silently stand in for filtered behavior probabilities when a correction requires the latter.
+3. Score teacher conditionals on each selected student prefix with correct next-token alignment. Direct tokenwise comparison requires matching token semantics/IDs and serialization, not merely equal vocabulary sizes. Different tokenizers require an explicit alignment or sequence-level approach.
+4. Choose a local full-distribution, truncated-support, or sampled-feedback objective. Teacher top-k responses are not a full vocabulary distribution: document residual mass and any renormalization, because truncation changes the objective and support. Mask padding and define how EOS/truncated responses contribute.
+5. Update the student and refresh rollouts at a justified cadence. Measure teacher entropy/reliability, policy lag, response length, gradient statistics, retained capabilities, and **teacher-inclusive** GPU time or API cost. Keep teacher computation outside the student gradient graph unless joint training is explicitly intended.
+
+**Evaluation example.** Compare verified teacher-trace SFT, offline soft-target distillation, OPD, and reward-based RL from the same student checkpoint. Match prompts, data access, target evaluation decoding, and a clearly defined compute budget; report both student-update and total rollout/teacher cost. Judge final correctness independently of the teacher and test new problem families. A smaller student can outperform its teacher on a particular benchmark after additional training or selection, but this is an empirical result, not a guarantee of distillation. Recent analyses document teacher-support and tokenizer/special-token failures. [OPD failure-mode study](https://arxiv.org/abs/2603.25562)
+
+#### [To be reviewed] Synthetic Data, Rejection Sampling, and Iterative Recipes
+
+Synthetic data describes **how examples are obtained**. Rejection sampling retains candidates using a specified verifier or judge, after which SFT may train on the retained responses. Online RL instead updates from rewarded policy samples using a chosen policy objective; OPD supplies teacher guidance on student states. A system can iterate all three.
+
+**Example.** Generate eight solutions per source problem, execute a checker, retain valid solutions, and SFT the next checkpoint. This changes the training distribution toward solutions accepted by that checker; easy problems may dominate because they produce more accepted samples. Cap or reweight per-problem contributions, inspect diversity and contamination, and compare to training on the same accepted-token budget without another iteration. Verification reduces some label errors but cannot fix an incomplete specification. [Iterative rejection sampling and preference optimization in Llama 3](https://arxiv.org/abs/2407.21783)
+
+Keep model-generated training content, on-policy rollouts, teacher/student roles, and feedback labels versioned. “Self-improvement” is a claim to test against a frozen checkpoint and independent evaluation, rather than an explanation of why a method works.
+
+#### [To be reviewed] Stage Gates and Reproducible Comparisons
+
+At each transition, save a checkpoint and evaluate **target capability, general retention, calibration/abstention where relevant, data contamination, and deployment cost**. Use matched evaluation prompts and decoding. Track the full lineage: model/tokenizer revisions, mixture schedules, optimizer resets, trainable modules, sampling policy, teacher/judge/verifier versions, and tool/environment definitions.
+
+**Ablation plan:** (a) original checkpoint, (b) additional tokens at the old mixture, (c) mid-training at the new mixture, (d) behavior-restoring SFT, (e) OPD, and (f) RL when justified by the task. Match the budgets appropriate to the causal question: fixed tokens for a data-mixture comparison, and total compute/cost for a practical pipeline comparison. An equal number of gradient steps is insufficient when sequence lengths, teacher inference, or rollout multiplicities differ.
+
+<a id="adaptation-and-preference-methods"></a>
+#### [To be reviewed] Detailed Adaptation and Preference Methods
+
+The notes below expand update parameterizations, data curation, and feedback methods used within this lifecycle. The order of these notes is organizational; it is not a required execution order.
 
 - Fine-Tuning
     - [To be reviewed] Fully Fine-Tuning
@@ -1689,7 +1823,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - **Example:** serve several task-specific LoRA adapters over a shared backbone. The practical benefit depends on the serving engine's adapter support and batching strategy. See the detailed methods in [Fine-Tuning](#fine-tuning).
 
     - More on [[LLM Fine-Tuning](#fine-tuning)]
-    
+
 
 - Data Quality and Selection
     - [To be reviewed] High-quality data selection strategies (deduplication, filtering, diversity)
@@ -1702,7 +1836,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - Normalize encodings, remove extraction boilerplate, identify language, repair or discard corrupted records, and validate document boundaries before tokenization. Preserve meaningful structure in code, tables, equations, and whitespace-sensitive data.
         - **Example:** indiscriminately stripping punctuation can destroy mathematical notation or code syntax. Store transformation versions and sample rejected records: a filter can improve average text cleanliness while removing valuable difficult examples. Keep benchmark decontamination separate from using benchmark answers to tune the filtering policy.
 
-- Fine-Tuning 
+- Fine-Tuning
     - SFT
         - [To be reviewed] Instruction Fine-Tuning (IFT)
 
@@ -1721,7 +1855,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 
 - Alignment & Human Feedback
-    - RLHF
+    - [To be reviewed] Human-feedback alignment (RLHF pipelines and direct-preference methods)
         - [To be reviewed] Motivation behind combining SFT and RLHF
 
             - SFT initializes useful response behavior; preference optimization then adjusts which responses the policy favors. A classical RLHF objective trades reward against deviation from a reference: $`\mathbb{E}_{x,y\sim\pi_\theta}[r_\phi(x,y)]-\beta\,\mathbb{E}_x D_{\mathrm{KL}}(\pi_\theta(\cdot\mid x)\|\pi_{\mathrm{ref}}(\cdot\mid x))`$.
@@ -1743,7 +1877,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
                 - PPO uses an importance ratio $`r_t(\theta)=\pi_\theta(a_t\mid s_t)/\pi_{\mathrm{old}}(a_t\mid s_t)`$ and a clipped surrogate $`\mathbb{E}[\min(r_t A_t,\operatorname{clip}(r_t,1-\epsilon,1+\epsilon)A_t)]`$. In language generation, actions are tokens and states are prefixes.
                 - A language-model RLHF implementation also needs rollout generation, advantage estimation, masking, and a chosen reference-policy regularization scheme. Clipping limits parts of the surrogate objective; it is not a hard guarantee on policy KL. **Example:** reward gain accompanied by collapsing output diversity signals the need to examine optimization and the reward proxy. [PPO](https://arxiv.org/abs/1707.06347)
 
-            - [To be reviewed] DPO (How DPO augments human feedback effectively)
+            - [To be reviewed] Direct Preference Optimization (DPO)
 
                 - DPO directly optimizes preferred/rejected response pairs without fitting an explicit reward model or performing on-policy rollouts in its basic form. Let $`\Delta_\theta=\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}-\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}`$; its loss is $`-\log\sigma(\beta\Delta_\theta)`$ under the standard formulation.
                 - **Example:** the update changes relative likelihoods rather than maximizing the preferred response's likelihood in isolation. Sequence length, reference choice, label noise, and offline pair coverage affect behavior. DPO uses preference labels; it does not by itself improve how human feedback is collected. [DPO](https://arxiv.org/abs/2305.18290)
@@ -1782,60 +1916,63 @@ Neural nets brought continuous representations and end‑to‑end learning.
 [[arXiv](https://arxiv.org/abs/1710.03740)]
 
 
-#### Distributed training 
+#### Distributed training
 
 [[Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)][[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)] [[ANLP-Parallelism and Scaling](https://www.youtube.com/watch?v=Mpg1YJfAEH0)] [[知乎](https://zhuanlan.zhihu.com/p/598714869)]
-- Data parallel [[Distributed Data Parallel (DDP) using Pytorch] (https://www.youtube.com/watch?v=-K3bZYHYHEA&list=PL_lsbAsL_o2CSuhUhJIiW0IkdT5C2wGWj&index=1)] [[Collective Operation](https://en.wikipedia.org/wiki/Collective_operation)]
-    - PyTorch DP: `torch.nn.DataParallel`. Nobody use it anymore. Do not support model parallel.
-        - 4 Communications: Output gather → Loss scatter → Gradients gather → Parameter broadcast.
+- Data parallel [[Distributed Data Parallel (DDP) using PyTorch](https://www.youtube.com/watch?v=-K3bZYHYHEA&list=PL_lsbAsL_o2CSuhUhJIiW0IkdT5C2wGWj&index=1)] [[Collective Operation](https://en.wikipedia.org/wiki/Collective_operation)]
+    - [To be reviewed] `torch.nn.DataParallel` is a single-process replicated-module wrapper. PyTorch recommends DDP for multi-GPU training; avoid the unsupported claim that no one uses DP or that it cannot participate in any manually partitioned model.
+        - [To be reviewed] DP scatters inputs, replicates the module, gathers outputs, and reduces replica gradients to the original module. The loss location depends on what is wrapped; a fixed “output gather → loss scatter” sequence is not its general definition. [DataParallel](https://docs.pytorch.org/docs/stable/generated/torch.nn.DataParallel.html)
         - Drawbacks
             - Main GPU is a bottleneck.
             - Heavy memory and communication load on cuda:0.
             - Not scalable across machines
 
     - PyTorch DDP: `torch.nn.DistributedDataParallel`
-        - No communication during forward pass and loss computation.
-        - During backpropagation, gradients are automatically **all-reduced** across all GPUs. This means all GPUs average their gradients with each other using NCCL's all-reduce. Hence, all models stay synchornized.
+        - [To be reviewed] DDP synchronizes gradients during backward, but can also communicate during construction and forward, for example parameter verification/initial synchronization and configured buffer broadcasts. SyncBatchNorm or custom distributed modules can add forward collectives. [DDP design](https://docs.pytorch.org/docs/stable/notes/ddp.html)
+        - [To be reviewed] DDP reduces gradient buckets across its process group, normally averaging gradients. Identical initial parameters, synchronized updates, and compatible optimizer state are needed to keep replicas aligned. Unequal local valid-token counts require correct weighting for a global token-mean objective.
         - Gradient all-reduce is the core operation that enables DDP to synchronize gradients across GPUs. After local backpropagation, it aggregates gradients (sums them), averages them, and ensures all GPUs update their model in the same way. It uses high-performance communication backends like NCCL and scales efficiently to large GPU clusters.
 
         ```python
 
+        # [To be reviewed] Single-node Linux CUDA/NCCL example.
+        import os
+        import torch
+        import torch.distributed as dist
+
         def ddp_setup(rank, world_size):
-            " " "
-            Args:
-                rank: Unique identifier of each process
-                world_size: Total number of processes
-            " ""
-            # rank 0 process
-            os.environ["MASTER_ADDR"] = "localhost"
-            os.environ["MASTER_PORT"] = "12355"
-            # nccl: NVIDIA Collective Communication Library
-            init_process_group(backend="nccl", rank=rank, world_size=world_size)
+            """Here rank is also the local GPU index; use global/local ranks separately on multiple nodes."""
+            if not dist.is_nccl_available() or not torch.cuda.is_available():
+                raise RuntimeError("This example requires CUDA and an NCCL-enabled PyTorch build.")
+            os.environ.setdefault("MASTER_ADDR", "localhost")
+            os.environ.setdefault("MASTER_PORT", "12355")
             torch.cuda.set_device(rank)
+            dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
 
         ```
 
     - ZeRO (Zero Redundancy Optimizer) is a memory optimization technique for large-scale model training developed by Microsoft’s DeepSpeed team. Its goal is to eliminate memory redundancy across GPUs during distributed training, so you can train much larger models without running out of memory. ZeRO removes redundancy by sharding (splitting) model states across GPUs. Different ZeRO stages define how much is sharded:
         - ZeRO-1: Sharding Optimizer States. Only optimizer states are sharded across GPUs. Model parameters and gradients are still fully replicated. (All reduce)
-        - ZeRO-2: Sharding Optimizer States + (reduce) Gradients. Each gradient tensor is sent to the GPU responsible for that parameter shard, using reduce (not all-reduce). Each GPU updates only the part of the model it's responsible for, then broadcasts updated weights.
-        - ZeRO-3: Full Sharding (Optimizer + Gradients + Parameters). Shards everything: parameters, gradients, and optimizer states. At any moment, each GPU holds only a part of the full model. This essentially blends **data parallelism** and **model parallelism**.
-            - Reduce + AllGather can simulate AllReduce.
+        - [To be reviewed] ZeRO-2 partitions optimizer states and gradients. Implementations can use reduce-scatter or related collectives, then exchange updated parameter shards as required. The ownership/sharding semantics, not one mandatory “reduce then broadcast” sequence, define the stage.
+        - [To be reviewed] ZeRO-3 additionally shards parameters and gathers the needed parameter groups around computation. Persistent states are sharded, but temporary gathered parameters and buffers still consume memory. This is parameter/state sharding in a data-parallel training scheme, distinct from tensor or layer partitioning. [ZeRO](https://arxiv.org/abs/1910.02054)
+            - [To be reviewed] Reduce-scatter followed by all-gather can implement an all-reduce over the same participants and compatible partitioning. A reduce-to-one operation is a different collective.
 
         <div align="center">
             <img src="figs/zero.png" width="90%">
         </div>
-    
-    - **Fully Sharded DP (FSDP)** is directly inspired by ZeRO-3. FSDP offers the same full-sharding idea but natively within the PyTorch ecosystem. FSDP also supports activation checkpointing and mixed precision, like ZeRO-Offload in DeepSpeed.
 
-    - Replicate model on several GPUs. Run forward/backward passes on different micro-batches in parallel for each GPU. Average the gradients across the GPUs.
-    
+        - [To be reviewed] The ZeRO figure estimates persistent model-state bytes for its stated mixed-precision Adam assumptions. It excludes activations, temporarily gathered parameters, communication buffers, and allocator overhead; its numbers are not a peak-memory guarantee for a current implementation.
+
+    - [To be reviewed] **FSDP** supplies PyTorch-native fully sharded data-parallel training with configurable resharding and precision behavior. Activation checkpointing and CPU offload are separate memory/computation choices; neither is equivalent to full state sharding. Profile their combined behavior under the actual configuration.
+
+    - [To be reviewed] Ordinary replicated data parallelism processes different local data on each replica and synchronizes gradients; it should not be confused with the persistent-state layout of fully sharded training.
+
 - Model parallel
     - [To be reviewed] Pipeline (horizontal) parallel [[GPipe](https://arxiv.org/abs/1811.06965)]: split layers across multi-GPUs when model is too large.
 
         - Split consecutive layers into stages and send microbatch activations between them. A simple synchronous fill/drain schedule with $`p`$ balanced stages and $`m`$ microbatches has idealized utilization about $`m/(m+p-1)`$, ignoring communication and imbalance.
         - **Example:** four stages and eight microbatches yield about 8/11 utilization in that simplified model. More microbatches reduce the fractional bubble but can increase activation storage or reduce per-microbatch kernel efficiency. 1F1B schedules trade scheduling complexity and memory against idle time; they are not unique to one model family. [GPipe](https://arxiv.org/abs/1811.06965), [Megatron schedules](https://arxiv.org/abs/2104.04473)
 
-        - **bubble issue**: deepseek design - one forward one-backward
+        - [To be reviewed] Pipeline bubbles arise from schedule fill/drain, dependencies, and imbalance. 1F1B schedules predate DeepSeek and are not the defining novelty of DualPipe or another particular pipeline schedule.
     - [To be reviewed] Tensor (vertical) parallel
 
         - Shard individual linear transformations or attention heads across devices. Column- and row-parallel matrix multiplications place collectives at chosen points so the composed operation matches the unsharded mathematical computation.
@@ -1873,7 +2010,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
 | **Pipeline Parallelism**   | Layers                          | Model parallelism               |
 | **Expert Parallelism (MoE)** | Experts (modules)               | Model parallelism (MoE)         |
 | **Data Parallelism**       | Input data batches              | **NOT** model parallelism       |
-| **ZeRO Parallelism**       | Parameters, optimizer states    | Parameter sharding (special case)|
+| **ZeRO Parallelism**       | Optimizer states, gradients, and/or parameters by stage | State/parameter sharding |
 
 
 
@@ -1906,8 +2043,8 @@ Neural nets brought continuous representations and end‑to‑end learning.
             - Parameterize a frozen matrix's update as $`\Delta W=(\alpha/r)BA`$, with $`A\in\mathbb{R}^{r\times d_{\mathrm{in}}}`$ and $`B\in\mathbb{R}^{d_{\mathrm{out}}\times r}`$. This trains $`r(d_{\mathrm{in}}+d_{\mathrm{out}})`$ parameters rather than $`d_{\mathrm{in}}d_{\mathrm{out}}`$ for that matrix.
             - **Illustrative calculation:** a 4,096-by-4,096 matrix has 16,777,216 entries; rank 16 adds 131,072 entries, about 0.78%. Rank, scaling, target modules, initialization, and data all matter. A merge can remove adapter matmul overhead when precision and deployment constraints permit it. [LoRA](https://arxiv.org/abs/2106.09685)
 
-        - Q-LoRA: Further compress memory requirements for training by 4-bit quantization of the model. Use of GPU memory paging to prevent OOM
-        - BitFit: Tune only the bias terms of the model
+        - [To be reviewed] QLoRA trains adapters through a frozen four-bit base representation; its original recipe includes NF4, double quantization, and paged optimizers to manage some memory spikes. Paging is not a guarantee against every OOM, and dequantized computation/activations still consume memory. [QLoRA](https://arxiv.org/abs/2305.14314)
+        - [To be reviewed] BitFit tunes existing bias parameters in the studied architecture. A bias-free Transformer may expose few or none of those parameters; apply the method only after inspecting the actual parameterization. [BitFit](https://arxiv.org/abs/2106.10199)
     - [To be reviewed] Quantization
 
         - Quantization maps high-precision values into a lower-bit representation with scales and sometimes zero points. Distinguish weight-only from weight-and-activation quantization, post-training quantization from quantization-aware training, and per-tensor from finer-grained scaling.
@@ -1942,10 +2079,10 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 - [To be reviewed] Catastrophic forgetting mitigation
 
-    - **Retention protocol:** mixing general-domain examples is one option, alongside replay, regularization toward a reference, or task-isolated adapters. There is no universal replay ratio: tune the target/general mixture under a fixed token budget and evaluate both domains. Treat the original ratio listed below as a heuristic requiring validation.
+    - **Retention protocol:** mixing general-domain examples is one option, alongside replay, regularization toward a reference, or task-isolated adapters. There is no universal replay ratio: tune the target/general mixture under a fixed token budget and evaluate both domains. Report the chosen replay ratio and its validation protocol.
     - **Example:** adapt a model to specialist terminology while retaining a held-out general instruction and language-understanding suite. A ratio that preserves average score can still harm rare capabilities; inspect slices and compare to the unchanged base model. [Continual-learning forgetting study](https://arxiv.org/abs/1312.6211)
 
-    - add general domain data as well 1:5 - 1:10
+    - [To be reviewed] General-domain replay can mitigate forgetting, but choose the replay mixture using target and retention evaluations at a fixed budget; no universal 1:5 or 1:10 ratio follows from the method.
 
 
 - [To be reviewed] BERT Fine-Tuning
@@ -1984,7 +2121,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
 - Memory optimization technique (activation checkpointing, )
     - Activation checkpointing/ Activation recomputation: Recompute some activations during the backward pass. Store some activations during the forward pass as checkpoints. Discard other activations and recompute them during the backward pass.
         - Save memory but take longer to compute.
-    - Gradient accumulation: Split batch into micro-batches, do forward/backward passes on each micro-batch, average the gradients: $`b s=g b s=m b s \cdot g r a d \_a c c`$.
+    - [To be reviewed] For equal microbatches, global batch size is $`B_{\mathrm{global}}=B_{\mathrm{micro}}\,A\,D`$, where $`A`$ is accumulation steps and $`D`$ is data-parallel replicas. Normalize gradients/loss by the intended total example or valid-token count. “Average gradients” needs that explicit weighting when microbatch lengths differ.
         - could be combined with multi-GPU techniques.
         - [To be reviewed] Overlap + bucketing
 
@@ -2029,7 +2166,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - BLEU measures modified n-gram precision with a brevity penalty; ROUGE variants emphasize lexical overlap or subsequences; BERTScore aligns contextual token embeddings. Their scoring conventions differ, and they are not direct measures of factual correctness.
         - **Example:** “the treatment increased mortality” and “the treatment decreased mortality” share most words. A high overlap score can miss the consequential error. For verifiable tasks, add execution, exact symbolic checks, or evidence-based factual assessment, and correlate any automated judge with human audits. [BLEU](https://aclanthology.org/P02-1040/), [ROUGE](https://aclanthology.org/W04-1013/), [BERTScore](https://arxiv.org/abs/1904.09675)
 
-- Monitoring and Logging 
+- Monitoring and Logging
     - [To be reviewed] wandb
 
         - Track data/model/configuration versions, optimizer and scheduler state, loss by task and length, gradient norms, nonfinite events, throughput, and memory. A run dashboard is useful only if its logged quantities have stable definitions.
@@ -2075,7 +2212,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
 - How to choose embedding models
     - Semantic vs lexical relevance
     - Embedding dimension, speed, accuracy trade-offs
-- Evaluation 
+- Evaluation
     - Retrieval accuracy metrics(Recall@k, MRR)
     - Semantic similarity tasks (STS benchmarks)
 
@@ -2136,7 +2273,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 
 
-### Q&A System 
+### Q&A System
 <a id="types-of-qa-systems"></a>
 #### [To be reviewed] Types of QA Systems
 
