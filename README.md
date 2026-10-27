@@ -23,31 +23,37 @@ Preparing this guide was immensely helpful for integrating concepts and solidify
         - [RNN](#rnn)
         - [LSTM & GRU](#lstm--gru)
         - [Generative Models](#generative-models-gans--autoencoders)
-        - [Transformers](#transformer)
+        - [Transformer Deep Dive and Diagram](#transformer)
+            - [Positions and RoPE](#tf-position)
+            - [Attention / Masks / Heads](#tf-attention)
+            - [Cross-Attention](#tf-cross-attention)
+            - [MLP / SwiGLU / MoE](#tf-mlp)
+            - [Residuals and Norms](#tf-norm)
+            - [Readout and Loss](#tf-readout)
+            - [KV Cache and Complexity](#tf-cache)
 
 - [Natural Language Processing](#nlp-pre-llm-era)
     - [Rule-Based Era](#rule-based-era-1960s-1980s)
     - [Statistical & ML Methods Era](#statistical--ml-era)
     - [Embedding & DL Methods Era](#embedding--deeplearning-era)
 
-- [Large Language Models](#Large-Language-Models)
-    - [LLM Basic](#llm-basic)
-    - [Embedding](#embedding)
-    - [Tokenization](#tokenization)
-    - [Architecture](#architecture)
-    - [Training Lifecycle](#llm-training-lifecycle)
-        - [Stage Map](#stage-map)
-        - [Pre-training](#pre-training)
-        - [Mid-training](#mid-training)
-        - [Post-training / SFT](#post-training)
-        - [Online RL / RLVR / GRPO](#online-rl)
+- [Large Language Models](#large-language-models)
+    - [Foundations](#llm-basic)
+    - [Three-stage Overview](#llm-training-lifecycle)
+    - [Pre-training](#pre-training)
+    - [Mid-training](#mid-training)
+    - [Post-training](#post-training)
+        - [SFT / RL / OPD Comparison](#sft-rl-opd-comparison)
+        - [SFT and Instruction Tuning](#post-sft)
+        - [Online RL / RLVR / PPO / GRPO](#online-rl)
+        - [Preferences / DPO / RLAIF](#preference-optimization)
         - [Distillation and OPD](#distillation-and-opd)
-
-- [LLM Engineering](#llm-engineering)
-    - [Mixed Precision](#mixed-precision)
-    - [Distributed Training](#distributed-training)
-    - [Fine-Tuning](#fine-tuning)
-    - [Optimization and Efficiency](#optimization-and-efficiency)
+    - [Shared Training Systems](#llm-engineering)
+        - [Full Tuning and PEFT](#update-parameterization)
+        - [Mixed Precision](#mixed-precision)
+        - [Distributed Training](#distributed-training)
+        - [Accumulation and Checkpointing](#optimization-and-efficiency)
+    - [Inference and Serving](#llm-inference)
     - [Evaluation and Monitoring](#evaluation-and-monitoring)
 
 - [RAG](#rag)
@@ -1209,103 +1215,194 @@ In a typical CNN architecture, a few convolutional layers are connected in a cas
 
 
 ----
-#### Transformer
+<a id="transformer"></a>
+#### [To be reviewed] Transformer: Architecture and Computation
 
-[[李沐](https://www.youtube.com/watch?v=nzqlFIcCSWQ)]  [[ANLP](https://www.youtube.com/watch?v=vlAIa1eZVR4&list=PL8PYTP1V4I8D4BeyjwWczukWq9d8PNyZp&index=4)] [[YouTube](https://www.youtube.com/watch?v=GGLr-TtKguA)] [[Coding](https://www.youtube.com/watch?v=ISNdQcPhsts&t=96s)]
-[[The Annotated Transformer](https://nlp.seas.harvard.edu/2018/04/03/attention.html)]
+The diagram separates the **original encoder–decoder Transformer** from one **common modern decoder-only design**. The original uses Post-LayerNorm and a decoder cross-attention sublayer; the illustrated modern block uses Pre-RMSNorm, RoPE, grouped-query attention, and SwiGLU. These are specific configurations, not features required of every Transformer. Read the data flow from bottom to top; each dashed enclosure is a repeated layer, while embeddings and output heads sit outside that repetition.
 
-- Attention
-    - Basic idea (by Bahdanau et al. 2015): Encode each token in the sequence into a vector. When decoding, perform a linear combination of these vectors, weighted by "attention weights".
-    - Cross attention: Each element in a sequence attends to elements of another sequence.
-    - [To be reviewed] Self-attention contextualizes elements using other permitted positions in the same sequence. In the Transformer formulation, learned projections give $`Q=XW_Q`$, $`K=XW_K`$, and $`V=XW_V`$. Attribute this specific scaled multi-head Q/K/V construction to the 2017 Transformer rather than asserting that every earlier attention paper used it. [Transformer](https://arxiv.org/abs/1706.03762)
-        - $`X`$ is the original input embedding or hidden representation.
-        - $`W_q, W_k, W_v`$ are learnable parameter matrices. Each transformation matrix allows the Transformer to specialize and refine the embeddings differently, to optimize the embeddings specifically for each respective purpose (attention computation for Q and K, content retrieval for V).
-        - Why apply self attention on the same sentence? Distribution hypothesis: Approximate the word meaning by its surrounding words. Ex. Run in English.
-        - Query (Q): Used to "ask" for relevant information.
-        - Key (K): Used to "answer" how relevant a token is to the query.
-        - Value ( $`V`$ ): Contains the actual content/information to be aggregated.
-        - [To be reviewed] Attention scores compare each query with allowed keys, then apply rowwise softmax: $`\operatorname{softmax}(QK^T/\sqrt{d_k}+M)`$. Q/K may come from the same sequence or different sequences. Softmax weights sum to one over allowed keys when at least one key is valid.
-        - Output: Multiply the attention weights with $`V`$ to produce the final context-aware representation.
+![Transformer architecture: original encoder–decoder and a common modern decoder-only block](figs/transformer-architecture.png)
 
-    - Why dot product instead of additive attention? While the two are similar in theoretical complexity, the exp in the paper shows much faster and more space-efficient in practice, since it can be implemented using highly optimized matrix multiplication code.
+[Editable SVG](figs/transformer-architecture.svg). This original schematic omits dropout, projection biases, and implementation-specific distributed layouts for readability. The following sections specify the operations and assumptions behind each box.
 
-    - [To be reviewed] With independent zero-mean unit-variance Q/K coordinates, a dot product has variance $`d_k`$. **Dividing** by $`\sqrt{d_k}`$ controls this scale before softmax. This argument concerns the dot-product distribution; it does not follow by multiplying Xavier weight variance by $`\sqrt d`$. Learned dependencies can violate the simplifying assumptions.
-    - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features. It was mentioned in the paper that Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions.
-        - Intuition: Information from different parts fo the sentence can be useful to disambiguate in different ways.   Ex. **I** run a small **business**.
-        <div align="center">
-            <img src="figs/multi_head_att.png" width="75%">
-        </div>
-    - Multi-query attention: all heads share the same W_k and W_v.
-        - [To be reviewed] The GQA paper studies uptraining an existing **multi-head attention (MHA)** checkpoint into MQA/GQA using additional training. It does not define uptraining as starting from an MQA checkpoint. [GQA](https://arxiv.org/abs/2305.13245)
-        - All attention heads share exactly the same key (W_k) and value (W_v) projection matrices
-        - Each head still maintains its own query (W_q) projection matrix
-    - Grouped Query Attention: A middle-ground approach introduced to balance efficiency and performance
-        - Attention heads are divided into groups.
-        - Heads within the same group share the same key (W_k) and value (W_v) projection matrices.
-        - Each head still has its own query (W_q) projection matrix.
-    - [To be reviewed] Flash Attention [[arXiv](https://arxiv.org/abs/2205.14135)]
+<a id="tf-shapes"></a>
+##### [To be reviewed] 1. Tensor Shapes and the Residual Stream
 
-        - Standard attention forms a potentially large score matrix. FlashAttention tiles computation across GPU memory levels and uses an online softmax to avoid materializing that full matrix in high-bandwidth memory; backward computation can recompute intermediates.
-        - It computes exact attention up to floating-point effects, rather than sparse or low-rank approximate attention. **Example:** reducing attention-memory traffic can enable longer sequences, but dense attention still has quadratic arithmetic complexity in sequence length. Benchmark end-to-end training or serving under the actual shapes and hardware. [FlashAttention](https://arxiv.org/abs/2205.14135)
+Use batch size $`B`$, source length $`S`$, target length $`T`$, model width $`d`$, query-head count $`h_q`$, KV-head count $`h_{kv}`$, head width $`d_h`$, MLP width $`m`$, vocabulary size $`V`$, and layer count $`L`$. In the common head layout, $`h_qd_h=d`$; other parameterizations are possible. The residual stream keeps shape $`[B,T,d]`$ through a decoder layer, permitting elementwise skip additions. It is a changing contextual representation, not a table of independently meaningful neuron labels.
 
+| Quantity | Common shape | Role |
+| --- | --- | --- |
+| Token IDs | [B, T] | Integer indices, not floating-point hidden states |
+| Residual stream | [B, T, d] | Shared interface between attention and MLP sublayers |
+| Q | [B, h_q, T, d_h] | Queries at target/query positions |
+| K / V in self-attention | [B, h_kv, T, d_h] | Keys and content at permitted sequence positions |
+| Attention scores, MHA | [B, h_q, T, T] | Query-to-key comparisons before softmax |
+| Encoder memory | [B, S, d] | Source states supplied to decoder cross-attention |
+| Vocabulary logits | [B, T, V] | Unnormalized next-token scores |
 
-    - Positional Encoding
-        In this work, we use sine and cosine functions of different frequencies:
+**Shape check:** in cross-attention, query length is T and key/value length is S, so scores are [B, h_q, T, S]. Confusing those axes can create a numerically valid but semantically wrong softmax. Normalize over **keys for each query**, not over the query dimension. [MultiheadAttention shape reference](https://docs.pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html)
 
-        $`\begin{aligned} P E_{(p o s, 2 i)} & =\sin \left(p o s / 10000^{2 i / d_{\text {model }}}\right) \\ P E_{(p o s, 2 i+1)} & =\cos \left(p o s / 10000^{2 i / d_{\text {model }}}\right)\end{aligned}`$
+<a id="tf-embedding"></a>
+##### [To be reviewed] 2. Token Embeddings: IDs to a Learned Coordinate System
 
-        [To be reviewed] The index `pos` denotes position and $`i`$ the paired frequency index. The original Transformer uses sine/cosine pairs so a fixed positional offset can be expressed through a linear transformation of each pair. With finitely many frequencies, the largest represented wavelength is slightly below $`10000\cdot2\pi`$ under the stated indexing.
-        [To be reviewed] The original paper compared sinusoidal and learned encodings in its translation setup. A formula defined at arbitrarily large positions does not guarantee useful extrapolation by a trained model; test actual long-context tasks. [Original positional-encoding experiment](https://arxiv.org/abs/1706.03762)
+An embedding matrix $`E\in\mathbb{R}^{V\times d}`$ maps token ID $`x_t`$ to row $`E[x_t]`$. A lookup is equivalent to multiplying a one-hot token vector by E without materializing that vector. Repeated occurrences share input parameters; their **contextual hidden states** can diverge after attention. The embedding is trained through the downstream objective, not by assigning a fixed semantic definition to each coordinate. [Embedding API](https://docs.pytorch.org/docs/stable/generated/torch.nn.Embedding.html)
 
+**Example:** “bank” near “river” and “bank” near “loan” may begin with the same token embedding but acquire different contextual states. A rare identifier can be split across several subwords; tokenization determines both the alphabet and the amount of context consumed. See [tokenization](#tokenization) and [retrieval representations](#embedding) for the separate question of obtaining a useful sentence-level vector.
 
-[[Lil'Log](https://lilianweng.github.io/posts/2018-06-24-attention/)]
-- [To be reviewed] Scaled Dot-Product Attention: Mathematics and intuition behind scaling
+The original Transformer multiplies token embeddings by $`\sqrt d`$ before adding sinusoidal positions. Many modern models use another scaling convention. Match the trained model; adding this factor to an arbitrary checkpoint changes activation scales. A tied output head can share E with the vocabulary projection, reducing parameter storage while coupling input/output learning. [Original architecture](https://arxiv.org/abs/1706.03762), [weight tying](https://arxiv.org/abs/1608.05859)
 
-    - For compatible query, key, and value projections, $`\operatorname{Attention}(Q,K,V)=\operatorname{softmax}(QK^T/\sqrt{d_k}+M)V`$, where the mask $`M`$ contributes zero to allowed positions and a suppressing value to forbidden positions.
-    - Under independent zero-mean unit-variance query/key coordinates, a dot product has variance $`d_k`$; division by $`\sqrt{d_k}`$ controls that scale. This is a heuristic statistical argument, not a guarantee for all learned representations. [Transformer paper](https://arxiv.org/abs/1706.03762)
+<a id="tf-position"></a>
+##### [To be reviewed] 3. Position Information: Addition, Relative Bias, and RoPE
 
-- [To be reviewed] Self-Attention: Mechanism to capture dependencies within the same sequence
+Without position-dependent information or masks, self-attention is permutation-equivariant: permuting input positions permutes the outputs. This is different from a permutation-invariant pooled representation. A causal mask already introduces order constraints; positional mechanisms supply additional position/distance structure.
 
-    - Self-attention obtains queries, keys, and values from the same sequence. A bidirectional encoder can use all nonmasked input positions; a causal decoder restricts each position to its permitted prefix.
-    - **Example:** contextualizing “bank” in “river bank” can use both words in an encoder, whereas next-token generation may only use tokens already observed. The source of Q/K/V and the attention mask are distinct design choices.
+**Absolute addition.** A learned table supplies $`P_t`$ and the layer input becomes $`E[x_t]+P_t`$. A fixed sinusoidal alternative uses $`P_{t,2i}=\sin(t/10000^{2i/d})`$ and $`P_{t,2i+1}=\cos(t/10000^{2i/d})`$. A learned lookup has a configured position range; a computable sinusoid can be evaluated beyond training lengths, but that mathematical extension does not establish useful extrapolation. [Original positional encoding](https://arxiv.org/abs/1706.03762)
 
-- [To be reviewed] Cross-Attention: How encoder-decoder attention enables sequence-to-sequence tasks
+**Relative score bias.** Add a position-dependent quantity $`b_{ij}`$ to the attention score for query i and key j. T5 uses learned distance buckets; ALiBi uses head-specific linear distance penalties. This changes comparison scores rather than simply adding a vector to token inputs. Bucketing sacrifices some distance resolution, and a bias's formula alone does not guarantee long-context retrieval. [T5](https://jmlr.org/papers/v21/20-074.html), [ALiBi](https://arxiv.org/abs/2108.12409)
 
-    - Cross-attention gets queries from one sequence and keys/values from another. In encoder-decoder translation, decoder states query the encoded source; the source keys and values can be reused across output steps.
-    - **Example:** generating a translated word can select information from several source positions. Decoder self-attention still requires causal masking, while source cross-attention usually has access to the entire provided source sequence.
+**RoPE.** Apply position-dependent rotations to query/key coordinate pairs: $`q_i'=R_iq_i`$, $`k_j'=R_jk_j`$. For a shared frequency system, $`(q_i')^Tk_j'=q_i^TR_i^TR_jk_j=q_i^TR_{j-i}k_j`$. The dot product therefore contains relative-position structure even though rotations use absolute position indices. A rotation preserves each pair's Euclidean norm; it does not make all attention scores depend only on distance because content vectors also matter. Values are commonly left unrotated. [RoFormer](https://arxiv.org/abs/2104.09864)
 
+**Implementation example:** if a cached key was already rotated at absolute position 127, appending token 128 should not rotate that old key again. Preserve the position convention across prefill, cache reuse, padding, and sequence packing. Partial-RoPE dimensions, frequency scaling, and long-context adaptation are checkpoint-specific. Recurrent/ODE-generated encodings and multiplicative input encodings are additional families, rather than interchangeable names for RoPE. Validate changed position mechanisms using length and evidence-position sweeps, as discussed in [mid-training](#mid-training).
 
+<a id="tf-attention"></a>
+##### [To be reviewed] 4. Q, K, V and Scaled Dot-Product Attention
 
-- BERT (Bidirectional Encoder Representations from Transformers)
-[[李沐](https://www.youtube.com/watch?v=ULD3uIb2MHQ)] [[arXiv](https://arxiv.org/abs/1810.04805)]
-    - It’s a language model developed by Google (Devlin et al., 2018) and became a major breakthrough in NLP. Instead of reading text left-to-right (like standard LSTMs) or just right-to-left, BERT reads in both directions simultaneously — that's what "bidirectional" means.
+For a self-attention input X, the projected matrices are $`Q=XW_Q`$, $`K=XW_K`$, and $`V=XW_V`$. After splitting heads, one head computes $`A=\operatorname{softmax}(QK^T/\sqrt{d_h}+M)`$ and $`O=AV`$. Q determines what the current position compares, K determines how candidate positions are addressed, and V supplies the content being mixed. Key/value roles need not coincide with literal words or human-defined facts. [Scaled dot-product implementation](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html)
 
-    - Architecture: transformer **encoder** stack, masked language modeling, and next sentence prediction.
-    - Applications in NLP tasks (e.g., sentense classification, extraction-based QA, sentiment analysis).
-    - [To be reviewed] BERT's NSP predicts whether a sentence segment follows another versus a sampled negative. RoBERTa showed strong results without NSP under its revised pretraining recipe; this is an empirical result under changed data/training settings, not a universal theorem that sentence-order supervision is useless. [RoBERTa](https://arxiv.org/abs/1907.11692)
-    - Fine-tuning BERT implementation [[YouTube](https://www.youtube.com/watch?v=4QHg8Ix8WWQ&t=19s)]
+Under independent, zero-mean, unit-variance Q/K coordinates, a dot product's variance is $`d_h`$. Division by $`\sqrt{d_h}`$ controls the initial scale before softmax. For probability vector a, the softmax Jacobian is $`\operatorname{diag}(a)-aa^T`$; highly saturated probabilities can make changes in some logits have little effect. Learned dependence and normalization alter the simple variance assumptions, so this is a motivating calculation rather than a universal initialization theorem.
 
-- RoBERTa
-    - [To be reviewed] RoBERTa retains a BERT-style encoder while changing the training recipe, including substantially more text and training, dynamic masking, larger batches, and removal of NSP. Its reported improvements are benchmark-specific; architecture identity alone does not imply every resulting representation is better.
-    - Improvements over BERT (training strategies, data size, no NSP, dynamic masking, larger batch size )
-- GPT Series (Generative Pre-trained Transformer)
-    - [To be reviewed] GPT-2, GPT-3, GPT-4: Architecture and scaling, autoregressive language modeling
+**Numerical example:** scaled allowed logits [ln 3, 0] produce weights [0.75, 0.25]. With value vectors (1, 0) and (0, 2), the output is (0.75, 0.5). The **comparison scores** choose the mixture, while the **values** determine what is mixed. Changing only V changes the output without changing those attention weights. This also explains why a heatmap is not by itself a causal explanation of the model's final prediction; later transformations and residual paths remain active. See [attention-based explanation](#attention-based).
 
-        - A causal language model factorizes $`p(x_{1:T})=\prod_t p(x_t\mid x_{<t})`$. Teacher-forced training predicts all shifted target positions in parallel under a causal mask; generation selects tokens sequentially, often with a KV cache.
-        - GPT-2 and GPT-3 establish published decoder-only scaling examples. Publicly documented GPT-4 architecture details do not justify inferring its exact parameter count, expert count, or training mixture. Separate an architectural family from unverified implementation claims. [GPT-3 paper](https://arxiv.org/abs/2005.14165), [GPT-4 technical report](https://arxiv.org/abs/2303.08774)
+<a id="tf-masking"></a>
+##### [To be reviewed] 5. Visibility Masks, Padding, and Teacher Forcing
 
-    - [To be reviewed] Use cases: text generation, few-shot learning, API-based applications
+A causal query at position i may attend only to permitted keys at positions $`j\leq i`$. An additive mask contributes zero for allowed positions and a suppressing value, conceptually negative infinity, for blocked ones. Padding masks remove invalid **keys**; loss masks independently choose which target tokens contribute to training. Packed examples may also require document/segment boundaries so one example cannot read another.
 
-        - **Example:** few-shot classification supplies label definitions and demonstrations in the prompt, then evaluates on disjoint examples without gradient updates. This differs from fine-tuning the weights.
-        - For generative applications, specify decoding parameters, prompt format, model version, and evaluation protocol. A change in demonstration order or response format can alter measured performance, so treat the prompt as part of the experimental system.
+**Teacher forcing** supplies known input tokens at all positions, so a causal training pass can compute many next-token predictions in parallel. It does not reveal the target being predicted: the logits at input position t predict the next token at t+1 under the usual shifted-label convention. A correct mask and a correct label shift solve different leakage problems. The [pre-training loss example](#causal-loss-example) shows the shift explicitly.
 
+**Cached decode pitfall:** for a query appended after P cached tokens, its absolute index is P, not zero. A generic lower-triangular mask built as if query/key axes both started at zero can incorrectly block valid history in rectangular attention. Derive visibility from the actual position indices. Avoid rows with no allowed key; softmax of all negative infinities is undefined in the reference formulation. Library conventions differ: PyTorch SDPA boolean masks use **True for allowed positions**, while some other attention APIs use True for blocked entries. [SDPA mask semantics](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html)
 
-- Other Architectures
-     - Encoder-decoder models: T5 (Text-To-Text Transfer Transformer): Unified text-to-text paradigm; MBART.
-     - Decoder Only Models: GPT, LLaMa
-     - [To be reviewed] XLNet uses a permutation language-modeling objective and two-stream attention to learn from multiple factorization orders without physically permuting the input's positional identities. Its benchmark comparisons do not establish universal superiority to BERT or causal decoders. [XLNet](https://arxiv.org/abs/1906.08237)
+<a id="tf-heads"></a>
+##### [To be reviewed] 6. Multi-Head Attention, MQA, and GQA
 
+MHA computes several head outputs, concatenates them, and applies an output projection: $`\operatorname{MHA}(X)=\operatorname{Concat}(O_1,\ldots,O_{h_q})W_O`$. W_O mixes head coordinates back into the residual width d; concatenation alone is not the complete sublayer. With ordinary square MHA projections and no biases, Q/K/V/O contain approximately $`4d^2`$ weights. Multiple heads enable different learned addressing/content subspaces, but they do not guarantee a clean human-readable role per head.
 
+| Design | Query heads | KV heads | Main structural change |
+| --- | --- | --- | --- |
+| MHA | h_q | h_q | Distinct K/V per query head |
+| MQA | h_q | 1 | One shared K/V head |
+| GQA | h_q | h_kv between 1 and h_q | Groups of query heads share K/V |
+
+For the common grouped layout, h_q is divisible by h_kv. Q retains all query heads, while K/V projections and cache shrink. **Example:** 32 query heads with 8 KV heads share each KV head among four query heads. Relative to 32-KV-head MHA, that cache has one quarter the K/V entries at the same layer count, length, dtype, and head width. It does not imply a fourfold speedup: attention computation, other weights, batching, and hardware still matter. The GQA paper also studies converting existing MHA checkpoints by additional training; changing head counts in a saved checkpoint is not a free tensor-layout operation. [GQA](https://arxiv.org/abs/2305.13245)
+
+<a id="tf-cross-attention"></a>
+##### [To be reviewed] 7. Encoder Memory and Decoder Cross-Attention
+
+In the original encoder–decoder model, encoder self-attention processes the source bidirectionally, while decoder self-attention is causal over the target. Cross-attention takes queries from decoder states and keys/values from encoder memory: $`Q=H_{\mathrm{dec}}W_Q`$, $`K=H_{\mathrm{enc}}W_K`$, $`V=H_{\mathrm{enc}}W_V`$. Its source dimension is S rather than target length T. The source need not be causally masked if it is fully provided; source padding still matters. [Encoder/decoder reference implementation](https://nlp.seas.harvard.edu/annotated-transformer/)
+
+**Translation example:** while generating a target verb, the decoder can select source positions that appeared anywhere in the supplied sentence. Its decoder Q changes as the target prefix grows, but a layer's encoder-derived K/V can be projected once and reused while the source is unchanged. Each decoder layer may have its own cross-attention projections. This differs from a single shared bidirectional prefix stack, whose representations and parameter-sharing pattern are different.
+
+A conventional decoder-only block has no separate encoder-memory cross-attention. Prompt tokens and generated tokens occupy the causal stream together. Multimodal or retrieval systems may insert extra cross-attention or other fusion modules; the presence of external information does not determine a unique architecture.
+
+<a id="tf-mlp"></a>
+##### [To be reviewed] 8. Positionwise MLP, SwiGLU, and MoE
+
+A standard MLP transforms each position independently, $`\operatorname{FFN}(x)=\phi(xW_1+b_1)W_2+b_2`$, with widths $`d\to m\to d`$. Its shared weights perform nonlinear feature computation at every token; the MLP itself does not directly mix sequence positions. Attention supplies context-dependent token mixing, and repeated attention/MLP composition changes both addressing and representations. Viewing FFNs as learned key/value memories can be a useful mechanistic hypothesis, not an exact semantic interpretation of every neuron. [Feed-forward analysis](https://arxiv.org/abs/2012.14913)
+
+One common bias-free SwiGLU form is $`\operatorname{FFN}(x)=[\operatorname{SiLU}(xW_g)\odot(xW_u)]W_d`$. The gate/up matrices map d to m and the down matrix maps m to d. Its matrix weight count is $`3dm`$, compared with $`2dm`$ for a two-matrix MLP at the **same** m. Consequently, replacing a 4d-width ordinary FFN with a gated FFN often adjusts m toward $`8d/3`$ for similar parameter count, rounded to implementation-friendly sizes; the ratio is a budget calculation, not a universal optimal width. [GLU variants](https://arxiv.org/abs/2002.05202)
+
+**Example:** at d = 4,096, a 4d ordinary MLP has about 134.2 million matrix weights; a gated MLP with that same hidden width has about 201.3 million. Reporting equal hidden width does not establish equal model capacity or compute.
+
+MoE replaces a dense FFN with a router and several expert FFNs, often activating a small selected subset per token. Total parameter storage, activated computation, routing communication, and load balance are separate quantities. A top-2 router does not mean all experts fit into memory at the cost of two experts. See [expert parallelism](#distributed-training) for training layout. [Switch Transformers](https://jmlr.org/papers/v23/21-0998.html)
+
+<a id="tf-norm"></a>
+##### [To be reviewed] 9. Residual Paths, LayerNorm, RMSNorm, and Dropout
+
+The original Post-LN sublayer is $`x'=\operatorname{LN}(x+F(x))`$, omitting dropout in this notation. A common Pre-LN/RMSNorm sublayer is $`x'=x+F(\operatorname{Norm}(x))`$, usually followed by a final normalization outside the repeated decoder stack. Residual addition requires compatible shapes; neither attention nor the MLP can silently change the residual width.
+
+For a simplified Pre-LN block, the Jacobian contains a direct identity path: $`J=I+J_FJ_{\mathrm{Norm}}`$. Post-LN instead has $`J=J_{\mathrm{Norm}}(I+J_F)`$. This helps explain different initialization/optimization behavior, but cancellation, depth, scale, and the full architecture still matter. Neither formula proves gradients are always stable or that one placement always yields better final quality. [Normalization placement](https://arxiv.org/abs/2002.04745)
+
+LayerNorm typically normalizes **hidden features within each token** using a mean and variance. A common RMSNorm computes $`\operatorname{RMSNorm}(x)=g\odot x/\sqrt{d^{-1}\sum_i x_i^2+\epsilon}`$, omitting mean subtraction and usually an additive bias. Epsilon, reductions, dtype, and affine settings affect numerical behavior. RMSNorm is not normalization across batch or sequence length. [RMSNorm](https://arxiv.org/abs/1910.07467)
+
+Dropout may act on attention probabilities, sublayer outputs, embeddings, or residual branches depending on the recipe; these placements are different regularizers. Training/inference settings must match the implementation. Some modern LLMs use little or no dropout in particular configurations. The diagram omits it so that the two normalization orders remain legible; production code must specify it explicitly.
+
+<a id="tf-readout"></a>
+##### [To be reviewed] 10. Vocabulary Projection, Loss, and Decoding
+
+After the final hidden state, a vocabulary head produces $`z_t=h_tW_{\mathrm{vocab}}+b`$ with $`W_{\mathrm{vocab}}\in\mathbb{R}^{d\times V}`$. Weight tying may use $`W_{\mathrm{vocab}}=E^T`$. Logits are scores, while softmax converts them to a categorical distribution. Fused cross-entropy commonly consumes logits directly; applying softmax first and then passing probabilities to a logits-based loss changes the computation. [CrossEntropyLoss API](https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)
+
+For the input `[BOS, A, B]`, the three aligned next-token labels can be `[A, B, EOS]`. Training on the current input token at the same position instead would teach a different, often trivial copying task if the token is already visible. In a chat example, the causal mask still protects visibility while a separate loss mask may exclude system/user targets. Padding and masked targets must be excluded from the denominator of the desired mean.
+
+At generation time, select from the final available position's logits using the specified policy: greedy selection, temperature scaling, top-k, top-p, or another rule. Selecting a token, appending it, and updating the cache defines the next state. Temperature zero is a greedy limiting convention, not division by zero. Sampling parameters affect outputs, measured benchmark scores, and the rollout distribution used in [RL/OPD](#sft-rl-opd-comparison).
+
+<a id="tf-cache"></a>
+##### [To be reviewed] 11. Prefill, Incremental Decode, and KV Caching
+
+**Prefill** computes states for a known prompt, usually in parallel over positions under the chosen mask. **Decode** computes new-token queries/keys/values and attends to cached earlier keys/values. Earlier causal hidden states are unchanged by appending a future token, so their K/V do not need to be recomputed. K/V are layer-specific; the cache is not just a copy of the input embeddings. [Cache conventions](https://huggingface.co/docs/transformers/cache_explanation)
+
+For an attention-only step with a cache of length P, a common layout has Q [B, h_q, 1, d_h] and K/V [B, h_kv, P+1, d_h]. New keys must use the correct positional transformation before storage. Encoder–decoder generation can additionally reuse fixed source cross-attention K/V. A bidirectional prefix may be cached for unchanged-prefix continuation, but modifying that prefix can require recomputation.
+
+**What caching buys:** a new token attends to about P previous positions rather than recomputing every earlier token's layer projections. It does not eliminate attention's growing history reads or the sequential dependence of exact ordinary autoregressive generation. Cache memory grows with active tokens and concurrency; [LLM inference](#llm-inference) gives the memory formula, a 1-GiB-per-sequence example, paging, and speculative decoding.
+
+**Correctness experiment:** compare full causal attention with incremental cached attention using identical projected Q/K/V, positions, weights, and disabled dropout. Then change a future input token and verify that earlier causal outputs stay unchanged. Compare within appropriate floating-point tolerances; speed or a plausible generated sentence is not a cache-correctness test.
+
+<a id="tf-cost"></a>
+##### [To be reviewed] 12. Parameter, Arithmetic, and Memory Costs
+
+For ordinary MHA and a two-matrix FFN, one layer has approximately $`4d^2+2dm`$ matrix weights; with m = 4d this is $`12d^2`$, excluding norms, biases, embeddings, and the vocabulary head. A decoder layer with an additional ordinary cross-attention sublayer adds roughly another $`4d^2`$ at equal source/target widths. GQA and gated MLPs require their actual projection sizes; do not reuse this coefficient indiscriminately.
+
+In **multiply-accumulate operations (MACs)**, ordinary dense MHA prefill uses roughly $`4BTd^2`$ for Q/K/V/O projections plus $`2BT^2d`$ for QK and AV; an ordinary FFN adds $`2BTdm`$. One MAC is often counted as two FLOPs. Masks, causal kernels, precision, and implementation details change constants. Small-T workloads can be projection/MLP dominated; long sequences increase attention's relative cost. These are arithmetic estimates, not wall-clock latency predictions.
+
+**Memory example:** a single explicitly materialized score matrix at B = 1, h = 32, T = 8,192 and two bytes per score occupies 4 GiB. That is one tensor, not the full training peak. FlashAttention tiles operations and uses online softmax/recomputation to reduce memory traffic and avoid storing the full score matrix in high-bandwidth memory. Its dense exact attention still has quadratic sequence-length arithmetic, up to kernel/mask constants. “Exact” means the attention operator rather than a sparse/low-rank approximation; floating-point reduction order can differ. [FlashAttention](https://arxiv.org/abs/2205.14135)
+
+Decode performance often depends on weight/cache bandwidth, batch size, and concurrency as well as arithmetic. Report time to first token, inter-token latency, throughput, and peak memory under specified prompt/output distributions. A fourfold reduction in one attention tensor does not imply a fourfold reduction in total model cost.
+
+<a id="tf-architecture-families"></a>
+##### [To be reviewed] 13. Architecture Families and Historical Examples
+
+| Family | Visibility / modules | Typical objective and task fit |
+| --- | --- | --- |
+| Encoder-only, e.g. BERT/RoBERTa | Bidirectional self-attention; no causal generation head required | Masked-token representations, tagging/classification/extractive QA |
+| Encoder–decoder, e.g. original Transformer/T5/BART | Source encoder, causal decoder, source cross-attention | Conditional generation such as translation or summarization; objectives vary |
+| Decoder-only, e.g. GPT-style/Llama-style models | Causal stream; commonly no separate source cross-attention | Continuation, instruction generation, tool-use trajectories |
+| Single-stack prefix LM | Bidirectional supplied prefix plus causal continuation | Prefix-conditioned generation with a specified target-loss mask |
+
+BERT uses MLM and the original NSP objective; RoBERTa changes the recipe, including removal of NSP, more training/data, and dynamic masking. XLNet's permutation-factorization objective and two-stream attention are another historical design, rather than a universal improvement over a causal decoder. T5 uses a pre-normalization RMS-style variant despite the original 2017 figure's Post-LN blocks. Compare architectures with specified objectives/data and compute. [BERT](https://aclanthology.org/N19-1423/), [RoBERTa](https://arxiv.org/abs/1907.11692), [XLNet](https://arxiv.org/abs/1906.08237), [T5](https://jmlr.org/papers/v21/20-074.html)
+
+<a id="tf-reference"></a>
+##### [To be reviewed] 14. Minimal Attention Reference and Failure Checks
+
+This educational implementation exposes score/mask/softmax behavior; it materializes scores and is not a replacement for an optimized attention kernel. Inputs already contain projected heads and any required positional transform. The function supports matching head counts; GQA requires an explicit grouping layout or a supported kernel.
+
+```python
+import math
+import torch
+
+def reference_attention(q, k, v, allowed=None):
+    # q: [B, H, Tq, Dh]; k/v: [B, H, Tk, Dh]. True means ALLOWED.
+    scores = q @ k.transpose(-2, -1) / math.sqrt(q.size(-1))
+    if allowed is not None:
+        if allowed.dtype != torch.bool:
+            raise TypeError("allowed must be a boolean mask")
+        if not allowed.any(dim=-1).all():
+            raise ValueError("Each query must have at least one allowed key")
+        scores = scores.masked_fill(~allowed, float("-inf"))
+    softmax_dtype = (torch.float32 if scores.dtype in
+                     (torch.float16, torch.bfloat16) else scores.dtype)
+    weights = torch.softmax(scores, dim=-1, dtype=softmax_dtype).to(v.dtype)
+    return weights @ v, weights
+
+def causal_allowed(query_length, key_length, past_length=0, device=None):
+    # Append-only self-attention with query indices starting after the cache.
+    if key_length != past_length + query_length:
+        raise ValueError("Expected cached prefix plus current query block")
+    q_positions = past_length + torch.arange(query_length, device=device)
+    k_positions = torch.arange(key_length, device=device)
+    return k_positions[None, :] <= q_positions[:, None]
+```
+
+**Test the mechanisms separately:** (1) changing future K/V must not change past causal outputs; (2) cached and full causal results should agree; (3) masked-key probability should be zero under the chosen reference formulation; (4) unmasked rows should sum to one before attention dropout; (5) RoPE should preserve rotated-pair norms and relative-angle identities; (6) label-shift and padding tests should compare the actual valid target set. Fused implementations can differ in precision and mask conventions, so establish the intended operator first.
+
+Original study resources: [Attention Is All You Need](https://arxiv.org/abs/1706.03762), [Annotated Transformer](https://nlp.seas.harvard.edu/annotated-transformer/), [original lecture reference](https://www.youtube.com/watch?v=nzqlFIcCSWQ). For optimization and distributed execution, continue with [shared training systems](#llm-engineering).
 
 ## NLP (Pre-LLM Era)
 
@@ -1543,123 +1640,35 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 ## Large Language Models
 
+<a id="llm-basic"></a>
+<a id="llm-concept"></a>
+### [To be reviewed] LLM Foundations
 
-[[State of GPT](https://www.youtube.com/watch?v=bZQun8Y4L2A)]  [[Deep Dive into LLMs like ChatGPT](https://www.youtube.com/watch?v=7xTGNNLPyMI&t=1869s)] [[GitHub:llm_interview](https://github.com/wdndev/llm_interview_note/tree/main)]
+An LLM combines an architecture, tokenizer, learned weights, training history, and a runtime policy. Distinguish the model's raw conditional distribution from a chat template, decoding rule, retrieval system, or external tool wrapper. The training chapters below follow pre-training, mid-training, and post-training; architecture and inference mechanisms have their own canonical explanations.
 
-### LLM Basic
+<a id="architecture"></a>
+#### [To be reviewed] Architecture and Visibility
 
-#### LLM Concept
-- [To be reviewed] Representative architectural families and historical examples; these names are not a ranking of current frontier models.
-    - GPT (decoder) (Generative Pre-trained Transformer) series : A series of language models based on the Transformer architecture released by OpenAI, including GPT, GPT-2, GPT-3, etc. The GPT model has strong generation and language understanding capabilities by pre-training on large-scale unlabeled text and then fine-tuning on specific tasks.
-    - BERT (encoder) (Bidirectional Encoder Representations from Transformers) : A bidirectional pre-trained language model based on the Transformer architecture released by Google. The BERT model has strong language understanding and representation capabilities by pre-training on large-scale unlabeled text and then fine-tuning on downstream tasks.
-    - [To be reviewed] XLNet is a generalized autoregressive pretraining approach using permutation factorization and two-stream attention. It can exploit bidirectional context under that objective; “better generation” is not a model-independent consequence of that design.
-    - T5 (Text-to-Text Transfer Transformer) : A multi-task pre-trained language model based on the Transformer architecture released by Google. The T5 model is pre-trained on large-scale datasets and can be used for a variety of natural language processing tasks, such as text classification, machine translation, question answering, etc.
+The [Transformer chapter](#transformer) explains encoder-only, encoder–decoder, decoder-only, and prefix-LM designs. Architecture family, attention visibility, and training objective are separate choices. A causal model predicts continuations, a prefix LM can expose its supplied prefix bidirectionally, and an encoder–decoder supplies source memory through cross-attention. BERT, RoBERTa, T5, XLNet, and GPT-style models are historical examples of these choices, not a ranking of current frontier models.
 
-- Prefix LM vs Causal LM
+Decoder-only models offer a uniform next-token training/generation interface. They do not have a universal zero-shot advantage over encoder–decoder systems, and bidirectional attention does not inherently force an unusable low-rank matrix. Compare objectives, data, scale, compute, and deployment workload. The [cache discussion](#tf-cache) covers both causal self-attention and source cross-attention reuse.
 
-    <div align="center">
-        <img src="figs/prefix_causal_lm.png" width="80%">
-    </div>
+<a id="embedding"></a>
+#### [To be reviewed] Representations: Token States and Retrieval Vectors
 
-    [To be reviewed] Prefix-LM and causal-LM masks specify which token positions can attend to which others. Distinguish the mask/objective from whether the architecture has separate encoder and decoder stacks.
+A [token embedding](#tf-embedding) is a learned input lookup; a contextual token state incorporates the permitted surrounding sequence. A sentence/document embedding additionally specifies pooling, padding masks, layer selection, normalization, and possibly query/document instructions. Raw `[CLS]` or mean-pooled causal states do not automatically have a useful retrieval geometry. Position encodings and their length-generalization limits are explained once in [position information](#tf-position).
 
-    - [To be reviewed] A prefix LM allows bidirectional attention within a supplied prefix and causal attention for the generated continuation. It can use one shared stack, but this is not identical to a two-stack encoder-decoder's cross-attention architecture. Specify which prefix/continuation tokens receive loss. [UniLM](https://arxiv.org/abs/1905.03197)
-        - [To be reviewed] UniLM supports several attention-mask objectives. Some GLM formulations use autoregressive blank infilling with their own position/masking scheme; describe the actual variant rather than treating all GLM models as one prefix-LM implementation. [GLM](https://arxiv.org/abs/2103.10360)
-    - [To be reviewed] A causal decoder predicts the next token from a permitted prefix. Popular decoder-only models reuse this scalable formulation, but their stacks are designed for causal modeling rather than literally removing a trained encoder from an encoder-decoder model.
+For paired queries and positive passages, a contrastive retrieval objective can minimize $`-\log\frac{\exp(s(q,d^+)/\tau)}{\sum_{d\in\mathcal{B}}\exp(s(q,d)/\tau)}`$. In-batch and mined hard negatives teach different distinctions; exclude known alternative positives where possible. The objective differs from ordinary next-token prediction. [Sentence-BERT](https://aclanthology.org/D19-1410/), [DPR](https://arxiv.org/abs/2004.04906)
 
-- Training objectives
-    - [To be reviewed] Causal-LM pretraining and many SFT objectives use token negative log-likelihood. LLM training as a whole is broader: denoising, preference losses, reinforcement learning, and distillation can optimize different objectives. See [LLM Training Lifecycle](#llm-training-lifecycle).
-    - What Is Maximum Likelihood Estimation (MLE)? Maximum Likelihood Estimation is a classical statistical method for fitting a parameterized model to data. Given training sequences $`\left\{x^{(i)}\right\}_{i=1}^N`$, MLE chooses $`\theta`$ to maximize the likelihood of observing that data under the model. Equivalently, one maximizes the log-likelihood. $`\mathcal{L}(\theta)=\sum_{i=1}^N \log p_\theta\left(x^{(i)}\right)`$ or, in practice, minimizes the negative log-likelihood.
-    - MLE in LLM training: Training objective: $`\max _\theta \sum_{i=1}^N \sum_{t=1}^{\left|x^{(i)}\right|} \log p_\theta\left(x_t^{(i)} \mid x_{<t}^{(i)}\right)`$. In deep‑learning code this becomes the familiar cross‑entropy loss between the model’s predicted token‑distribution and the true next token.
+**Example:** “treatment failed” and “treatment succeeded” share vocabulary but should not be interchangeable answers. Evaluate real retrieval with difficult negatives, and keep query/index encoders and preprocessing compatible. [Embedding model evaluation](#embedding-models) covers index versioning, task-specific choices, recall definitions, and operational trade-offs.
 
-        ```python
-        import torch.nn.functional as F
-        # [To be reviewed] logits: [B, T, V]; labels: unshifted [B, T].
-        # labels use -100 for ignored targets; require at least one valid target.
-        # Do not shift again if the model's built-in loss already shifts labels.
-        loss = F.cross_entropy(
-            logits[:, :-1, :].reshape(-1, logits.size(-1)),
-            labels[:, 1:].reshape(-1),
-            ignore_index=-100,
-        )
-        loss.backward()
-
-        ```
-- Why decoder-only model is popular?
-    - [To be reviewed] Decoder-only models offer a uniform next-token training/generation interface. Bidirectional attention does not inherently force low-rank attention matrices, and low-rank or broadly distributed attention alone does not establish an encoder's inferiority.
-    - [To be reviewed] In-context and zero-shot performance depend on model scale, data, objectives, prompting, and evaluation. There is no universal ordering in which decoder-only models always outperform encoder-decoder models without fine-tuning. [Architecture/objective comparison](https://arxiv.org/abs/2205.05131)
-    - [To be reviewed] Causal self-attention can cache prior keys/values because future appends do not change earlier causal states. Encoder-decoder generation also caches decoder states and fixed encoder cross-attention K/V. A bidirectional prefix generally needs recomputation if the prefix itself changes; simple continuation can still cache a fixed prefix.
-
-
-- [To be reviewed] For positive temperature, sampling uses $`p_T(i)=\operatorname{softmax}(z_i/T)`$. Greedy decoding is the limiting convention as $`T\to0^+`$, with a stated tie rule; division by zero is not the implementation. Greedy token choice does not by itself guarantee bitwise reproducibility across serving systems.
-
-
-#### Embedding
-
-[[Andrej Karpathy](https://www.youtube.com/watch?v=zduSFxRajkE&list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ&index=9)]
-
-
-- [To be reviewed] how to train
-
-    - Distinguish a token embedding table trained by the language-model objective from an encoder trained for sentence retrieval. A next-token objective does not automatically produce pooled vectors with a good cosine-similarity geometry.
-    - For paired queries and positive passages, a contrastive objective can minimize $`-\log\frac{\exp(s(q,d^+)/\tau)}{\sum_{d\in\mathcal{B}}\exp(s(q,d)/\tau)}`$. In-batch and mined hard negatives teach different distinctions; exclude known alternative positives from negatives where possible.
-    - **Example:** retrieval for “treatment failed” should distinguish “treatment succeeded,” despite lexical overlap. Evaluate held-out retrieval with realistic negatives, rather than only random unrelated documents. [Sentence-BERT](https://aclanthology.org/D19-1410/), [DPR](https://arxiv.org/abs/2004.04906)
-
-- word embedding (Post-LM Era)
-    - [To be reviewed] Contextual embedding (BERT, GPT embeddings)
-
-        - A token's hidden state depends on its context. To obtain one vector per sequence, specify pooling, masking, normalization, and the layer used; a raw `[CLS]` vector or averaged decoder state is not guaranteed to be a calibrated semantic embedding.
-        - **Example:** mean pooling must exclude padding, and causal decoder representations depend on which positions can attend to the full input. For asymmetric retrieval, query and passage instructions or encoders may differ. Store those conventions with the index so queries and documents use compatible representations.
-
-- positional embedding
-
-
-    [To be reviewed] Unmasked self-attention without position-dependent signals is **permutation-equivariant** at token outputs; invariant pooling can make a sequence representation invariant. A causal mask itself breaks arbitrary permutation symmetry. Positional mechanisms encode additional order/distance information under the chosen architecture.
-
-    - What is Extrapolation in Positional Encoding? Whether the model can still understand position and order when you feed it a longer sequence than it was originally trained on. For example: If a model was trained with a maximum sequence length of 2,048 tokens, can it still work on 8,000 tokens or 100,000 tokens?
-
-    [To be reviewed] Long-context generalization depends on the encoding, training lengths/data, attention behavior, and numerical/system limits. Useful design considerations include:
-        - [To be reviewed] A defined representation for the requested positions; mathematical continuity is not a necessary general condition for discrete token positions.
-        - [To be reviewed] A suitable way to represent order/distances for the task; explicit relative encoding is one choice, not a universal requirement.
-        - [To be reviewed] Empirical generalization under length and evidence-position shifts; regular patterns alone are not sufficient.
-
-
-    - **Absolute positinal encodings**  attach a vector $`p_k`$ (depending only on position $`k`$ ) to each token embedding $`x_k`$, typically via addition $`x_k \leftarrow x_k+p_k`$.
-        - Learnable embeddings: Initialize a $`\left(P_{\max } \times d\right)`$ matrix of parameters and train jointly.
-            - Pros: highly expressive.
-            - Cons: no inherent extrapolation beyond $`P_{\max }`$ without further fine-tuning.
-        - Sinusoidal ("triangular") encodings $`p_{k, 2 i}=\sin \left(k / 10000^{2 i / d}\right), \quad p_{k, 2 i+1}=\cos \left(k / 10000^{2 i / d}\right)`$.
-            - [To be reviewed] A closed-form encoding can be generated at unseen positions and need not use a learned lookup table, but numerical computability is not proof of length generalization.
-            - [To be reviewed] Periodic components and changed position distributions can create ambiguity or extrapolation failures; do not assume a shared finite wraparound period for all frequencies.
-        - Recursive / ODE-based encodings: Define $`p_{k+1}=f\left(p_k\right)`$ (e.g. an RNN) or even an ODE $`d p_t / d t=h\left(p_t, t\right)`$ (FLOATER).
-            - Pros: highly flexible, can be shown to generalize sinusoidal as a special case.
-            - Cons: sequential dependency hurts parallelism and speed.
-        - Multiplicative encodings [[知乎](https://zhuanlan.zhihu.com/p/183234823)]: Inject position by element-wise scaling $`x_k \leftarrow x_k`$ $`\odot p_k`$ instead of adding.
-            - Pros: sometimes better empirical performance.
-            - Cons: less commonly used, few systematic studies.
-
-    - [To be reviewed] **Relative positional encodings** explicitly encode relative position
-
-        - Relative schemes encode offsets between positions, for example as learned attention-score biases indexed by distance buckets. They can reduce dependence on a fixed absolute-position lookup table, but behavior beyond trained distances still depends on the parameterization and data.
-        - **Example:** a bucket scheme can share one bias for a range of large distances; it cannot distinguish all distances within that bucket. Evaluate length and evidence-position sweeps rather than assuming architectural relativity guarantees extrapolation. [T5 relative position biases](https://jmlr.org/papers/v21/20-074.html)
-
-    - **RoPE** uses trigonometry and imaginary numbers to come up with a function that satisfies this property. It uses absolute positions to represent relative positions.
-        - $`f_q\left(\mathbf{x}_m, m\right) \cdot f_k\left(\mathbf{x}_n, n\right)=g\left(\mathbf{x}_m, \mathbf{x}_n, m-n\right)`$
-    - [To be reviewed] when it's not that important?
-
-        - Position may contribute less when the task is deliberately permutation-invariant, such as classifying a set of independent measurements. Standard text, code, and time-series tasks usually depend on order: “A before B” and “B before A” have different meanings.
-        - **Technical qualification:** unmasked self-attention without positional signals is permutation-equivariant at the token level; invariant pooling produces an invariant sequence representation. A causal mask itself introduces ordering constraints. Test a position-removal ablation under the actual masking and pooling setup.
-
-
-
-#### Tokenization
+<a id="tokenization"></a>
+#### [To be reviewed] Tokenization
 - [To be reviewed] Types
 
     - Tokenization defines the model's discrete alphabet and its mapping to text. BPE learns merge rules; WordPiece uses a subword vocabulary and segmentation procedure; unigram tokenization scores candidate segmentations under a learned token distribution. A tokenizer library and a tokenization algorithm are separate concepts.
     - **Example:** SentencePiece can implement BPE or a unigram model. “SentencePiece versus BPE” therefore does not specify two disjoint algorithms. Freeze normalization, whitespace handling, special-token IDs, and chat serialization with the tokenizer artifact. [SentencePiece](https://aclanthology.org/D18-2012/)
 
-    - Byte Pair Encoding (BPE)
-    - WordPiece, SentencePiece, Unigram LM tokenizer
 - [To be reviewed] Vocabulary choice implications
 
     - With vocabulary size $`V`$ and hidden width $`d`$, an embedding table has $`Vd`$ parameters; an untied output matrix adds another $`Vd`$. Increasing vocabulary can shorten sequences but raises embedding/softmax storage and changes rare-token estimation.
@@ -1670,50 +1679,56 @@ Neural nets brought continuous representations and end‑to‑end learning.
     - Unknown-word behavior depends on the base alphabet and fallback rules. Byte-level coverage can represent arbitrary byte sequences, but it does not ensure economical segmentation, semantic understanding, or easy copying of an unfamiliar identifier.
     - **Example:** one tokenizer might use 5 tokens for an identifier while another uses 20, changing context occupancy and generation cost. Compare multilingual and domain slices. Per-token perplexities from different tokenizers are not directly comparable; use a shared unit such as bits per byte when the text encoding and evaluation protocol support it.
 
-
-
-
-#### Architecture
-- Encoder-Decoder (e.g., original Transformer, T5, BART)
-- Encoder-only (e.g., BERT, RoBERTa)
-- Decoder-only (e.g., GPT series, LLaMa [[Youtube](https://www.youtube.com/watch?v=Mn_9W1nCFLo)])
-    [[NanoGPT](https://www.youtube.com/watch?v=kCc8FmEb1nY)]
-
-- [To be reviewed] Comparison & use-cases for each architecture type
-
-    - **Encoder-only:** bidirectional representations are natural for classification, tagging, and extractive QA. **Encoder-decoder:** separately encode a source and autoregressively decode a target, supporting conditional generation such as translation. **Decoder-only:** one causal stack models continuations and chat-style prompts.
-    - **Decision example:** an encoder can be efficient for batched document classification, while a decoder can support many tasks through one generative interface. For long-source summarization, an encoder-decoder can encode the source once and cache cross-attention keys/values. Compare quality, source/target lengths, caching, and serving workload; decoder-only popularity does not establish universal architectural superiority. [T5 study](https://jmlr.org/papers/v21/20-074.html), [UL2](https://arxiv.org/abs/2205.05131)
-
-
-
 <a id="stages"></a>
 <a id="llm-training-lifecycle"></a>
-### [To be reviewed] LLM Training Lifecycle
-
 <a id="stage-map"></a>
-#### [To be reviewed] Stage Map and Terminology
+### [To be reviewed] Training Overview: Three Stages
 
-**Pre-training → mid-training → post-training** is a useful organizing map, not a mandatory sequence with universal boundaries. Some reports count annealing or context extension as late pre-training; others call them mid-training. Describe a run by its **starting checkpoint, data distribution, objective, trainable parameters, and evaluation target** before assigning a stage name. A model can return to continued pre-training after instruction tuning and subsequently restore its behavior. [Qwen3 training stages](https://arxiv.org/html/2505.09388v1), [on-policy distillation case study](https://thinkingmachines.ai/blog/on-policy-distillation/)
+The main progression is **pre-training → mid-training → post-training**. Boundaries are conventions: late data annealing or context extension may be called continued pre-training in one report and mid-training in another. Identify the **starting checkpoint, data distribution, objective, trainable parameters, and evaluation target** before assigning a name. A model can revisit an earlier kind of training and then restore its downstream behavior. [Qwen3 stages](https://arxiv.org/html/2505.09388v1), [adaptation/restoration case study](https://thinkingmachines.ai/blog/on-policy-distillation/)
 
-| Stage / method | Typical data and supervision | Main purpose | Evidence needed before advancing |
+| Stage | Primary question | Typical supervision | Stage-specific evidence |
 | --- | --- | --- | --- |
-| Broad pre-training | Large text/code mixtures; self-supervised token targets | Learn general representations, language, knowledge, and transferable capabilities | Held-out loss by domain/language, capability tests, stable optimization, contamination controls |
-| Mid-training / continued pre-training | Reweighted high-quality, domain-specific, long-context, or capability-focused data; often the same LM loss | Change capability or domain coverage and prepare a base checkpoint for downstream use | Target-domain improvement, general-capability retention, length/position tests, matched-budget ablations |
-| SFT / instruction tuning | Verified demonstrations and structured conversations | Teach task behavior, response format, tool protocols, and useful solution patterns | Task success, correct serialization/masking, out-of-domain instruction following, retention |
-| Preference optimization | Ranked/paired or desirability-labeled responses, from humans or AI judges | Shift policy preferences according to an explicit rubric | Independent preference/correctness evaluation, bias and overoptimization checks |
-| Online RL / RL with verifiable rewards | Policy-generated trajectories with learned, executable, or rule-based feedback | Improve rewarded decisions through exploration and credit assignment | Verifier validity, held-out task success, rollout/update stability, compute-accounted comparisons |
-| On-policy distillation (OPD) | Student-generated prefixes with teacher distribution or token-level feedback | Transfer teacher behavior on the states the student actually visits | Teacher reliability on student states, token/probability alignment, retention, teacher-inclusive cost |
+| Pre-training | What broad representations and capabilities can be learned from the chosen corpus and compute budget? | Causal, masked, denoising, FIM, or auxiliary token-prediction targets | Domain/language loss, capability tests, contamination controls, optimization stability |
+| Mid-training | How should an existing model adapt to a domain, capability emphasis, modality, or context regime? | Often continued LM learning on a changed mixture; transition-specific objectives can differ | Target gain versus matched additional training, general retention, length/position sweeps |
+| Post-training | How should the model behave or choose actions/responses for the intended tasks? | Demonstrations, preference labels, rewards, teacher feedback | Independent task success, generalization, retention, feedback validity, total cost |
 
-These are overlapping axes. **RLHF/RLAIF** describe feedback provenance; **PPO/GRPO** describe policy-update families; **DPO** is a direct preference objective; **OPD** describes student-policy data collection with teacher supervision. **Full fine-tuning/LoRA** describe the parameterization of an update, rather than an additional chronological training stage. A synthetic demonstration can be used for SFT; its synthetic origin does not make its optimization algorithm RL.
+There is one detailed home for each topic below. [Pre-training](#pre-training) owns corpus preparation and the base LM objective; [mid-training](#mid-training) owns adaptation/retention; [post-training](#post-training) owns SFT, RL, preferences, and OPD. [Shared training systems](#llm-engineering) owns PEFT, precision, sharding, accumulation, and checkpoint execution; these controls can apply in several stages. [Inference](#llm-inference), [RAG](#rag), and [evaluation](#evaluation-and-monitoring) support deployment and measurement rather than defining additional training stages.
 
 <a id="pre-training"></a>
-#### [To be reviewed] Pre-training: Objectives, Data, and Scaling
+### [To be reviewed] Pre-training
+
+#### [To be reviewed] Objective Families and Loss
 
 **Objective.** A causal LM commonly minimizes $`\mathcal{L}_{\mathrm{CLM}}(\theta)=-\mathbb{E}_{x\sim D}\sum_{t\in\mathcal{M}(x)}\log p_\theta(x_t\mid x_{<t})`$, with an explicit target mask $`\mathcal{M}`$ and normalization convention. Masked/span-denoising objectives use different visibility and targets. Next-token prediction, document packing, and loss masking must agree: accidental cross-document attention or training on unintended padding changes the problem. [Llama 3 training report](https://arxiv.org/abs/2407.21783)
 
 **Objective branches.** Fill-in-the-middle (FIM) training serializes a code prefix and suffix before asking the model to generate the missing middle, typically as a mixture with ordinary causal examples. Multi-token prediction adds training targets or modules for more than one future token; specify whether those predictions are independent auxiliary heads or a sequential dependency design. Neither method implies that arbitrary full outputs can be generated in parallel without an appropriate decoding algorithm. [FIM](https://arxiv.org/abs/2207.14255), [multi-token prediction](https://arxiv.org/abs/2404.19737)
 
+<a id="causal-loss-example"></a>
+#### [To be reviewed] Causal Next-token Loss Example
+
+For an unshifted labeled sequence, the following example aligns each logit with its next-token target. It assumes at least one valid target; a model returning its own causal-LM loss may already perform this shift. General MLE is covered in [Statistics](#mle).
+
+```python
+import torch.nn.functional as F
+# [To be reviewed] logits: [B, T, V]; labels: unshifted [B, T].
+# labels use -100 for ignored targets; require at least one valid target.
+# Do not shift again if the model's built-in loss already shifts labels.
+loss = F.cross_entropy(
+    logits[:, :-1, :].reshape(-1, logits.size(-1)),
+    labels[:, 1:].reshape(-1),
+    ignore_index=-100,
+)
+loss.backward()
+
+```
+
+#### [To be reviewed] Corpus Preparation and Mixture Design
+
 **Data is part of the model specification.** Record provenance and permissions, extraction, language/domain identification, exact and near deduplication, filtering, mixture weights, and benchmark decontamination. Prefer source- or time-separated evaluations; randomly separating duplicated web pages does not test independent generalization. Filtering for “educational quality” can improve a chosen capability while changing domain coverage, so inspect both retained and rejected slices. [FineWeb data ablations](https://arxiv.org/abs/2406.17557)
+
+Normalize encodings, remove extraction boilerplate, inspect malformed records, and preserve meaningful code, tables, equations, and whitespace. Store transform versions and sample rejected data. Split by original document/source before producing chunks or paraphrases; leakage control and benchmark decontamination are part of the data protocol, not an opportunity to tune on benchmark answers. A filter can improve average cleanliness while removing dialects or specialist topics. [RefinedWeb](https://arxiv.org/abs/2306.01116)
+
+#### [To be reviewed] Scaling, Budget, and Recovery
 
 **Compute/data trade-off.** The approximation $`C\approx6ND`$ for training a dense Transformer with $`N`$ parameters on $`D`$ tokens is a rough parameter-matmul FLOP model; attention, vocabulary work, context length, recomputation, and implementation overhead matter. It is not a complete model for sparse MoE systems. Compute-optimal scaling results describe a specified training budget and empirical regime. Training a smaller model for more tokens may be preferable when lifetime inference cost matters; a single tokens-per-parameter rule is not universally optimal. [Chinchilla scaling study](https://arxiv.org/abs/2203.15556)
 
@@ -1722,7 +1737,7 @@ These are overlapping axes. **RLHF/RLAIF** describe feedback provenance; **PPO/G
 **Example experiment.** Compare two domain-mixture policies using the same architecture, tokenizer, number of processed tokens, and optimization budget. Report weighted aggregate loss *and* each domain's loss, contamination-resistant capability evaluations, and useful tokens/second. Changing the evaluation mixture can create an apparent improvement without improving any model conditional distribution. Do not assign a fixed “99% of all training compute” share to this stage: report the actual accounting, including post-training rollouts and teacher/judge inference where applicable.
 
 <a id="mid-training"></a>
-#### [To be reviewed] Mid-training: Continued Pre-training and Capability Adaptation
+### [To be reviewed] Mid-training
 
 Mid-training commonly continues from a pretrained checkpoint while changing the data mixture, context regime, or capability emphasis. The objective can remain causal LM loss; the scientific distinction is the distribution and capability being adapted. **Domain-adaptive pre-training (DAPT)** uses domain text; **task-adaptive pre-training (TAPT)** uses a task's unlabeled input distribution. Their names do not imply supervised response training. The original DAPT/TAPT results concern particular encoder models and classification tasks; extrapolating to a modern decoder requires a new experiment. [DAPT/TAPT](https://arxiv.org/abs/2004.10964)
 
@@ -1732,16 +1747,71 @@ Mid-training commonly continues from a pretrained checkpoint while changing the 
 
 **Example.** Continue an instruction-tuned model on internal technical manuals using LM loss. Domain prediction can improve while conversation behavior degrades because document continuation and assistant response generation induce different training distributions. Compare the original checkpoint, continued-pretraining checkpoint, and a checkpoint with behavior-restoring SFT/OPD. Evaluate held-out manual questions with independent evidence; memorizing a document is not the same as updating a retrieval corpus. The published OPD case study illustrates this adaptation/behavior-restoration pattern. [Case study](https://thinkingmachines.ai/blog/on-policy-distillation/)
 
+#### [To be reviewed] Retention, Replay, and Behavior Restoration
+
+- **Retention protocol:** mixing general-domain examples is one option, alongside replay, regularization toward a reference, or task-isolated adapters. There is no universal replay ratio: tune the target/general mixture under a fixed token budget and evaluate both domains. Report the chosen replay ratio and its validation protocol.
+- **Example:** adapt a model to specialist terminology while retaining a held-out general instruction and language-understanding suite. A ratio that preserves average score can still harm rare capabilities; inspect slices and compare to the unchanged base model. [Continual-learning forgetting study](https://arxiv.org/abs/1312.6211)
+
+
+
 <a id="post-training"></a>
-#### [To be reviewed] Post-training: SFT, Preferences, and Behavior
+<a id="adaptation-and-preference-methods"></a>
+### [To be reviewed] Post-training
 
-SFT commonly minimizes demonstration negative log-likelihood, $`\mathcal{L}_{\mathrm{SFT}}=-\mathbb{E}_{(x,y)\sim D_{\mathrm{demo}}}\sum_t m_t\log\pi_\theta(y_t\mid x,y_{<t})`$. The mask $`m_t`$ identifies intended targets: it may include selected assistant turns and EOS while excluding user/system tokens. Record whether reduction is by token, response, or example; these conventions weight long and short demonstrations differently. [SFT implementation reference](https://huggingface.co/docs/trl/sft_trainer)
+Post-training changes task behavior using demonstrations, preferences, rewards, teacher feedback, or a mixture. **SFT, online RL, and OPD answer different questions about supervision and the states visited during learning.** They are compatible components, not three mandatory consecutive steps. Full tuning and PEFT specify which parameters can change; either can implement a suitable SFT, RL, or distillation objective.
 
-**Data branches** include general instruction following, structured outputs, tool-use trajectories, grounded answers, and reasoning demonstrations. Tool calls and observations have distinct roles: a teacher-produced observation is not evidence that a real tool would return it. Verify generated demonstrations and hold out source problems or environments, not only paraphrased rows.
+<a id="sft-rl-opd-comparison"></a>
+#### [To be reviewed] SFT, RL, and OPD: Relationships and Differences
 
-**Example.** A support model learns a JSON schema from demonstrations. Evaluate schema validity separately from label correctness and evidence support. Include valid abstentions and difficult edge cases. If long reasoning demonstrations improve accuracy, compare against matched answer-only training and account for extra training/output tokens before attributing the gain to the rationale format.
+| Dimension | SFT on demonstrations | Online RL, e.g. PPO/GRPO | On-policy distillation (OPD) |
+| --- | --- | --- | --- |
+| Prefixes used for the update | Prefixes in the supplied demonstration dataset | Prefixes/actions from policy/environment rollouts, subject to the algorithm's lag/correction policy | Prefixes generated by the rollout student |
+| Feedback | A desired target token/response; human or synthetic origin | Rewards from a verifier, humans/AI-derived reward model, or environment | Teacher conditionals or a derived token-level teacher signal on student states |
+| Typical objective | Demonstration negative log-likelihood | Expected reward with the chosen advantage estimator, clipping, and optional regularization | Specified conditional-divergence or teacher-feedback objective; KL direction varies |
+| Main mismatch or failure | Student-generated states can differ from demonstration states; incorrect labels are imitated | Reward misspecification, exploration/credit assignment, variance, stale rollouts | Unreliable teacher on student states, token/support mismatch, teacher cost, estimator bias |
+| What it does not require by definition | A separately fitted reward model or fresh policy rollouts for each update | A teacher next-token distribution | A human preference pair or scalar correctness reward |
 
-Preference methods adjust which responses are favored; they are not a substitute for a factual verifier. DPO, PPO-based RLHF, desirability-label objectives, and AI-feedback pipelines differ in data requirements and optimization. See [Detailed Adaptation and Preference Methods](#adaptation-and-preference-methods) for the existing SFT/PPO/DPO/RLAIF notes. SFT and RL can be interleaved or revisited; an RL-only stage after a base checkpoint is possible, and a multi-stage recipe should not be reduced to a universal one-pass SFT → RL rule. [DeepSeek-R1](https://arxiv.org/abs/2501.12948)
+**Same-task example: implementing `inc(x)`.** SFT imitates a verified demonstration such as `return x + 1`. Online RL samples candidate programs and uses test outcomes to prefer successful behavior; the reward says which behavior succeeds, not necessarily which next token to write. OPD samples the student's partial program and asks the teacher how to continue **that exact partial program**, possibly using dense distributional feedback. The teacher may favor a plausible continuation that still fails a test, so evaluate correctness independently.
+
+**How they combine:** SFT can initialize a policy before RL or OPD; RL can produce a stronger teacher or additional verified demonstrations; OPD can transfer behavior into another student or restore behavior after [mid-training](#mid-training). Rejection-sampled successful rollouts can become a later SFT dataset. Once that dataset is fixed, its cross-entropy training remains SFT, even though its data came from an earlier policy. [GKD and RL integration](https://arxiv.org/abs/2306.13649), [multi-stage example](https://arxiv.org/abs/2501.12948)
+
+**DPO belongs alongside these methods as a direct preference objective.** Its basic offline formulation trains on preferred/rejected response pairs without requiring an online rollout loop or a fitted reward model. RLHF/RLAIF identify feedback provenance and a pipeline family; PPO/GRPO identify update algorithms. Keeping these axes separate prevents labels such as “AI feedback,” “synthetic data,” “LoRA,” and “RL” from being treated as interchangeable stages.
+
+<a id="post-sft"></a>
+#### [To be reviewed] SFT and Instruction Tuning
+
+SFT is supervised adaptation to target outputs; instruction fine-tuning is its instruction-conditioned subset. Classification labels, translations, structured records, and tool-use demonstrations can all define supervised targets. A typical response objective is $`\mathcal{L}_{\mathrm{SFT}}=-\mathbb{E}_{(x,y)\sim D}\sum_t m_t\log\pi_\theta(y_t\mid x,y_{<t})`$. State the target mask and whether reduction weights tokens, responses, or examples: equal weighting of two response means is different from a global token mean when lengths differ. [Instruction tuning](https://arxiv.org/abs/2109.01652), [SFT trainer](https://huggingface.co/docs/trl/sft_trainer)
+
+**Data and serialization.** Validate roles, chat templates, tool boundaries, EOS, padding, and the intended assistant-turn masks. Include difficult valid examples, grounded answers, appropriate abstentions, and realistic multi-turn trajectories. A teacher-written tool observation is not proof that a real tool would return it. When packing samples, specify whether attention can cross example boundaries. The [causal-loss example](#causal-loss-example) explains the distinct label-shift requirement.
+
+**Splits and labels.** Separate source problems, documents, templates, users, or time periods as appropriate before generating paraphrases or chunks. Check synthetic tasks and their answers, not only surface fluency. A random row split can leak equivalent math problems into evaluation. Maintain task/length/language coverage rather than improving only the most frequent easy template.
+
+**Concrete evaluation.** For evidence-grounded support, verify every cited training answer against its source and include answerable and unanswerable questions. Compare task correctness, citation support, format validity, and abstention on an untouched evaluation set. Decreasing demonstration loss can coexist with worse unsupported-answer behavior. Compare a prompted base model, frozen-backbone baseline when applicable, and the fine-tuned model with matched development effort.
+
+**Reasoning demonstrations.** Correct solution traces can teach useful patterns, but a convincing rationale is not a correctness certificate or a faithful description of internal computation. Compare answer-only and trace-conditioned training under clearly accounted token budgets, and keep hidden tests or independent solution checks outside the training feedback loop.
+
+##### [To be reviewed] Task and Provider Examples
+
+- [To be reviewed] BERT Fine-Tuning
+
+    - Attach a task head or span-prediction head, then fine-tune the encoder with task-appropriate supervision. Classification typically uses a pooled or designated-token representation; extractive QA predicts start/end positions with an explicit no-answer design when needed.
+    - **Example:** for document classification, split at the document or author level and assess truncation sensitivity. Report a frozen-encoder baseline, learning-rate sensitivity, and variability across seeds. Encoder weights pretrained on generic text do not remove domain shift. [BERT paper](https://aclanthology.org/N19-1423/)
+
+[[YouTube](https://www.youtube.com/watch?v=ujubwa_oa-0&t=129s)]
+
+- [To be reviewed] GPT Fine-tuning
+
+    - **Evaluation-first workflow:** define a representative held-out set and a prompted base-model baseline, prepare schema-valid examples with desired responses, train a customized model when supported, and compare on the untouched evaluation set. Keep the inference instructions and formatting compatible with training. [Official OpenAI SFT guide](https://developers.openai.com/api/docs/guides/supervised-fine-tuning)
+    - **Example:** for support-ticket classification, track per-class precision/recall, invalid-label rate, and performance on new product categories. A lower training loss does not establish better deployment performance. Inspect label quality and distribution coverage before adding more epochs. [Fine-tuning best practices](https://developers.openai.com/api/docs/guides/fine-tuning-best-practices)
+    - **Dated availability note, 2026-10-26:** the official SFT guide states that the fine-tuning platform is winding down and is closed to new users. The original model version listed below is historical context; verify account eligibility, base-model lifecycle, and the documented retirement timeline before attempting a provider-hosted run.
+
+    - Version: gpt-4o-2024-08-06
+- [To be reviewed] Claude Fine-Tuning
+
+    - The linked historical example concerns **Claude 3 Haiku fine-tuning through Amazon Bedrock**. Scope any reproduction to the exact base-model revision, hosting platform, region, data schema, and supported customization path. A model-family name alone does not establish which weights or parameters a managed service updates. [Anthropic's historical announcement](https://claude.com/resources/articles/fine-tune-claude-3-haiku)
+    - **Example:** compare a customized domain classifier with the same base model using an optimized prompt, keeping the held-out examples and output schema fixed. Report correctness, calibration where meaningful, latency, and total inference cost. Retain the training-data version and service configuration; current availability must be established from the relevant platform documentation.
+
+[[Claude 3 Haiku](https://www.youtube.com/watch?v=BfURFJbEQLA)]
 
 <a id="online-rl"></a>
 #### [To be reviewed] Online RL: RLHF, RLVR, PPO, and GRPO
@@ -1756,6 +1826,42 @@ An illustrative sequence-level objective is $`J(\theta)=\mathbb{E}_{x,y\sim\pi_\
 
 **Example.** A code model gets reward 1 for passing a visible test suite. Keep a separate suite of unseen edge cases and track syntax errors, timeouts, and sandbox violations as well as pass rate. Compare SFT, best-of-N sampling, PPO/GRPO, and a no-update baseline at a matched rollout and evaluation budget. RL's additional search cost belongs in the comparison.
 
+##### [To be reviewed] PPO Update Details
+
+- PPO uses an importance ratio $`r_t(\theta)=\pi_\theta(a_t\mid s_t)/\pi_{\mathrm{old}}(a_t\mid s_t)`$ and a clipped surrogate $`\mathbb{E}[\min(r_t A_t,\operatorname{clip}(r_t,1-\epsilon,1+\epsilon)A_t)]`$. In language generation, actions are tokens and states are prefixes.
+- A language-model RLHF implementation also needs rollout generation, advantage estimation, masking, and a chosen reference-policy regularization scheme. Clipping limits parts of the surrogate objective; it is not a hard guarantee on policy KL. **Example:** reward gain accompanied by collapsing output diversity signals the need to examine optimization and the reward proxy. [PPO](https://arxiv.org/abs/1707.06347)
+
+<a id="preference-optimization"></a>
+#### [To be reviewed] Preferences, Reward Models, and AI Feedback
+
+Preference labels and reward signals are measurements with a specified population and rubric. Direct preference objectives and online reward optimization use them differently; the collection/judging process must be evaluated independently of the policy update.
+
+##### [To be reviewed] Direct Preference Optimization (DPO)
+
+- DPO directly optimizes preferred/rejected response pairs without fitting an explicit reward model or performing on-policy rollouts in its basic form. Let $`\Delta_\theta=\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}-\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}`$; its loss is $`-\log\sigma(\beta\Delta_\theta)`$ under the standard formulation.
+- **Example:** the update changes relative likelihoods rather than maximizing the preferred response's likelihood in isolation. Sequence length, reference choice, label noise, and offline pair coverage affect behavior. DPO uses preference labels; it does not by itself improve how human feedback is collected. [DPO](https://arxiv.org/abs/2305.18290)
+
+##### [To be reviewed] Feedback Collection and Reward-model Evaluation
+
+- Collect comparisons on policy-relevant prompts with an explicit rubric and multiple annotators where ambiguity matters. Randomize presentation order, account for ties and disagreement, and inspect whether length, style, or answer position predicts labels independently of correctness.
+- **Example:** a longer answer can win superficial preference comparisons while adding factual errors. Include adversarial counterexamples and independently validated correctness labels. Synthetic preferences can expand coverage but inherit the judge's limitations; periodically audit them against held-out human judgments.
+
+- Evaluate held-out pairwise reward accuracy and calibration, then measure policy quality independently after optimization. Group splits by prompt family reduce leakage from near-duplicate comparisons. Reward accuracy averaged over easy pairs can hide poor discrimination among strong candidate responses.
+- **Example:** a reward model can score 90% on obviously good/bad pairs while systematically favoring verbose hallucinations among near-ties. Track policy win rates, task correctness, response length, disagreement slices, and reward-versus-human divergence. [RewardBench](https://arxiv.org/abs/2403.13787)
+
+##### [To be reviewed] RLAIF and Judge Bias
+
+- RLAIF replaces or supplements human preference labels with feedback from an AI judge. Constitutional AI combines a principle-guided critique/revision stage with AI-generated preference comparisons for a later reinforcement-learning stage.
+- **Example:** a judge scores candidate responses against a written rubric, and a policy learns from those scores or comparisons. Record the judge model, rubric, prompt, and sampling settings: “AI feedback” is a family of data-generation procedures, not one optimization algorithm. [Constitutional AI](https://arxiv.org/abs/2212.08073)
+
+- Automated judging can scale annotation and improve consistency with an explicit rubric, but systematic judge errors can also scale. Assess position bias, preference for verbosity or its own style, and agreement on difficult subgroups.
+- **Example:** swap candidate order and paraphrase equivalent answers; a large preference reversal suggests a measurement artifact. Keep independent human audits and task-specific verifiers for claims the judge cannot reliably establish. Strong agreement with one judge is not evidence of universal human preference.
+
+##### [To be reviewed] Unresolved Terminology: KPO
+
+- **Terminology to verify:** `KPO` is not uniquely identified by the surrounding outline. Keep the original label until a paper title or implementation establishes its intended expansion; do not treat it as a synonym for PPO, DPO, KTO, or GRPO.
+- If **KTO** was intended, it uses a prospect-theory-inspired objective with desirable/undesirable examples rather than requiring paired preferences. If **GRPO** was intended, group-relative rewards provide an advantage baseline for sampled outputs. These are different methods with different data and rollout requirements. [KTO](https://arxiv.org/abs/2402.01306), [DeepSeekMath / GRPO](https://arxiv.org/abs/2402.03300)
+
 <a id="distillation-and-opd"></a>
 #### [To be reviewed] Distillation: Offline Traces and On-policy Distillation (OPD)
 
@@ -1766,7 +1872,6 @@ Distillation transfers supervision from a teacher, which need not always be larg
 | Offline trace SFT / sequence distillation | Fixed teacher/reference responses | Teacher-produced target tokens or validated solutions | Student mistakes can lead to prefixes absent from the dataset |
 | Offline logit distillation | Fixed dataset prefixes | Teacher conditional probabilities or logits | Better targets on the same fixed states do not remove state-distribution mismatch |
 | OPD | Refreshed student-generated prefixes | Teacher probabilities, local divergences, or sampled-token feedback | Teacher reliability on student states, support/serialization mismatch, rollout cost |
-| Reward-based RL | Policy/environment trajectories | Scalar or structured rewards and an advantage estimator | Reward validity, exploration, credit assignment, variance |
 
 OPD addresses exposure to **the student's own states**: generate a response using the student and evaluate the teacher at those exact prompt-plus-prefix states. This differs from asking the teacher to produce a separate ideal answer and applying SFT to it. Both can be useful and can be combined. [Generalized Knowledge Distillation](https://arxiv.org/abs/2306.13649)
 
@@ -1806,105 +1911,9 @@ At each transition, save a checkpoint and evaluate **target capability, general 
 
 **Ablation plan:** (a) original checkpoint, (b) additional tokens at the old mixture, (c) mid-training at the new mixture, (d) behavior-restoring SFT, (e) OPD, and (f) RL when justified by the task. Match the budgets appropriate to the causal question: fixed tokens for a data-mixture comparison, and total compute/cost for a practical pipeline comparison. An equal number of gradient steps is insufficient when sequence lengths, teacher inference, or rollout multiplicities differ.
 
-<a id="adaptation-and-preference-methods"></a>
-#### [To be reviewed] Detailed Adaptation and Preference Methods
 
-The notes below expand update parameterizations, data curation, and feedback methods used within this lifecycle. The order of these notes is organizational; it is not a required execution order.
-
-- Fine-Tuning
-    - [To be reviewed] Fully Fine-Tuning
-
-        - Update all model parameters using the task or domain objective. This maximizes adaptation freedom but requires gradients and optimizer state for the trainable weights, plus activations.
-        - **Example:** a specialized scientific corpus may warrant full adaptation when an adequately sized dataset and compute budget support it. Compare against a frozen-backbone baseline and PEFT at matched data and tuning effort. Full fine-tuning can overfit or forget prior capabilities; adaptation capacity alone is not an empirical advantage.
-
-    - [To be reviewed] Parameter-Efficient Fine-Tuning (PEFT)
-
-        - Freeze most pretrained parameters and optimize a smaller parameterization, such as low-rank updates, adapters, or continuous prompts. PEFT reduces trainable-state and per-task checkpoint size; it does not eliminate backbone forward computation or all activation memory.
-        - **Example:** serve several task-specific LoRA adapters over a shared backbone. The practical benefit depends on the serving engine's adapter support and batching strategy. See the detailed methods in [Fine-Tuning](#fine-tuning).
-
-    - More on [[LLM Fine-Tuning](#fine-tuning)]
-
-
-- Data Quality and Selection
-    - [To be reviewed] High-quality data selection strategies (deduplication, filtering, diversity)
-
-        - Track provenance, remove exact and near duplicates, filter malformed or irrelevant documents, and inspect mixture coverage. Deduplication reduces repeated exposure and helps avoid train/evaluation contamination; quality filtering can also unintentionally remove dialects or specialist domains.
-        - **Example:** split by original document or source before creating chunks so near-identical fragments do not cross evaluation boundaries. Compare filtering policies at a matched token budget, and report retained-language/domain distributions rather than only aggregate validation loss. [RefinedWeb](https://arxiv.org/abs/2306.01116)
-
-    - [To be reviewed] Data cleaning techniques for LLMs
-
-        - Normalize encodings, remove extraction boilerplate, identify language, repair or discard corrupted records, and validate document boundaries before tokenization. Preserve meaningful structure in code, tables, equations, and whitespace-sensitive data.
-        - **Example:** indiscriminately stripping punctuation can destroy mathematical notation or code syntax. Store transformation versions and sample rejected records: a filter can improve average text cleanliness while removing valuable difficult examples. Keep benchmark decontamination separate from using benchmark answers to tune the filtering policy.
-
-- Fine-Tuning
-    - SFT
-        - [To be reviewed] Instruction Fine-Tuning (IFT)
-
-            - Instruction fine-tuning is supervised fine-tuning on instruction-response examples. For an assistant response $`y`$ conditioned on prompt $`x`$, a common objective is $`-\sum_t\log p_\theta(y_t\mid x,y_{<t})`$, with the prompt tokens excluded from loss when response-only supervision is intended.
-            - **Example:** train on a question, a supplied document, and an answer with supported citations. Demonstrations teach task behavior and output format; they cannot make unsupported or incorrect reference answers reliable. [Instruction tuning](https://arxiv.org/abs/2109.01652)
-
-        - [To be reviewed] SFT vs IFT
-
-            - SFT is the broader category: labels can be class outputs, translations, structured records, or responses. IFT names the instruction-conditioned subset. The implementation distinction lies in the data format and loss mask, not an entirely separate gradient algorithm.
-            - **Example:** translating a parallel corpus is SFT; wrapping the source with “Translate this passage into French” produces an instruction-conditioned training example. Evaluate whether the added task framing transfers to unseen instructions.
-
-        - [To be reviewed] Dataset curation for SFT and IFT
-
-            - Separate training and evaluation by source problem, template, user, or time as appropriate. Check answer correctness, prompt-response alignment, duplicate leakage, task balance, and realistic multi-turn boundaries. Synthetic examples require quality checks on both tasks and labels.
-            - **Example:** random row splitting can place paraphrases of the same math problem on both sides. Hold out problem families to test transfer. Compare loss on response tokens with task success, format compliance, and refusal behavior; decreasing training loss alone does not establish improvement.
-
-
-- Alignment & Human Feedback
-    - [To be reviewed] Human-feedback alignment (RLHF pipelines and direct-preference methods)
-        - [To be reviewed] Motivation behind combining SFT and RLHF
-
-            - SFT initializes useful response behavior; preference optimization then adjusts which responses the policy favors. A classical RLHF objective trades reward against deviation from a reference: $`\mathbb{E}_{x,y\sim\pi_\theta}[r_\phi(x,y)]-\beta\,\mathbb{E}_x D_{\mathrm{KL}}(\pi_\theta(\cdot\mid x)\|\pi_{\mathrm{ref}}(\cdot\mid x))`$.
-            - **Example:** two correct answers may differ in clarity and whether they obey the requested format. Preferences can teach that distinction. A learned reward is a proxy for the annotation policy, so optimizing it too aggressively can exploit its errors. [InstructGPT](https://arxiv.org/abs/2203.02155)
-
-        - [To be reviewed] Human feedback collection & augmentation techniques
-
-            - Collect comparisons on policy-relevant prompts with an explicit rubric and multiple annotators where ambiguity matters. Randomize presentation order, account for ties and disagreement, and inspect whether length, style, or answer position predicts labels independently of correctness.
-            - **Example:** a longer answer can win superficial preference comparisons while adding factual errors. Include adversarial counterexamples and independently validated correctness labels. Synthetic preferences can expand coverage but inherit the judge's limitations; periodically audit them against held-out human judgments.
-
-        - [To be reviewed] Related metrics for RLHF (reward model accuracy, preference modeling)
-
-            - Evaluate held-out pairwise reward accuracy and calibration, then measure policy quality independently after optimization. Group splits by prompt family reduce leakage from near-duplicate comparisons. Reward accuracy averaged over easy pairs can hide poor discrimination among strong candidate responses.
-            - **Example:** a reward model can score 90% on obviously good/bad pairs while systematically favoring verbose hallucinations among near-ties. Track policy win rates, task correctness, response length, disagreement slices, and reward-versus-human divergence. [RewardBench](https://arxiv.org/abs/2403.13787)
-
-        - Algorithms
-            - [To be reviewed] PPO
-
-                - PPO uses an importance ratio $`r_t(\theta)=\pi_\theta(a_t\mid s_t)/\pi_{\mathrm{old}}(a_t\mid s_t)`$ and a clipped surrogate $`\mathbb{E}[\min(r_t A_t,\operatorname{clip}(r_t,1-\epsilon,1+\epsilon)A_t)]`$. In language generation, actions are tokens and states are prefixes.
-                - A language-model RLHF implementation also needs rollout generation, advantage estimation, masking, and a chosen reference-policy regularization scheme. Clipping limits parts of the surrogate objective; it is not a hard guarantee on policy KL. **Example:** reward gain accompanied by collapsing output diversity signals the need to examine optimization and the reward proxy. [PPO](https://arxiv.org/abs/1707.06347)
-
-            - [To be reviewed] Direct Preference Optimization (DPO)
-
-                - DPO directly optimizes preferred/rejected response pairs without fitting an explicit reward model or performing on-policy rollouts in its basic form. Let $`\Delta_\theta=\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}-\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}`$; its loss is $`-\log\sigma(\beta\Delta_\theta)`$ under the standard formulation.
-                - **Example:** the update changes relative likelihoods rather than maximizing the preferred response's likelihood in isolation. Sequence length, reference choice, label noise, and offline pair coverage affect behavior. DPO uses preference labels; it does not by itself improve how human feedback is collected. [DPO](https://arxiv.org/abs/2305.18290)
-
-            - [To be reviewed] KPO
-
-                - **Terminology to verify:** `KPO` is not uniquely identified by the surrounding outline. Keep the original label until a paper title or implementation establishes its intended expansion; do not treat it as a synonym for PPO, DPO, KTO, or GRPO.
-                - If **KTO** was intended, it uses a prospect-theory-inspired objective with desirable/undesirable examples rather than requiring paired preferences. If **GRPO** was intended, group-relative rewards provide an advantage baseline for sampled outputs. These are different methods with different data and rollout requirements. [KTO](https://arxiv.org/abs/2402.01306), [DeepSeekMath / GRPO](https://arxiv.org/abs/2402.03300)
-
-
-    - RLAIF
-        - [To be reviewed] Differences from RLHF
-
-            - RLAIF replaces or supplements human preference labels with feedback from an AI judge. Constitutional AI combines a principle-guided critique/revision stage with AI-generated preference comparisons for a later reinforcement-learning stage.
-            - **Example:** a judge scores candidate responses against a written rubric, and a policy learns from those scores or comparisons. Record the judge model, rubric, prompt, and sampling settings: “AI feedback” is a family of data-generation procedures, not one optimization algorithm. [Constitutional AI](https://arxiv.org/abs/2212.08073)
-
-        - [To be reviewed] Advantages and potential risks compared to RLHF
-
-            - Automated judging can scale annotation and improve consistency with an explicit rubric, but systematic judge errors can also scale. Assess position bias, preference for verbosity or its own style, and agreement on difficult subgroups.
-            - **Example:** swap candidate order and paraphrase equivalent answers; a large preference reversal suggests a measurement artifact. Keep independent human audits and task-specific verifiers for claims the judge cannot reliably establish. Strong agreement with one judge is not evidence of universal human preference.
-
-
-
-
-
-
-### LLM Engineering
+<a id="llm-engineering"></a>
+### [To be reviewed] Shared Training Systems
 
 <a id="mixed-precision"></a>
 #### [To be reviewed] Mixed Precision
@@ -1916,7 +1925,8 @@ The notes below expand update parameterizations, data curation, and feedback met
 [[arXiv](https://arxiv.org/abs/1710.03740)]
 
 
-#### Distributed training
+<a id="distributed-training"></a>
+#### [To be reviewed] Distributed Training
 
 [[Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)][[Multi-GPU Training](https://www.youtube.com/watch?v=gXDsVcY8TXQ)] [[ANLP-Parallelism and Scaling](https://www.youtube.com/watch?v=Mpg1YJfAEH0)] [[知乎](https://zhuanlan.zhihu.com/p/598714869)]
 - Data parallel [[Distributed Data Parallel (DDP) using PyTorch](https://www.youtube.com/watch?v=-K3bZYHYHEA&list=PL_lsbAsL_o2CSuhUhJIiW0IkdT5C2wGWj&index=1)] [[Collective Operation](https://en.wikipedia.org/wiki/Collective_operation)]
@@ -2012,14 +2022,11 @@ The notes below expand update parameterizations, data curation, and feedback met
 | **Data Parallelism**       | Input data batches              | **NOT** model parallelism       |
 | **ZeRO Parallelism**       | Optimizer states, gradients, and/or parameters by stage | State/parameter sharding |
 
+<a id="fine-tuning"></a>
+<a id="update-parameterization"></a>
+#### [To be reviewed] Update Parameterization and PEFT
 
-
-
-
-
-#### Fine-Tuning
-
-[[知乎-原理](https://zhuanlan.zhihu.com/p/635152813)] [[知乎-实战](https://zhuanlan.zhihu.com/p/651744834)]
+Choose an update parameterization independently of the stage/objective. The mechanisms below can support suitable SFT, RL, or distillation training; compare quality, trainable-state memory, activation cost, checkpoint management, and serving integration.
 
 - Types
     - [To be reviewed] Full fine-tuning vs Parameter-efficient fine-tuning
@@ -2045,22 +2052,6 @@ The notes below expand update parameterizations, data curation, and feedback met
 
         - [To be reviewed] QLoRA trains adapters through a frozen four-bit base representation; its original recipe includes NF4, double quantization, and paged optimizers to manage some memory spikes. Paging is not a guarantee against every OOM, and dequantized computation/activations still consume memory. [QLoRA](https://arxiv.org/abs/2305.14314)
         - [To be reviewed] BitFit tunes existing bias parameters in the studied architecture. A bias-free Transformer may expose few or none of those parameters; apply the method only after inspecting the actual parameterization. [BitFit](https://arxiv.org/abs/2106.10199)
-    - [To be reviewed] Quantization
-
-        - Quantization maps high-precision values into a lower-bit representation with scales and sometimes zero points. Distinguish weight-only from weight-and-activation quantization, post-training quantization from quantization-aware training, and per-tensor from finer-grained scaling.
-        - QLoRA stores a frozen base in a low-bit representation and trains higher-precision adapters; it does not directly optimize every four-bit base weight. Quantization metadata, adapters, activations, and caches add memory beyond the nominal bit count. **Example:** compare downstream accuracy and rare-token behavior after quantization, plus throughput on the actual kernels. [QLoRA](https://arxiv.org/abs/2305.14314)
-
-
-    - [To be reviewed] Deepspeed Zero
-
-        - ZeRO partitions training states across a data-parallel group; its stages progressively shard optimizer state, gradients, and parameters. This is a memory-distribution strategy, independent of whether the trainable parameterization is full fine-tuning or PEFT.
-        - **Example:** sharding can make optimizer states fit, while activation memory still dominates at long context lengths. Offloading to CPU or storage changes the capacity/transfer trade-off and can reduce throughput. [ZeRO paper](https://arxiv.org/abs/1910.02054)
-
-    - [To be reviewed] TRL
-
-        - TRL supplies training workflows for language-model post-training, including supervised and preference/RL objectives. Select a trainer based on the actual data and objective: demonstration records, preferred/rejected pairs, and online reward functions are not interchangeable inputs.
-        - **Reproducibility:** record library versions, model and tokenizer revisions, chat template, loss masks, reward code, and checkpoint-resume state. A supported trainer does not validate the correctness of the training data or reward. [TRL documentation](https://huggingface.co/docs/trl/index)
-
 - [To be reviewed] When and why to freeze layers
 
     - Freezing removes parameter updates and optimizer states for selected weights, but gradients may still need to pass through a frozen operation to reach an earlier trainable component. Activation savings depend on the resulting computation graph.
@@ -2071,54 +2062,27 @@ The notes below expand update parameterizations, data curation, and feedback met
     - Layerwise learning-rate decay assigns smaller steps to selected lower layers, while gradual unfreezing changes which layers train over time. These are separate controls over plasticity.
     - **Example:** begin with a task head, then unfreeze upper encoder blocks if the representation is insufficient. Evaluate against a uniform-learning-rate baseline; the assumption that lower layers should move less can fail under a large domain change. Restore optimizer/scheduler behavior correctly when adding newly trainable parameters.
 
-- [To be reviewed] SFT Data Construction
+<a id="llm-quantization"></a>
+#### [To be reviewed] Quantization and Storage Precision
 
-    - Use schema-validated records with correct roles, explicit boundaries, and the intended assistant-loss mask. Include difficult valid examples, appropriate abstentions, multi-turn cases, and structured outputs representative of deployment.
-    - **Example:** for evidence-grounded answers, include both answerable and unanswerable questions and verify each citation against its source. Keep source documents and their paraphrases within one split. Inspect whether packing allows cross-example attention, and whether EOS handling teaches the model to stop. Report per-task and length-slice performance. [SFT trainer documentation](https://huggingface.co/docs/trl/sft_trainer)
+- Quantization maps high-precision values into a lower-bit representation with scales and sometimes zero points. Distinguish weight-only from weight-and-activation quantization, post-training quantization from quantization-aware training, and per-tensor from finer-grained scaling.
+- QLoRA stores a frozen base in a low-bit representation and trains higher-precision adapters; it does not directly optimize every four-bit base weight. Quantization metadata, adapters, activations, and caches add memory beyond the nominal bit count. **Example:** compare downstream accuracy and rare-token behavior after quantization, plus throughput on the actual kernels. [QLoRA](https://arxiv.org/abs/2305.14314)
 
+#### [To be reviewed] Training Toolchains
 
-- [To be reviewed] Catastrophic forgetting mitigation
+- TRL supplies training workflows for language-model post-training, including supervised and preference/RL objectives. Select a trainer based on the actual data and objective: demonstration records, preferred/rejected pairs, and online reward functions are not interchangeable inputs.
+- **Reproducibility:** record library versions, model and tokenizer revisions, chat template, loss masks, reward code, and checkpoint-resume state. A supported trainer does not validate the correctness of the training data or reward. [TRL documentation](https://huggingface.co/docs/trl/index)
 
-    - **Retention protocol:** mixing general-domain examples is one option, alongside replay, regularization toward a reference, or task-isolated adapters. There is no universal replay ratio: tune the target/general mixture under a fixed token budget and evaluate both domains. Report the chosen replay ratio and its validation protocol.
-    - **Example:** adapt a model to specialist terminology while retaining a held-out general instruction and language-understanding suite. A ratio that preserves average score can still harm rare capabilities; inspect slices and compare to the unchanged base model. [Continual-learning forgetting study](https://arxiv.org/abs/1312.6211)
+State/parameter sharding is described once in [Distributed Training](#distributed-training); it can be combined with full tuning or PEFT. Use the actual model/tokenizer revisions, loss masks, sampler, reward/verifier code, and framework versions to define a run.
 
-    - [To be reviewed] General-domain replay can mitigate forgetting, but choose the replay mixture using target and retention evaluations at a fixed budget; no universal 1:5 or 1:10 ratio follows from the method.
-
-
-- [To be reviewed] BERT Fine-Tuning
-
-    - Attach a task head or span-prediction head, then fine-tune the encoder with task-appropriate supervision. Classification typically uses a pooled or designated-token representation; extractive QA predicts start/end positions with an explicit no-answer design when needed.
-    - **Example:** for document classification, split at the document or author level and assess truncation sensitivity. Report a frozen-encoder baseline, learning-rate sensitivity, and variability across seeds. Encoder weights pretrained on generic text do not remove domain shift. [BERT paper](https://aclanthology.org/N19-1423/)
-
-[[YouTube](https://www.youtube.com/watch?v=ujubwa_oa-0&t=129s)]
-
-- [To be reviewed] GPT Fine-tuning
-
-    - **Evaluation-first workflow:** define a representative held-out set and a prompted base-model baseline, prepare schema-valid examples with desired responses, train a customized model when supported, and compare on the untouched evaluation set. Keep the inference instructions and formatting compatible with training. [Official OpenAI SFT guide](https://developers.openai.com/api/docs/guides/supervised-fine-tuning)
-    - **Example:** for support-ticket classification, track per-class precision/recall, invalid-label rate, and performance on new product categories. A lower training loss does not establish better deployment performance. Inspect label quality and distribution coverage before adding more epochs. [Fine-tuning best practices](https://developers.openai.com/api/docs/guides/fine-tuning-best-practices)
-    - **Dated availability note, 2026-10-26:** the official SFT guide states that the fine-tuning platform is winding down and is closed to new users. The original model version listed below is historical context; verify account eligibility, base-model lifecycle, and the documented retirement timeline before attempting a provider-hosted run.
-
-    - Version: gpt-4o-2024-08-06
-- [To be reviewed] Claude Fine-Tuning
-
-    - The linked historical example concerns **Claude 3 Haiku fine-tuning through Amazon Bedrock**. Scope any reproduction to the exact base-model revision, hosting platform, region, data schema, and supported customization path. A model-family name alone does not establish which weights or parameters a managed service updates. [Anthropic's historical announcement](https://claude.com/resources/articles/fine-tune-claude-3-haiku)
-    - **Example:** compare a customized domain classifier with the same base model using an optimized prompt, keeping the held-out examples and output schema fixed. Report correctness, calibration where meaningful, latency, and total inference cost. Retain the training-data version and service configuration; current availability must be established from the relevant platform documentation.
-
-[[Claude 3 Haiku](https://www.youtube.com/watch?v=BfURFJbEQLA)]
-
-
-#### Optimization and Efficiency
-- [To be reviewed] Mixed precision training (FP16, BF16)
-
-    - Use the numerical protocol in [Mixed Precision](#mixed-precision), and benchmark end-to-end rather than matrix multiplication alone. Reduced precision helps only when supported kernels and shapes use the hardware efficiently.
-    - **Example:** a small memory-bound operation may see little speedup, while large aligned matrix products can benefit substantially. Profile dtype conversions, optimizer state, and nonfinite gradients as well as tokens/second.
-
+<a id="optimization-and-efficiency"></a>
+#### [To be reviewed] Accumulation, Checkpointing, and Communication
 - [To be reviewed] Gradient accumulation
 
     - Accumulate gradients across microbatches before an optimizer step. For equal-sized microbatches, scale each mean loss by the number of accumulation steps to recover the large-batch mean gradient. With variable valid-token counts, normalize by the total relevant token count instead.
     - **Example:** averaging a 10-token microbatch loss and a 100-token microbatch loss weights their tokens differently from a global token mean. Dropout, batch normalization, clipping frequency, and floating-point accumulation can also prevent exact equivalence to one physical large batch. [AMP accumulation example](https://docs.pytorch.org/docs/stable/notes/amp_examples.html#gradient-accumulation)
 
-- Memory optimization technique (activation checkpointing, )
+- [To be reviewed] Activation checkpointing
     - Activation checkpointing/ Activation recomputation: Recompute some activations during the backward pass. Store some activations during the forward pass as checkpoints. Discard other activations and recompute them during the backward pass.
         - Save memory but take longer to compute.
     - [To be reviewed] For equal microbatches, global batch size is $`B_{\mathrm{global}}=B_{\mathrm{micro}}\,A\,D`$, where $`A`$ is accumulation steps and $`D`$ is data-parallel replicas. Normalize gradients/loss by the intended total example or valid-token count. “Average gradients” needs that explicit weighting when microbatch lengths differ.
@@ -2128,9 +2092,8 @@ The notes below expand update parameterizations, data curation, and feedback met
             - Launch communication for ready gradient buckets while backward computation continues. Bucket size trades launch overhead against how early overlap begins. Some distributed implementations can suppress repeated synchronization during accumulation and synchronize on the final microbatch.
             - **Example:** if every microbatch synchronizes despite eight-step accumulation, communication cost can be much larger than expected. Verify traces and framework semantics; excessive communication buffers can also raise peak memory. [DDP design notes](https://docs.pytorch.org/docs/stable/notes/ddp.html)
 
-
-
-#### LLM Inference
+<a id="llm-inference"></a>
+### [To be reviewed] Inference and Serving
 
 - [To be reviewed] Inference Framework
 
@@ -2146,10 +2109,8 @@ The notes below expand update parameterizations, data curation, and feedback met
     - **Example:** a few 100k-token prompts can monopolize prefill and harm short-request latency. Compare time to first token, inter-token latency, end-to-end latency, and throughput under specified prompt/output length distributions and arrival rates. Report p50/p95/p99 and the fraction meeting a latency objective, not only peak tokens/second.
     - Prefix caching requires exact compatibility of token prefix, model state, and cache semantics. Quantization and parallelism change both capacity and numerical behavior; benchmark quality as well as latency. Record model/tokenizer versions, sampling settings, cache policy, and error/timeout rates. [Serving system design](https://arxiv.org/abs/2309.06180)
 
-
-
-
-#### Evaluation and Monitoring
+<a id="evaluation-and-monitoring"></a>
+### [To be reviewed] Evaluation and Monitoring
 - Evaluation metrics
     - [To be reviewed] Perplexity
 
@@ -2176,12 +2137,6 @@ The notes below expand update parameterizations, data curation, and feedback met
 
         - Use scalar series for losses and learning rates, histograms for diagnostic distributions, and a profiler for operator, memory, and communication behavior. Tag experiments consistently and preserve raw configuration alongside plots.
         - **Example:** two runs can have the same training loss but very different useful tokens/second because one spends time on padding or synchronization. A wall-clock and profiler comparison distinguishes the bottleneck. [TensorBoard guide](https://www.tensorflow.org/tensorboard/get_started)
-
-
-
-
-
-
 
 ### RAG
 
