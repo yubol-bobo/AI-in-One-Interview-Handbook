@@ -1,6 +1,6 @@
 # Large Language Models
 
-[Handbook contents](../README.md#table-of-contents) | [Previous: NLP (Pre-LLM Era)](nlp.md) | [Next: Recommendation Systems](recommendation-systems.md)
+[Handbook contents](../README.md#table-of-contents) | [Previous: NLP (Pre-LLM Era)](nlp.md) | [Next: RAG](rag.md)
 
 ## Contents
 
@@ -45,18 +45,8 @@
     - [Accumulation, Checkpointing, and Communication](#optimization-and-efficiency)
 - [Inference and Serving](#llm-inference)
 - [Evaluation and Monitoring](#evaluation-and-monitoring)
-- [RAG](#rag)
-    - [Retrieval](#retrieval)
-    - [Embedding models](#embedding-models)
-    - [Chunking and Vectorization](#chunking-and-vectorization)
-    - [Re-ranking](#re-ranking)
-    - [Generation](#generation)
-- [Q&A System](#qa-system)
-    - [Types of QA Systems](#types-of-qa-systems)
-    - [Components of QA Systems](#components-of-qa-systems)
-    - [Evaluation](#evaluation)
-- [Reasoning](#reasoning)
 - [Recent interesting papers](#recent-interesting-papers)
+- [Related chapters](#related-chapters)
 
 
 <a id="llm-basic"></a>
@@ -79,7 +69,7 @@ A [token embedding](transformer.md#tf-embedding) is a learned input lookup; a co
 
 For paired queries and positive passages, a contrastive retrieval objective can minimize $`-\log\frac{\exp(s(q,d^+)/\tau)}{\sum_{d\in\mathcal{B}}\exp(s(q,d)/\tau)}`$. In-batch and mined hard negatives teach different distinctions; exclude known alternative positives where possible. The objective differs from ordinary next-token prediction. [Sentence-BERT](https://aclanthology.org/D19-1410/), [DPR](https://arxiv.org/abs/2004.04906)
 
-**Example:** “treatment failed” and “treatment succeeded” share vocabulary but should not be interchangeable answers. Evaluate real retrieval with difficult negatives, and keep query/index encoders and preprocessing compatible. [Embedding model evaluation](#embedding-models) covers index versioning, task-specific choices, recall definitions, and operational trade-offs.
+**Example:** “treatment failed” and “treatment succeeded” share vocabulary but should not be interchangeable answers. Evaluate real retrieval with difficult negatives, and keep query/index encoders and preprocessing compatible. [Embedding model evaluation](rag.md#embedding-models) covers index versioning, task-specific choices, recall definitions, and operational trade-offs.
 
 <a id="tokenization"></a>
 ### [To be reviewed] Tokenization
@@ -111,7 +101,7 @@ The main progression is **pre-training → mid-training → post-training**. Bou
 | Mid-training | How should an existing model adapt to a domain, capability emphasis, modality, or context regime? | Often continued LM learning on a changed mixture; transition-specific objectives can differ | Target gain versus matched additional training, general retention, length/position sweeps |
 | Post-training | How should the model behave or choose actions/responses for the intended tasks? | Demonstrations, preference labels, rewards, teacher feedback | Independent task success, generalization, retention, feedback validity, total cost |
 
-There is one detailed home for each topic below. [Pre-training](#pre-training) owns corpus preparation and the base LM objective; [mid-training](#mid-training) owns adaptation/retention; [post-training](#post-training) owns SFT, RL, preferences, and OPD. [Shared training systems](#llm-engineering) owns PEFT, precision, sharding, accumulation, and checkpoint execution; these controls can apply in several stages. [Inference](#llm-inference), [RAG](#rag), and [evaluation](#evaluation-and-monitoring) support deployment and measurement rather than defining additional training stages.
+There is one detailed home for each topic below. [Pre-training](#pre-training) owns corpus preparation and the base LM objective; [mid-training](#mid-training) owns adaptation/retention; [post-training](#post-training) owns SFT, RL, preferences, and OPD. [Shared training systems](#llm-engineering) owns PEFT, precision, sharding, accumulation, and checkpoint execution; these controls can apply in several stages. [Inference](#llm-inference), [RAG](rag.md#rag), and [evaluation](#evaluation-and-monitoring) support deployment and measurement rather than defining additional training stages.
 
 <a id="pre-training"></a>
 ## [To be reviewed] Pre-training
@@ -599,172 +589,6 @@ State/parameter sharding is described once in [Distributed Training](#distribute
         - Use scalar series for losses and learning rates, histograms for diagnostic distributions, and a profiler for operator, memory, and communication behavior. Tag experiments consistently and preserve raw configuration alongside plots.
         - **Example:** two runs can have the same training loss but very different useful tokens/second because one spends time on padding or synchronization. A wall-clock and profiler comparison distinguishes the bottleneck. [TensorBoard guide](https://www.tensorflow.org/tensorboard/get_started)
 
-## RAG
-
-[[ANLP](https://www.youtube.com/watch?v=KfQaYk4k9eM)]
-<a id="retrieval"></a>
-### [To be reviewed] Retrieval
-
-- **Sparse retrieval:** BM25 uses exact term matches with term-frequency saturation and length normalization. Preserve identifiers and important terminology during tokenization. **Dense retrieval:** a bi-encoder scores separately encoded queries and passages, enabling precomputed passage vectors and approximate nearest-neighbor search. Dense models can recover paraphrases but can miss exact constraints. [BM25 textbook](https://nlp.stanford.edu/IR-book/html/htmledition/okapi-bm25-a-non-binary-model-1.html), [DPR](https://arxiv.org/abs/2004.04906)
-- **Hybrid retrieval:** take the union of sparse and dense candidates, deduplicate, and fuse rankings. Reciprocal rank fusion uses $`\operatorname{RRF}(d)=\sum_r 1/(c+\operatorname{rank}_r(d))`$ over rankings containing the document; $`c`$ is a chosen damping constant. Rank fusion avoids directly averaging incompatible BM25 and cosine score scales. [Original RRF paper](https://doi.org/10.1145/1571941.1572114)
-- **Example:** for “E137 after firmware 2.1,” sparse matching preserves the exact code/version while dense search finds a paraphrased troubleshooting description. Filter by the applicable product/version and access permissions. A relevant passage for a different version is a retrieval error even if its semantic score is high.
-- **Diagnosis:** separately measure representation quality, ANN search loss against exact vector search, filtering correctness, and candidate recall. A reranker cannot recover a passage absent from its candidate pool. For evidence-required QA, candidate evidence recall constrains grounded answer coverage. Evaluate no-retrieval, sparse, dense, and hybrid baselines on the same corpus snapshot.
-
-- Sparse retrieval (BM25, TF-IDF based retrival)
-- Dense retrieval (Embedding-based retrieval)
-- Hybrid retrieval
-
-<a id="embedding-models"></a>
-### [To be reviewed] Embedding models
-
-- A retriever embedding is trained for a scoring geometry, often contrastive similarity between queries and relevant documents. Model labels such as “SentenceTransformers,” E5, and GTE describe families or tooling; actual checkpoint, training data, task instructions, normalization, and maximum length matter.
-- **Selection protocol:** create domain-specific query/relevance pairs; evaluate multilingual slices, rare entities, negation, exact constraints, and hard negatives. Sentence similarity and document retrieval test different capabilities. Choose vector dimension and quantization jointly with recall, memory, indexing time, and query latency. [Sentence-BERT](https://aclanthology.org/D19-1410/), [BEIR](https://arxiv.org/abs/2104.08663)
-- **Example:** a query asking for an exception to a policy should not retrieve only the general rule because the two are semantically similar. Include the general-rule passage as a hard negative when it does not answer the exception question; check for alternative valid positives before labeling negatives.
-- If the encoder, tokenizer, instructions, pooling, or normalization changes, treat the embedding index as versioned derived data and assess whether re-embedding is required. Compare providers using measured retrieval quality and operational constraints; avoid assuming a product's current model name or dimensionality from a historical note.
-- **Metric definition:** for a query with a known relevant set $`R_q`$, $`\operatorname{Recall@k}=|\operatorname{TopK}(q)\cap R_q|/|R_q|`$. Some QA benchmarks instead report the fraction of queries with at least one answer-bearing passage in the top k; name that hit-rate definition explicitly. Incomplete judgments limit both interpretations.
-
-- Open-source models (SentenceTransformers, E5, GTE)
-- Commericial APIs (OpenAI Embedding, Cohere embedding)
-- How to choose embedding models
-    - Semantic vs lexical relevance
-    - Embedding dimension, speed, accuracy trade-offs
-- Evaluation
-    - Retrieval accuracy metrics(Recall@k, MRR)
-    - Semantic similarity tasks (STS benchmarks)
-
-<a id="chunking-and-vectorization"></a>
-### [To be reviewed] Chunking and Vectorization
-
-- Chunking defines the retrieval unit, not merely a preprocessing convenience. Small chunks can sharpen matching but omit definitions and qualifiers; large chunks preserve context but dilute relevance and consume the generator's budget. Overlap reduces boundary loss while increasing duplication and index size.
-- Start with structure-aware boundaries such as headings, paragraphs, code blocks, and table rows, then enforce token limits. Fixed-size, recursive, and semantic splitters should be compared against the same evidence set; semantic boundaries can also be wrong. Keep parent-document identity, offsets, dates, and section paths. [Document-structure partitioning reference](https://docs.unstructured.io/open-source/core-functionality/partitioning)
-- **Example:** a policy says “coverage lasts 90 days” in one paragraph and “except refurbished units: 30 days” in the next. Splitting between them can retrieve a fluent but incorrect answer. Retrieve a small child chunk for matching, then expand to a bounded parent span for generation when appropriate.
-- **Experiment:** sweep chunk length and overlap under a fixed total context budget, deduplicate overlapping hits, and measure evidence coverage plus grounded answer accuracy. Also measure index size and latency. There is no universal optimal chunk size or overlap ratio. [Retrieval-augmented generation](https://arxiv.org/abs/2005.11401)
-- Do not allow chunks from the same source document to leak across development and test splits. Preserve tables and equations as coherent units where possible; a token budget that truncates a table's header can change its meaning.
-
-- Importance of chunking
-    - Optimal chunk size
-    - Overlapping vs non-overlapping chunking
-- Chunking strategies
-    - Semantic chunking vs fixed-size chunking
-    - Recursive chunking methods
-- Impact of chunking strategy on retrieval quality and generation accuracy
-
-<a id="re-ranking"></a>
-### [To be reviewed] Re-ranking
-
-- A cross-encoder jointly processes a query and candidate passage to estimate relevance; it captures token interactions that independent single-vector encoding compresses away. Its pairwise computation makes it suitable for a shortlist rather than an entire large corpus. Late-interaction retrievers such as ColBERT offer another trade-off by retaining token-level representations. [Cross-encoder reranking](https://arxiv.org/abs/1901.04085), [ColBERT](https://arxiv.org/abs/2004.12832)
-- Score normalization and rank fusion combine retrieval systems; query expansion changes the query or candidate set. They are not automatically learned rerankers. Define the stage and candidate pool precisely when reporting an improvement.
-- **Example:** rerank the top 100 retrieved passages into 10 context candidates, then remove redundant overlapping spans. A passage with the correct entity but wrong effective date should be a difficult negative. Train and evaluate with negatives representative of first-stage retrieval, not only random unrelated passages.
-- **Metrics:** reciprocal rank is $`1/r`$ for the first relevant result, with zero if none appears; average precision averages precision at relevant ranks and divides by the number of known relevant items under the chosen protocol. Precision@k emphasizes top-k cleanliness; graded NDCG can reward strongly relevant evidence more than marginally useful passages. State truncation and judgment conventions.
-- **Toy example:** relevance sequence [1, 0, 1] with exactly two relevant items gives AP $`(1+2/3)/2=5/6`$ and reciprocal rank 1. These metrics capture different properties. Report evidence recall before reranking and final answer performance to locate the source of any gain.
-
-- Importance
-- Methods of re-ranking
-    - Cross-encoders (dense re-rankers)
-    - Traditional re-ranking (score normalization ,query expansion)
-    - Learned re-ranking (supervised methods)
-- Evaluation
-    - MAP
-    - MRR
-    - Precision @k
-
-<a id="generation"></a>
-### [To be reviewed] Generation
-
-- Construct an evidence package with clear document boundaries, source IDs, relevant metadata, and an explicit task. Require citations to refer to supplied source IDs and assess support at the claim level. Retrieved text is untrusted data; instructions embedded in documents should not override the application's task or permission boundaries.
-- **Example:** when sources disagree about a warranty duration, compare product scope and effective date before answering. If the evidence cannot resolve the conflict, return the bounded uncertainty rather than silently selecting the more convenient passage.
-- **Context budget:** reserve space for the system/task instructions, conversation, evidence, and output. Deduplicate and choose complementary passages. More context is not automatically better; measure sensitivity to distractors and evidence position. [Lost in the Middle](https://arxiv.org/abs/2307.03172)
-- **Fusion-in-Decoder:** the published FiD architecture encodes question-passage pairs separately and lets a decoder attend to the combined encoder representations. This differs from concatenating all passages into a single decoder-only prompt. The former reduces cross-passage interaction in the encoder while retaining cross-passage aggregation in the decoder. [FiD](https://arxiv.org/abs/2007.01282)
-- **Evaluation:** independently test retrieval relevance, evidence coverage, answer correctness, citation precision/coverage, and abstention on unanswerable queries. Use oracle-evidence and deliberately irrelevant-evidence ablations to separate retrieval failures from generation failures. Automated faithfulness judges need calibration against human-checked examples. [RAG evaluation framework](https://arxiv.org/abs/2309.15217)
-- Retrieval makes knowledge easier to refresh and inspect; it cannot guarantee factuality when documents are false, stale, irrelevant, or misread by the generator.
-
-- Incorporating retrieved context into generation
-    - prompt engineering for RAG
-    - context window management
-- Handling large contexts effectively
-    - Fusion-in-Decoder
-    - Long-context Transformers
-- Mitigating hallucinations through retrieval context management
-
-
-
-
-## Q&A System
-<a id="types-of-qa-systems"></a>
-### [To be reviewed] Types of QA Systems
-
-- **Factoid versus explanatory** describes answer form; **extractive versus generative** describes how the answer is produced. These axes are not equivalent: a generated answer may be a one-word factoid, and an extracted passage may contain an explanation.
-- **Open-domain versus closed-domain** describes the scope of questions or knowledge sources. RAG is a system architecture that retrieves evidence before generation, rather than a mutually exclusive alternative to an LLM-based system.
-- **Example:** “What is the release date?” can be answered by an extractive span reader or a generative RAG model. “Why did the launch move?” may require synthesizing several dated documents. A corpus-bounded support assistant should be evaluated on whether its permitted sources support the answer, even when the base model remembers a plausible answer from elsewhere. [SQuAD task definition](https://arxiv.org/abs/1606.05250), [RAG architecture](https://arxiv.org/abs/2005.11401)
-
-- Factoid (simple answer, extractive)
-- Non-factoid (explanatory, abstractive)
-- Open-domain vs Closed-domain Q&A
-- Traditional Q&A vs RAG vs LLM-based Q&A
-
-<a id="components-of-qa-systems"></a>
-### [To be reviewed] Components of QA Systems
-
-- **Question processing:** resolve conversational references, classify required answer type, extract entities and constraints, and decide whether decomposition or clarification is needed. Preserve negation, units, dates, and access scope when rewriting a query.
-- **Retrieval:** retrieve candidates, enforce corpus and permission constraints, rerank, and build a provenance-preserving evidence set. **Reading/generation:** either predict answer spans with a calibrated no-answer option or synthesize an answer constrained by the evidence. [DPR](https://arxiv.org/abs/2004.04906), [SQuAD 2.0](https://arxiv.org/abs/1806.03822)
-- **Post-processing:** validate structured output, normalize units where justified, check citation support, merge duplicate claims, and decide whether confidence meets the task's threshold. Token probability is not automatically a calibrated probability that an entire answer is correct.
-- **Example:** for “How much did revenue change from 2023 to 2024?”, retrieve both comparable figures, confirm currency and fiscal periods, compute $`(R_{2024}-R_{2023})/R_{2023}`$, and cite both values. A correct subtraction using mismatched fiscal scopes is still a wrong answer. Use a calculator or code for arithmetic and preserve the supporting evidence.
-- Evaluate each interface separately: query-rewrite fidelity, evidence recall, reader accuracy given gold evidence, and complete-system answer quality. A single end-to-end score does not identify which component needs improvement.
-
-- Question Processing
-    - Question type classification (factoid, procedural, descriptive)
-    - Query parsing and expansion
-
-- Document/Passage Retrieval
-    - Dense retrieval (embedding-based retrieval)
-    - Sparse retrieval (BM25, TF-IDF)
-    - Hybrid approaches
-    - Re-ranking of retrieved passages
-
-- Answer Extraction/Generation
-    - Extractive Q&A (span-based)
-    - Generative Q&A (abstractive, using LLMs)
-
-- Answer Post-processing
-    - Summarization, filtering irrelevant answers
-    - Confidence scoring and answer ranking
-
-
-<a id="evaluation"></a>
-### [To be reviewed] Evaluation
-
-- **Extractive QA:** normalized exact match checks answer-string agreement; token F1 measures overlap with reference answer tokens under a specified normalization. Multiple valid reference spans may be needed. The evaluator's tokenizer and treatment of articles, punctuation, and aliases are part of the metric.
-- **Example:** “NYC” and “New York City” can be semantically equivalent but score differently without alias handling. For unanswerable questions, assess both answer accuracy and the error/coverage trade-off of abstention. Select the abstention threshold on development data. [SQuAD evaluation](https://arxiv.org/abs/1606.05250), [unanswerable QA](https://arxiv.org/abs/1806.03822)
-- **Generative QA:** report factual/task correctness, completeness of required claims, source support, citation quality, and usefulness. BLEU, ROUGE, and METEOR compare reference-text similarity; METEOR can align variants such as stems and synonyms under its resources. Similarity remains an imperfect proxy for supported correctness. [METEOR](https://aclanthology.org/W05-0909/)
-- **Failure localization:** compare retrieved evidence with gold evidence, and the reader with oracle evidence. Group errors into missing evidence, wrong interpretation, unsupported generation, and inappropriate answer/abstention. Report uncertainty clustered by source or question family when examples are dependent.
-- Keep a temporal or source-separated test set, include conflicting/outdated sources, and compare against a simple extractive or retrieval baseline. Human review should use a written rubric and blinded model identity.
-
-- Extractive Q&A Evaluation
-    - Exact Match
-    - F1-score
-- Generative Q&A Evalution
-    - ROUGE
-    - BLEU
-    - METEOR score
-    - Human evaluation
-
-
-<a id="reasoning"></a>
-## [To be reviewed] Reasoning
-
-- **Reasoning setup:** specify the problem representation, allowed tools, answer verifier, and compute budget. Multi-step prompting can improve some tasks; a persuasive written rationale is not independent proof of a correct answer or a faithful account of internal computation. [Chain-of-thought prompting](https://arxiv.org/abs/2201.11903)
-- **Search and selection:** sample multiple candidates, decompose a problem, or search over partial solutions. A useful verifier can turn additional computation into better answer selection; a biased verifier can instead amplify a systematic error. Compare search to ordinary resampling at matched generated-token and tool budgets. [Tree of Thoughts](https://arxiv.org/abs/2305.10601)
-- **Supervision:** outcome rewards assess the final result; process supervision labels intermediate steps. Verifiable arithmetic, tests, or formal proof checking provide more direct feedback than a style preference, though each verifier has a limited specification. [Process supervision](https://arxiv.org/abs/2305.20050)
-- **Example:** a generated program may pass visible tests while failing hidden edge cases. Keep evaluation tests out of the policy's feedback loop when claiming held-out generalization; otherwise the system is adapting to those tests.
-- **Measurement:** report pass@1 and a specified sampling/selection protocol. With $`n`$ sampled candidates and $`c`$ successes, the common estimator is $`\widehat{\operatorname{pass@k}}=1-\binom{n-c}{k}/\binom{n}{k}`$ for $`n\geq k`$, using zero for impossible numerator combinations. Oracle pass@k is different from the success rate of a deployable selector that cannot see correctness labels. [Code-model evaluation](https://arxiv.org/abs/2107.03374)
-- Sweep inference budgets, report latency and cost alongside correctness, and test transfer to new problem families. Additional tokens or a higher reward on the training distribution do not establish a general reasoning capability.
-
-- [To be reviewed] Information seeking
-
-    - Turn an information need into successive evidence-gathering actions: formulate a query, inspect sources, update the evidence state, and decide whether another query is useful. ReAct interleaves reasoning-oriented generation with environment actions and observations. [ReAct](https://arxiv.org/abs/2210.03629)
-    - **Example:** answering a disputed release date may require the original announcement and a later correction. Track source dates and claim provenance, and stop when the available evidence resolves the question or a stated search budget is exhausted. Repeating equivalent searches is additional activity rather than additional evidence.
-
-
 <a id="recent-interesting-papers"></a>
 ## [To be reviewed] Recent interesting papers
 
@@ -779,3 +603,34 @@ This is a dated reading list selected on **2026-10-26**. Years indicate first pu
 | [Kimi K2.5: Visual Agentic Intelligence](https://arxiv.org/abs/2602.02276) (2026) | Joint text/vision training and an Agent Swarm framework for parallel task execution. | Separate modality-training gains from orchestration gains. Reevaluate with matched total tokens, tool calls, task permissions, and concurrency; distinguish reduced wall-clock latency from reduced total compute. |
 
 For each paper, record **claim → assumptions → comparison baseline → ablation → uncertainty → failure cases**. Prefer the released implementation and the specific report revision used for reproduction; benchmark rank alone is insufficient to identify which mechanism caused an improvement.
+
+## Related chapters
+
+<a id="chunking-and-vectorization"></a>
+<a id="embedding-models"></a>
+<a id="generation"></a>
+<a id="rag"></a>
+<a id="re-ranking"></a>
+<a id="retrieval"></a>
+<a id="to-be-reviewed-chunking-and-vectorization"></a>
+<a id="to-be-reviewed-embedding-models"></a>
+<a id="to-be-reviewed-generation"></a>
+<a id="to-be-reviewed-re-ranking"></a>
+<a id="to-be-reviewed-retrieval"></a>
+
+- [RAG](rag.md#rag)
+
+<a id="components-of-qa-systems"></a>
+<a id="evaluation"></a>
+<a id="qa-system"></a>
+<a id="to-be-reviewed-components-of-qa-systems"></a>
+<a id="to-be-reviewed-evaluation"></a>
+<a id="to-be-reviewed-types-of-qa-systems"></a>
+<a id="types-of-qa-systems"></a>
+
+- [QA systems](qa.md#qa-system)
+
+<a id="reasoning"></a>
+<a id="to-be-reviewed-reasoning"></a>
+
+- [Reasoning](reasoning.md#reasoning)

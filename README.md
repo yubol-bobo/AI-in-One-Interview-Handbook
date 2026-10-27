@@ -115,16 +115,11 @@ This README is the handbook index. Each chapter has its own contents and chapter
 <a id="adaptation-and-preference-methods"></a>
 <a id="architecture"></a>
 <a id="causal-loss-example"></a>
-<a id="chunking-and-vectorization"></a>
-<a id="components-of-qa-systems"></a>
 <a id="distillation-and-opd"></a>
 <a id="distributed-training"></a>
 <a id="embedding"></a>
-<a id="embedding-models"></a>
-<a id="evaluation"></a>
 <a id="evaluation-and-monitoring"></a>
 <a id="fine-tuning"></a>
-<a id="generation"></a>
 <a id="large-language-models"></a>
 <a id="llm-basic"></a>
 <a id="llm-concept"></a>
@@ -140,12 +135,7 @@ This README is the handbook index. Each chapter has its own contents and chapter
 <a id="post-training"></a>
 <a id="pre-training"></a>
 <a id="preference-optimization"></a>
-<a id="qa-system"></a>
-<a id="rag"></a>
-<a id="re-ranking"></a>
-<a id="reasoning"></a>
 <a id="recent-interesting-papers"></a>
-<a id="retrieval"></a>
 <a id="rl-feedback-comparison"></a>
 <a id="sft-rl-opd-comparison"></a>
 <a id="stage-map"></a>
@@ -153,17 +143,12 @@ This README is the handbook index. Each chapter has its own contents and chapter
 <a id="to-be-reviewed-accumulation-checkpointing-and-communication"></a>
 <a id="to-be-reviewed-architecture-and-visibility"></a>
 <a id="to-be-reviewed-causal-next-token-loss-example"></a>
-<a id="to-be-reviewed-chunking-and-vectorization"></a>
-<a id="to-be-reviewed-components-of-qa-systems"></a>
 <a id="to-be-reviewed-corpus-preparation-and-mixture-design"></a>
 <a id="to-be-reviewed-direct-preference-optimization-dpo"></a>
 <a id="to-be-reviewed-distillation-offline-traces-and-on-policy-distillation-opd"></a>
 <a id="to-be-reviewed-distributed-training"></a>
-<a id="to-be-reviewed-embedding-models"></a>
-<a id="to-be-reviewed-evaluation"></a>
 <a id="to-be-reviewed-evaluation-and-monitoring"></a>
 <a id="to-be-reviewed-feedback-collection-and-reward-model-evaluation"></a>
-<a id="to-be-reviewed-generation"></a>
 <a id="to-be-reviewed-inference-and-serving"></a>
 <a id="to-be-reviewed-llm-foundations"></a>
 <a id="to-be-reviewed-mid-training"></a>
@@ -177,13 +162,10 @@ This README is the handbook index. Each chapter has its own contents and chapter
 <a id="to-be-reviewed-pre-training"></a>
 <a id="to-be-reviewed-preferences-reward-models-and-ai-feedback"></a>
 <a id="to-be-reviewed-quantization-and-storage-precision"></a>
-<a id="to-be-reviewed-re-ranking"></a>
-<a id="to-be-reviewed-reasoning"></a>
 <a id="to-be-reviewed-recent-interesting-papers"></a>
 <a id="to-be-reviewed-relationships-hybrids-and-evaluation"></a>
 <a id="to-be-reviewed-representations-token-states-and-retrieval-vectors"></a>
 <a id="to-be-reviewed-retention-replay-and-behavior-restoration"></a>
-<a id="to-be-reviewed-retrieval"></a>
 <a id="to-be-reviewed-rlaif-and-judge-bias"></a>
 <a id="to-be-reviewed-rlhf-rlaif-rlvr-and-rlcd-a-side-by-side-comparison"></a>
 <a id="to-be-reviewed-same-task-example-a-code-assistant"></a>
@@ -197,12 +179,10 @@ This README is the handbook index. Each chapter has its own contents and chapter
 <a id="to-be-reviewed-tokenization"></a>
 <a id="to-be-reviewed-training-overview-three-stages"></a>
 <a id="to-be-reviewed-training-toolchains"></a>
-<a id="to-be-reviewed-types-of-qa-systems"></a>
 <a id="to-be-reviewed-unresolved-terminology-kpo"></a>
 <a id="to-be-reviewed-update-parameterization-and-peft"></a>
 <a id="to-be-reviewed-what-changes-mathematically-and-what-can-be-shared"></a>
 <a id="tokenization"></a>
-<a id="types-of-qa-systems"></a>
 <a id="update-parameterization"></a>
 
 - [Large Language Models](docs/large-language-models.md#large-language-models)
@@ -224,17 +204,46 @@ This README is the handbook index. Each chapter has its own contents and chapter
         - [Accumulation and Checkpointing](docs/large-language-models.md#optimization-and-efficiency)
     - [Inference and Serving](docs/large-language-models.md#llm-inference)
     - [Evaluation and Monitoring](docs/large-language-models.md#evaluation-and-monitoring)
-    - [QA Systems](docs/large-language-models.md#qa-system)
-    - [Reasoning](docs/large-language-models.md#reasoning)
     - [Research Reading List](docs/large-language-models.md#recent-interesting-papers)
 
-- [RAG](docs/large-language-models.md#rag)
-    - [Retrieval](docs/large-language-models.md#retrieval)
-    - [Embedding Models](docs/large-language-models.md#embedding-models)
-    - [Chunking and Vectorization](docs/large-language-models.md#chunking-and-vectorization)
-    - [Re-ranking](docs/large-language-models.md#re-ranking)
-    - [Generation](docs/large-language-models.md#generation)
+<a id="chunking-and-vectorization"></a>
+<a id="embedding-models"></a>
+<a id="generation"></a>
+<a id="rag"></a>
+<a id="re-ranking"></a>
+<a id="retrieval"></a>
+<a id="to-be-reviewed-chunking-and-vectorization"></a>
+<a id="to-be-reviewed-embedding-models"></a>
+<a id="to-be-reviewed-generation"></a>
+<a id="to-be-reviewed-re-ranking"></a>
+<a id="to-be-reviewed-retrieval"></a>
 
+- [RAG](docs/rag.md#rag)
+    - [Retrieval](docs/rag.md#retrieval)
+    - [Embedding Models](docs/rag.md#embedding-models)
+    - [Chunking and Vectorization](docs/rag.md#chunking-and-vectorization)
+    - [Re-ranking](docs/rag.md#re-ranking)
+    - [Generation](docs/rag.md#generation)
+
+
+<a id="components-of-qa-systems"></a>
+<a id="evaluation"></a>
+<a id="qa-system"></a>
+<a id="to-be-reviewed-components-of-qa-systems"></a>
+<a id="to-be-reviewed-evaluation"></a>
+<a id="to-be-reviewed-types-of-qa-systems"></a>
+<a id="types-of-qa-systems"></a>
+
+- [QA Systems](docs/qa.md#qa-system)
+    - [Types of QA Systems](docs/qa.md#types-of-qa-systems)
+    - [Components of QA Systems](docs/qa.md#components-of-qa-systems)
+    - [Evaluation](docs/qa.md#evaluation)
+
+<a id="reasoning"></a>
+<a id="to-be-reviewed-reasoning"></a>
+
+- [Reasoning](docs/reasoning.md#reasoning)
+    - [Information Seeking](docs/reasoning.md#information-seeking)
 
 <a id="personalized-rec-system"></a>
 <a id="rec-comparison"></a>
