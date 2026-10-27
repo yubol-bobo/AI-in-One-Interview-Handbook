@@ -78,15 +78,15 @@ A statistical hypothesis test is a method of statistical inference used to decid
 ### ML Basic
 #### Gradient descent
 - (Batch) Gradient descent [[ref](https://machinelearningmastery.com/gradient-descent-for-machine-learning/)] [[B站](https://www.bilibili.com/video/BV1jh4y1q7ua/?spm_id_from=333.337.search-card.all.click&vd_source=c86f14ec33e79f08f7e2278747a071e8)]
-    - The gradient $\left(\nabla_\theta J(\theta)\right)$ represents the direction of steepest ascent-the direction where the function increases the fastest. Gradient gives the direction of steepest ascend. So to minimize the function, take steps in the opposite direction.
+    - The gradient $`\left(\nabla_\theta J(\theta)\right)`$ represents the direction of steepest ascent-the direction where the function increases the fastest. Gradient gives the direction of steepest ascend. So to minimize the function, take steps in the opposite direction.
     - Gradient descent is an optimization algorithm used to find the values of parameters (coefficients) of a function (f) that minimizes a cost function (cost).
-    - formula: $$\theta = \theta - \alpha \nabla_\theta J(\theta)$$, where $\theta:$ Parameters to be optimized. $\alpha$ : Learning rate (step size). $\nabla_\theta J(\theta)$ : Gradient of the cost function w.r.t. parameters.
+    - formula: $`\theta = \theta - \alpha \nabla_\theta J(\theta)`$, where $`\theta:`$ Parameters to be optimized. $`\alpha`$ : Learning rate (step size). $`\nabla_\theta J(\theta)`$ : Gradient of the cost function w.r.t. parameters.
 
 - GD Variants
     - (Batch) GD: All data points at once
     - SGD: one data point per iteration
         - Updates parameters using only one randomly chosen training example at each step.
-        - Formula: $\theta_{t+1}=\theta_t-\alpha \nabla J\left(\theta_t\right)$, where $\theta_t$ are the parameters, $\alpha$ is the learning rate, and $\nabla J\left(\theta_t\right)$ is the gradient.
+        - Formula: $`\theta_{t+1}=\theta_t-\alpha \nabla J\left(\theta_t\right)`$, where $`\theta_t`$ are the parameters, $`\alpha`$ is the learning rate, and $`\nabla J\left(\theta_t\right)`$ is the gradient.
     - Mini-batch GD: Small subset per iteration.
     - Cons:
         - Sensitivity to learning rate
@@ -96,22 +96,24 @@ A statistical hypothesis test is a method of statistical inference used to decid
 All following advanced optimization algorithms improve parameter updates by adjusting both the **gradient calculation (gc)** and the **learning rate strategy (lr)**.
 
 - **Momentum (gc)** enhances standard gradient descent by adding a velocity term that accumulates past gradients. This velocity term smooths the updates, reducing oscillations and accelerating convergence, particularly in scenarios with noisy gradients or ill-conditioned optimization surfaces.
-    - $v_t=\beta v_{t-1}+(1-\beta) \nabla J\left(\theta_t\right)$ 
-    - $\theta_{t+1}=\theta_t-\alpha v_t$
+    - $`v_t=\beta v_{t-1}+(1-\beta) \nabla J\left(\theta_t\right)`$
+    - $`\theta_{t+1}=\theta_t-\alpha v_t`$
     - Pros: faster, jump out of local minimum, stable training.
 
 - Nesterov Accelerated Gradient
     - Update rule
-        - $\tilde{\theta}_t=\theta_t+\beta v_{t-1} \quad$ ("look-ahead")
-        - $v_{t}=\beta v_{t-1} + \eta \nabla_\theta \mathcal{L}\left(\tilde{\theta}_t\right)$
-        - $\theta_{t+1}=\theta_t-v_{t}$
+        - $`\tilde{\theta}_t=\theta_t+\beta v_{t-1} \quad`$ ("look-ahead")
+        - $`v_{t}=\beta v_{t-1} + \eta \nabla_\theta \mathcal{L}\left(\tilde{\theta}_t\right)`$
+        - $`\theta_{t+1}=\theta_t-v_{t}`$
     - Intuition
-        - First take a "momentum step" to peek ahead at where you'd be $\left(\tilde{\theta}_t\right)$, then compute the gradient there.
+        - First take a "momentum step" to peek ahead at where you'd be $`\left(\tilde{\theta}_t\right)`$, then compute the gradient there.
         - This correction reduces lag in the momentum term, leading to more accurate, often faster convergence.
 
 
 - **Adagrad (lr)** uses adaptive learning rates for each parameter, automatically adjusting LR during training. Larger learning rates for infrequent parameters, smaller rates for frequent parameters.
-    - Formula:  $$G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)$$
+    - Formula:
+
+      $`G_t=G_{t-1}+\left(\nabla_\theta J(\theta)\right)^2, \quad \theta=\theta-\frac{\alpha}{\sqrt{G_t+\epsilon}} \nabla_\theta J(\theta)`$
 
 - **RMSprop (lr)**: Adagrad adapts the learning rate individually for each parameter, but its main drawback is the continual accumulation of squared gradients. Over time, this causes the learning rate to shrink excessively, sometimes stopping learning prematurely. RMSprop addresses this limitation by introducing an exponential moving average of squared gradients instead of a cumulative sum. This prevents the learning rate from becoming excessively small over time, making RMSprop better at handling non-stationary problems and maintaining stable and efficient convergence.
 
@@ -120,23 +122,23 @@ All following advanced optimization algorithms improve parameter updates by adju
     Step 1: Calculate biased moments
     - First moment estimate (mean of gradients):
 
-        $$m_t=\beta_1 m_{t-1}+\left(1-\beta_1\right) \nabla_\theta J(\theta)$$
+        $`m_t=\beta_1 m_{t-1}+\left(1-\beta_1\right) \nabla_\theta J(\theta)`$
 
     - Second moment estimate (mean of squared gradients):
 
-        $$v_t=\beta_2 v_{t-1}+\left(1-\beta_2\right)\left(\nabla_\theta J(\theta)\right)^2$$
+        $`v_t=\beta_2 v_{t-1}+\left(1-\beta_2\right)\left(\nabla_\theta J(\theta)\right)^2`$
 
 
     Step 2: Correct bias (since initial values are zero):
-    - $$\hat{m}_t=\frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t=\frac{v_t}{1-\beta_2^t}$$
+    - $`\hat{m}_t=\frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t=\frac{v_t}{1-\beta_2^t}`$
 
 
     Step 3: Parameter update:
-    - $$\theta=\theta-\frac{\alpha}{\sqrt{\hat{v}_t}+\epsilon} \hat{m}_t$$
+    - $`\theta=\theta-\frac{\alpha}{\sqrt{\hat{v}_t}+\epsilon} \hat{m}_t`$
 
 
         Typical default values:
-        - $\beta_1=0.9, \beta_2=0.999, \epsilon=10^{-8}$
+        - $`\beta_1=0.9, \beta_2=0.999, \epsilon=10^{-8}`$
 
 
 - AdamW: Adam combines adaptive learning rates (like RMSprop) with momentum, leading to fast, efficient convergence. However, its implicit handling of weight decay can hurt generalization. AdamW improves upon Adam by explicitly decoupling weight decay from gradient-based updates, resulting in better regularization and improved generalization—making AdamW particularly beneficial for training large, modern models like transformers.
@@ -169,10 +171,10 @@ All following advanced optimization algorithms improve parameter updates by adju
 
     - Metrics:
         - Accuracy: Overall correctness
-        - Precision ($\frac{T P}{T P+F P}$): Out of predicted positives, how many were actually positive?
-        - Recall/sensitivity/TPR ($\frac{T P}{T P+F N}$): 	Out of actual positives, how many were predicted correctly?
-        - Specificity/TNR ($\frac{T N}{T N+F P}$): Out of actual negatives, how many were correctly predicted negative?
-        - F1-score ($2 \times \frac{\text { Precision } \times \text { Recall }}{\text { Precision }+ \text { Recall }}$): Harmonic mean balancing precision and recall. For multi-class problems, use macro or weighted averages. 
+        - Precision ($`\frac{T P}{T P+F P}`$): Out of predicted positives, how many were actually positive?
+        - Recall/sensitivity/TPR ($`\frac{T P}{T P+F N}`$): 	Out of actual positives, how many were predicted correctly?
+        - Specificity/TNR ($`\frac{T N}{T N+F P}`$): Out of actual negatives, how many were correctly predicted negative?
+        - F1-score ($`2 \times \frac{\text { Precision } \times \text { Recall }}{\text { Precision }+ \text { Recall }}`$): Harmonic mean balancing precision and recall. For multi-class problems, use macro or weighted averages.
         - **How to choose**: Accuracy is misleading with imbalanced data. Precision, if avoiding false positives is crucial (e.g., spam detection). Recall (Sensitivity), if missing a positive case is costly (e.g., cancer detection, fraud detection). F1-score, if both precision and recall matter equally. Specificity, if correctly identifying negative cases is essential (medical tests).
         - Precision vs Recall: Precision clearly matters when the cost of a FP is high. (e.g., classifying email as spam—high precision avoids wrongly marking important emails). Recall (TPR) clearly matters when the cost of missing positives (FN) is very high (e.g., disease diagnosis—high recall ensures positive cases aren't missed).
 
@@ -204,36 +206,36 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Regularization: Regularization, such as L1 (LASSO) or L2 (Ridge), can be used to control model complexity to prevent overfitting and tackle high variance. They work by adding a penalty term to the magnitude of the coefficients.
         General form of regularized loss function:
 
-        ![Regularized Loss Formula](https://latex.codecogs.com/svg.latex?\operatorname{Loss}(w)=\operatorname{Loss}_{\text{original}}(w)+\lambda\cdot{R}(w))
+        $`\operatorname{Loss}(w)=\operatorname{Loss}_{\text{original}}(w)+\lambda\cdot{R}(w)`$
 
 
         - L0 is a technique in ML to encourage sparsity in a model's parameters. It penalizes the number of **non-zero parameters** in a model.
 
-            $\|\mathbf{w}\|_0=\sum_{i=1}^n \mathbf{1}\left[w_i \neq 0\right]$
+            $`\|\mathbf{w}\|_0=\sum_{i=1}^n \mathbf{1}\left[w_i \neq 0\right]`$
 
             Use case: Feature Selection: L0 regularization is particularly useful in scenarios where the number of features is large, and only a small subset is expected to be relevant. It helps to automatically select a subset of features that contribute significantly to the model's performance.
 
         - L1 penalizes **absolute magnitude** of weight: 
 
-            $R(w)=\sum\left|w_i\right|$.
+            $`R(w)=\sum\left|w_i\right|`$.
 
             Encourages sparsity through geometry.
         
         - L2 penalizes **square magnitude** of weights:
 
-            $R(w)=\sum\left(w_i^2\right)$
+            $`R(w)=\sum\left(w_i^2\right)`$
 
             Penalizes large weights heavily, encourges smaller, diffuse weigths. Handles correlated features better.
 
         - L-infinity penalizes the **largest absolute weight** (maximum norm):
 
-            $R(w)=\max \left|w_i\right|$
+            $`R(w)=\max \left|w_i\right|`$
 
             It's used when you need to control the model's sensitivity to prevent any one feature from dominating the predictions.
 
         - When prefer L1 over L2? For explicit feature selection or interpretability
         - When prefer L2 over L1? L2 (Ridge) shrinks correlated features toward each other, effectively managing correlated features.
-        - What happens as $\lambda \rightarrow \infty$ for L1 and L2?  For both: parameters approach zero; L1 produces exact zeros faster.
+        - What happens as $`\lambda \rightarrow \infty`$ for L1 and L2?  For both: parameters approach zero; L1 produces exact zeros faster.
         - Is L0 convex? Why does it matter? No, it's non-convex. This matters due to optimization difficulty and computational complexity.
 
 
@@ -257,19 +259,19 @@ All following advanced optimization algorithms improve parameter updates by adju
             - ENN (Edited Nearest Neighbor): Removes majority samples misclassified by a k-NN classifier (noisy or ambiguous instances).
 
     - Distribution shifts: A distribution shift happens when the data seen during training differs from the data encountered during deployment or testing. It breaks the core assumption that train and test data come from the same distribution.
-        - Covariate Shift (X changed): This occurs when the input distribution $P(x)$ changes, but the conditional distribution $P(y \mid x)$ stays the same. Example: A spam detection model trained on emails from last year might see different phrasing this year, even if what qualifies as spam hasn’t changed.
+        - Covariate Shift (X changed): This occurs when the input distribution $`P(x)`$ changes, but the conditional distribution $`P(y \mid x)`$ stays the same. Example: A spam detection model trained on emails from last year might see different phrasing this year, even if what qualifies as spam hasn’t changed.
 
-        - Label Shift (Y changed): Here, the label distribution $P(y)$ changes, but the distribution of features given the label $P(x \mid y)$ remains the same. Example: In medical data, the proportion of patients with a certain condition may increase in a new population.
-        - Concept Drift (f changed): The conditional distribution $P(y \mid x)$ itself changes. Example: A recommendation model may degrade as user preferences evolve.
+        - Label Shift (Y changed): Here, the label distribution $`P(y)`$ changes, but the distribution of features given the label $`P(x \mid y)`$ remains the same. Example: In medical data, the proportion of patients with a certain condition may increase in a new population.
+        - Concept Drift (f changed): The conditional distribution $`P(y \mid x)`$ itself changes. Example: A recommendation model may degrade as user preferences evolve.
 
 - Sampling
-    - Uniform sampling selects items from a dataset with equal probability for all elements.  Code: random.sample(data,k).  Time Complexity: $O(k)$
-    - Negative sampling primarily used in recommendation systems and NLP (Word2Vec) to train efficiently on sparse data. It reduce computational cost by sampling a subset of negative examples (items not interacted with or words not co-occurring). (Word2Vec)  Time Complexity: Reduces computation from $O(N)$ (all negatives) to $O(k)$ (sampled negatives).
-    - Reservoir sampling: Technique to uniformly sample $k$ items from a stream or large unknown-size dataset in one pass.
+    - Uniform sampling selects items from a dataset with equal probability for all elements.  Code: random.sample(data,k).  Time Complexity: $`O(k)`$
+    - Negative sampling primarily used in recommendation systems and NLP (Word2Vec) to train efficiently on sparse data. It reduce computational cost by sampling a subset of negative examples (items not interacted with or words not co-occurring). (Word2Vec)  Time Complexity: Reduces computation from $`O(N)`$ (all negatives) to $`O(k)`$ (sampled negatives).
+    - Reservoir sampling: Technique to uniformly sample $`k`$ items from a stream or large unknown-size dataset in one pass.
         - Use Cases: Sampling from streaming data or very large files/databases.
-        - Algorithm: Maintain a reservoir of size $k$. For first $k$ items: directly fill reservoir. For each subsequent item $i>k$ : With probability $k / i$, randomly replace an item in the reservoir.
-        - Time: $O(N)$, single pass.
-        - Memory: $O(k)$, fixed space.
+        - Algorithm: Maintain a reservoir of size $`k`$. For first $`k`$ items: directly fill reservoir. For each subsequent item $`i>k`$ : With probability $`k / i`$, randomly replace an item in the reservoir.
+        - Time: $`O(N)`$, single pass.
+        - Memory: $`O(k)`$, fixed space.
     - Stratified sampling: Technique where the dataset is divided into distinct subgroups (strata) based on certain attributes (e.g., age, gender, class), and samples are drawn from each subgroup proportionally or with specific representation.
         - Code: df.groupby(stratify_col, group_keys=False).apply(lambda x: x.sample(frac=frac))
     - Questions
@@ -281,12 +283,12 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 - Model Selection
     - K-fold Cross-validation is a resampling procedure used to evaluate machine learning models and tune hyperparameters.
-    - $K=5$ or $K=10$ are most common.
+    - $`K=5`$ or $`K=10`$ are most common.
     - Trade-off (Bias vs. Variance):
-        - Large $K$ :
+        - Large $`K`$ :
             - Pros: Low bias, more accurate estimates.
             - Cons: Higher variance, computationally expensive.
-        - Small $K$ :
+        - Small $`K`$ :
             - Pros: Faster computation, lower variance in estimates.
             - Cons: Higher bias, less stable estimates.
     - How to handle imbalanced datasets in K-fold CV? Use Stratified K-fold, ensuring each fold maintains the proportion of classes from the original dataset.
@@ -311,18 +313,18 @@ All following advanced optimization algorithms improve parameter updates by adju
     - **Supervised Learning** is a type of machine learning where the algorithm is trained on a labeled dataset. Labeled data consists of input-output pairs, meaning the algorithm learns to map input data to corresponding output labels. The goal is for the algorithm to generalize from the training data and make accurate predictions on new, unseen data.
         - Classification: Predicts categorical outputs (e.g., spam detection, image recognition). Algorithms: Logistic regression, Decision tree, RF,KNN, SVM.
             - Loss function [[YouTube](https://www.youtube.com/watch?v=v_ueBW_5dLg)]: These losses measure how correctly and confidently a model classifies examples into categories.
-                - logistic loss/ binary cross entropy: Used for binary classification problems. For a predicted probability $p$ and ground truth label $y \in\{0,1\}$ : $\mathrm{BCE}=-[y \log (p)+(1-y) \log (1-p)]$.
+                - logistic loss/ binary cross entropy: Used for binary classification problems. For a predicted probability $`p`$ and ground truth label $`y \in\{0,1\}`$ : $`\mathrm{BCE}=-[y \log (p)+(1-y) \log (1-p)]`$.
                     - Outputs probabilities between 0 and 1.
                     - Penalizes confident but wrong predictions heavily.
                     - Works well when used with sigmoid activation in the output layer.
 
-                - categorial cross entropy: Extends cross-entropy loss to multi-class classification problems. For a ground truth one-hot encoded vector $\mathbf{y}$ and a prediction vector $\hat{\mathbf{y}}$ : $\mathrm{CCE}=-\sum_{c=1}^C y_c \log \left(\hat{y}_c\right)$.
+                - categorial cross entropy: Extends cross-entropy loss to multi-class classification problems. For a ground truth one-hot encoded vector $`\mathbf{y}`$ and a prediction vector $`\hat{\mathbf{y}}`$ : $`\mathrm{CCE}=-\sum_{c=1}^C y_c \log \left(\hat{y}_c\right)`$.
                     - Used together with a softmax activation in the output layer.
                     - Encourages the model to assign high probability to the correct class.
 
                 - KL divergence
 
-                - hinge loss: Commonly used for Support Vector Machines (SVMs) and for certain deep learning tasks that involve margin-based classification. For a prediction score $s$ and a true label $y \in\{-1,1\}$ : $\text { Hinge Loss }=\max (0,1-y \cdot s)$.
+                - hinge loss: Commonly used for Support Vector Machines (SVMs) and for certain deep learning tasks that involve margin-based classification. For a prediction score $`s`$ and a true label $`y \in\{-1,1\}`$ : $`\text { Hinge Loss }=\max (0,1-y \cdot s)`$.
                     - Focuses on the margin between classes.
                     - Can also be adapted for multi-class classification with variations like multi-class hinge loss.
 
@@ -380,28 +382,28 @@ All following advanced optimization algorithms improve parameter updates by adju
             - Homoscedasticity: The variance of the residuals should be constant across all levels of the independent variables. This means the spread of residuals should be roughly the same across all predicted values.
             - Normality of residuals: The residuals should follow a normal distribution. This assumption is important for valid hypothesis testing and confidence interval estimation.
             - No multicollinearity: When multiple independent variables are used, they should not be highly correlated with each other. High correlation between predictors makes it difficult to determine the individual effect of each variable.
-        - Formulation: Linear regression models the relationship between a dependent variable $y$ and one or more independent variables $X$ as a linear combination: $y=X \beta+\epsilon,$, where $\beta$ is a vector of coefficients and $\epsilon$ is the error term.
+        - Formulation: Linear regression models the relationship between a dependent variable $`y`$ and one or more independent variables $`X`$ as a linear combination: $`y=X \beta+\epsilon,`$, where $`\beta`$ is a vector of coefficients and $`\epsilon`$ is the error term.
         - Regularization: Extensions such as Ridge (L2) and Lasso (L1) regression add penalty terms to handle multicollinearity and promote sparsity.
 
     - Logistic Regression
-        - Formulation: Logistic regression models the probability of a binary outcome by applying the logistic (sigmoid) function to a linear combination of input features: $P(y=1 \mid X)=\frac{1}{1+e^{-X \beta}} .$
+        - Formulation: Logistic regression models the probability of a binary outcome by applying the logistic (sigmoid) function to a linear combination of input features: $`P(y=1 \mid X)=\frac{1}{1+e^{-X \beta}} .`$
         - Estimation: Parameters are typically estimated via Maximum Likelihood Estimation (MLE), where the cost function (the log-loss) is minimized using iterative optimization methods (e.g., gradient descent or iterative reweighted least squares).
         - Interpretability: Coefficients can be interpreted in terms of odds ratios, offering intuitive insights into feature effects.
 
-        - The cost for a single training example using the binary cross-entropy (log-loss) is: $\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})]$.
-        - For $m$ training examples, the overall cost is: $J(w, b)=\frac{1}{m} \sum_{i=1}^m \ell^{(i)}(w, b)=-\frac{1}{m} \sum_{i=1}^m\left[y^{(i)} \log \left(\hat{y}^{(i)}\right)+\left(1-y^{(i)}\right) \log \left(1-\hat{y}^{(i)}\right)\right]$
+        - The cost for a single training example using the binary cross-entropy (log-loss) is: $`\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})]`$.
+        - For $`m`$ training examples, the overall cost is: $`J(w, b)=\frac{1}{m} \sum_{i=1}^m \ell^{(i)}(w, b)=-\frac{1}{m} \sum_{i=1}^m\left[y^{(i)} \log \left(\hat{y}^{(i)}\right)+\left(1-y^{(i)}\right) \log \left(1-\hat{y}^{(i)}\right)\right]`$
         - Derivation of gradients
-            - The cost for one sample is: $\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})], \quad \text { with } \hat{y}=\sigma(z) \text { and } z=w^T x+b$.
-            - Compute the derivative of the cost with respect to $\hat{y}$ : $\frac{\partial \ell}{\partial \hat{y}}=-\left(\frac{y}{\hat{y}}-\frac{1-y}{1-\hat{y}}\right)$
-            - The derivative of the sigmoid is: $\frac{d \hat{y}}{d z}=\hat{y}(1-\hat{y}) .$
-            - Then by the chain rule: $\frac{\partial \ell}{\partial z}=\frac{\partial \ell}{\partial \hat{y}} \cdot \frac{d \hat{y}}{d z}$. When you work through the algebra, the product simplifies to: $\frac{\partial \ell}{\partial z}=\hat{y}-y$.
-            - Since $z=w^T x+b$, the derivative of $z$ with respect to $w_j$ is: $\frac{\partial z}{\partial w_j}=x_j$. Then: $\frac{\partial \ell}{\partial w_j}=\frac{\partial \ell}{\partial z} \cdot \frac{\partial z}{\partial w_j}=(\hat{y}-y) x_j$.
-            - Similarly, $\frac{\partial \ell}{\partial b}=\frac{\partial \ell}{\partial z} \cdot \frac{\partial z}{\partial b}=(\hat{y}-y)$.
+            - The cost for one sample is: $`\ell(w, b)=-[y \log (\hat{y})+(1-y) \log (1-\hat{y})], \quad \text { with } \hat{y}=\sigma(z) \text { and } z=w^T x+b`$.
+            - Compute the derivative of the cost with respect to $`\hat{y}`$ : $`\frac{\partial \ell}{\partial \hat{y}}=-\left(\frac{y}{\hat{y}}-\frac{1-y}{1-\hat{y}}\right)`$
+            - The derivative of the sigmoid is: $`\frac{d \hat{y}}{d z}=\hat{y}(1-\hat{y}) .`$
+            - Then by the chain rule: $`\frac{\partial \ell}{\partial z}=\frac{\partial \ell}{\partial \hat{y}} \cdot \frac{d \hat{y}}{d z}`$. When you work through the algebra, the product simplifies to: $`\frac{\partial \ell}{\partial z}=\hat{y}-y`$.
+            - Since $`z=w^T x+b`$, the derivative of $`z`$ with respect to $`w_j`$ is: $`\frac{\partial z}{\partial w_j}=x_j`$. Then: $`\frac{\partial \ell}{\partial w_j}=\frac{\partial \ell}{\partial z} \cdot \frac{\partial z}{\partial w_j}=(\hat{y}-y) x_j`$.
+            - Similarly, $`\frac{\partial \ell}{\partial b}=\frac{\partial \ell}{\partial z} \cdot \frac{\partial z}{\partial b}=(\hat{y}-y)`$.
 
 
 
     - Support Vector Machines
-        - Formulation: SVMs seek a hyperplane that maximally separates classes with the greatest margin. For linearly separable data, the optimization problem is: $\min _{w, b} \frac{1}{2}\|w\|^2 \quad \text { s.t. } y_i\left(w^T x_i+b\right) \geq 1, \quad \forall i$.
+        - Formulation: SVMs seek a hyperplane that maximally separates classes with the greatest margin. For linearly separable data, the optimization problem is: $`\min _{w, b} \frac{1}{2}\|w\|^2 \quad \text { s.t. } y_i\left(w^T x_i+b\right) \geq 1, \quad \forall i`$.
         - Soft Margin: For non-separable data, slack variables are introduced to allow misclassifications, leading to a trade-off between margin size and classification error.
         - Kernel Trick: For nonlinear classification, kernel functions (e.g., Gaussian, polynomial) implicitly map input data to a higher-dimensional space where linear separation is feasible.
         - Dual Formulation: The Lagrange dual formulation and application of Karush-Kuhn-Tucker (KKT) conditions are central to SVM theory, providing insights into support vectors and decision boundaries.
@@ -410,11 +412,11 @@ All following advanced optimization algorithms improve parameter updates by adju
 
     - Naive Bayes
         [[Coding](https://www.youtube.com/watch?v=TLInuAorxqE)]
-        - Foundational Principle: Based on Bayes' theorem: $P(C \mid x)=\frac{P(x \mid C) P(C)}{P(x)}$, Naive Bayes assumes conditional independence among features given the class label.
-            - $P(C)$ is the prior probability of class $C$.
-            - $P(x \mid C)$ is the likelihood of observing features $x$ under class $C$.
-            - $P(C \mid x)$ is the posterior probability: what we want.
-            - Because $P(x)$ is the same across classes when comparing them, we only need $\arg \max _C P(x \mid C) P(C)$.
+        - Foundational Principle: Based on Bayes' theorem: $`P(C \mid x)=\frac{P(x \mid C) P(C)}{P(x)}`$, Naive Bayes assumes conditional independence among features given the class label.
+            - $`P(C)`$ is the prior probability of class $`C`$.
+            - $`P(x \mid C)`$ is the likelihood of observing features $`x`$ under class $`C`$.
+            - $`P(C \mid x)`$ is the posterior probability: what we want.
+            - Because $`P(x)`$ is the same across classes when comparing them, we only need $`\arg \max _C P(x \mid C) P(C)`$.
 
         - Choosing a Model
             - Multinomial NB: features are non‑negative counts (e.g. word counts in text).
@@ -424,7 +426,7 @@ All following advanced optimization algorithms improve parameter updates by adju
         - Why naive? The term "naive" in Naive Bayes refers to the algorithm's assumption that all features (predictor variables) used for classification are mutually independent given the class label. This assumption is considered "naive" because, in real-world scenarios, features often exhibit some degree of dependency, and assuming independence can be an oversimplification of the true underlying relationships. Despite the “naive” assumption being seldom true in practice, the method often performs well due to its simplicity and effectiveness in high-dimensional settings.
 
     - Linear discriminant analysis (LDA)
-        - Concept & Assumptions: LDA models class conditional densities as multivariate Gaussians with equal covariance matrices for all classes. Under this assumption, the discriminant function is linear in the features: $\delta_k(x)=x^T \Sigma^{-1} \mu_k-\frac{1}{2} \mu_k^T \Sigma^{-1} \mu_k+\log \pi_k$. Here, $\mu_k$ is the mean vector, $\Sigma$ the common covariance matrix, and $\pi_k$ the prior probability of class $k$.
+        - Concept & Assumptions: LDA models class conditional densities as multivariate Gaussians with equal covariance matrices for all classes. Under this assumption, the discriminant function is linear in the features: $`\delta_k(x)=x^T \Sigma^{-1} \mu_k-\frac{1}{2} \mu_k^T \Sigma^{-1} \mu_k+\log \pi_k`$. Here, $`\mu_k`$ is the mean vector, $`\Sigma`$ the common covariance matrix, and $`\pi_k`$ the prior probability of class $`k`$.
         - Bayes Optimality: Under the LDA assumptions, the resulting classifier is Bayes-optimal.
         - Dimensionality Reduction: LDA also serves as a dimensionality reduction technique by projecting data onto a subspace that maximizes between-class variance while minimizing within-class variance (related to Fisher’s Linear Discriminant).
         - Applications: Particularly effective when the Gaussian assumption holds and when class covariances are similar.
@@ -472,10 +474,10 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 - While we can also divide the supervised learning classification algorithms by Training Methods into **Generative vs. Discriminative Models**
     - Discriminative models[[wiki](https://en.wikipedia.org/wiki/Discriminative_model)], also referred to as conditional models, are a class of models frequently used for classification. 
-        - Discriminative models learn the conditional distribution $P(y \mid x)$ (or decision boundary), focusing solely on predicting labels from observed inputs.
+        - Discriminative models learn the conditional distribution $`P(y \mid x)`$ (or decision boundary), focusing solely on predicting labels from observed inputs.
         - They are typically used to solve binary classification problems, i.e. assign labels, such as pass/fail, win/lose, alive/dead or healthy/sick, to existing datapoints.
         - logistic regression (LR), Support Vector Machines (SVMs), Decision Trees & Random Forests, KNN, conditional random fields (CRFs).
-    - Generative models [[wiki](https://en.wikipedia.org/wiki/Generative_model)] learn the joint distribution $P(x, y)$, modeling how data and labels are generated so they can both classify and synthesize new samples.
+    - Generative models [[wiki](https://en.wikipedia.org/wiki/Generative_model)] learn the joint distribution $`P(x, y)`$, modeling how data and labels are generated so they can both classify and synthesize new samples.
         - Naive Bayes, Gaussian Mixture Models (GMMs), Hidden Markov Models (HMMs), Latent Dirichlet Allocation (LDA), Boltzmann Machines / RBMs, Variational Autoencoders (VAEs), Generative Adversarial Networks (GANs), Normalizing Flows, Diffusion Models
 
 ----      
@@ -487,29 +489,29 @@ All following advanced optimization algorithms improve parameter updates by adju
  
 - Clustering
     - K-means
-        - Objective Function: K-Means seeks to minimize the within-cluster sum of squares (WCSS), also known as inertia or squared error sum (SSE). Given a set of observations $\left\{x_1, x_2, \ldots, x_n\right\}$ where each $x_i \in \mathbb{R}^d$, and a set of $k$ clusters $S=\left\{S_1, S_2, \ldots, S_k\right\}$, the objective is to find the clusters and their centroids $\left\{\mu_1, \mu_2, \ldots, \mu_k\right\}$ that minimize: $J=\sum_{j=1}^k \sum_{x_i \in S_j}\left\|x_i-\mu_j\right\|^2$, where $\mu_j$ is the mean (centroid) of points in cluster $S_j$, calculated as $\mu_j=\frac{1}{\left|S_j\right|} \sum_{x_i \in S_j} x_i$. Minimizing WCSS is equivalent to minimizing the variance within each cluster. This objective function inherently favors spherical, equally sized clusters because it penalizes squared Euclidean distances from the mean.
+        - Objective Function: K-Means seeks to minimize the within-cluster sum of squares (WCSS), also known as inertia or squared error sum (SSE). Given a set of observations $`\left\{x_1, x_2, \ldots, x_n\right\}`$ where each $`x_i \in \mathbb{R}^d`$, and a set of $`k`$ clusters $`S=\left\{S_1, S_2, \ldots, S_k\right\}`$, the objective is to find the clusters and their centroids $`\left\{\mu_1, \mu_2, \ldots, \mu_k\right\}`$ that minimize: $`J=\sum_{j=1}^k \sum_{x_i \in S_j}\left\|x_i-\mu_j\right\|^2`$, where $`\mu_j`$ is the mean (centroid) of points in cluster $`S_j`$, calculated as $`\mu_j=\frac{1}{\left|S_j\right|} \sum_{x_i \in S_j} x_i`$. Minimizing WCSS is equivalent to minimizing the variance within each cluster. This objective function inherently favors spherical, equally sized clusters because it penalizes squared Euclidean distances from the mean.
         - Algorithm details
             - Initialization of centroids
-            - Assignment Step (E-step): Assign each data point $x_i$ to the cluster $S_j$ whose centroid $\mu_j$ is nearest (typically using squared Euclidean distance).
+            - Assignment Step (E-step): Assign each data point $`x_i`$ to the cluster $`S_j`$ whose centroid $`\mu_j`$ is nearest (typically using squared Euclidean distance).
             - Update step
             - Iteration: Repeat steps 2 and 3 until convergence criteria are met.
             - WCSS - elbow method for k optimization.
         - Evaluation Metrics
-            - Silhouette Score: Measures how similar a point is to its own cluster (cohesion) compared to other clusters (separation). For a point $i$, let $a(i)$ be the average distance to other points in its cluster, and $b(i)$ be the minimum average distance to points in another cluster. The score is $s(i)=(b(i)-a(i)) / \max (a(i), b(i))$. Scores range from -1 (misclassified) to +1 (well-clustered), with 0 indicating points near cluster boundaries. The overall score is the average $s(i)$ over all points. Higher scores are better.
+            - Silhouette Score: Measures how similar a point is to its own cluster (cohesion) compared to other clusters (separation). For a point $`i`$, let $`a(i)`$ be the average distance to other points in its cluster, and $`b(i)`$ be the minimum average distance to points in another cluster. The score is $`s(i)=(b(i)-a(i)) / \max (a(i), b(i))`$. Scores range from -1 (misclassified) to +1 (well-clustered), with 0 indicating points near cluster boundaries. The overall score is the average $`s(i)`$ over all points. Higher scores are better.
     - Hierarchical clustering
     - [[DBSCAN](https://www.youtube.com/watch?v=4AW_5nYQkuc&ab_channel=KilianWeinberger)] is a density-based clustering algorithm that groups together points that are closely packed, marking points in low-density regions as outliers (noise).
         - Parameters
-            - eps ( $\epsilon$ ): The maximum distance (radius) between two points for one to be considered as in the neighborhood of the other. 
+            - eps ( $`\epsilon`$ ): The maximum distance (radius) between two points for one to be considered as in the neighborhood of the other.
             - min_samples (MinPts): The minimum number of points required within the e-neighborhood (including the point itself) for a point to be considered a core point.
-        - Core Point: A point p is a core point if its $\epsilon$-neighborhood, $N \epsilon(p)=\{q \in D \mid d i s t(p, q) \leq \epsilon\}$, contains at least min_samples points.
+        - Core Point: A point p is a core point if its $`\epsilon`$-neighborhood, $`N \epsilon(p)=\{q \in D \mid d i s t(p, q) \leq \epsilon\}`$, contains at least min_samples points.
         - Algorithm
-            - 1. Start with an arbitrary unvisited point $p$.
-            - 2. Mark $p$ as visited.
-            - 3. Retrieve the $\epsilon$-neighborhood of $p, N \epsilon(p)$.
-            - 4. If $|\mathrm{Ne}(\mathrm{p})|<$ min_samples, mark $p$ as noise (temporarily).
-            - 5. If $|\mathrm{N} \epsilon(\mathrm{p})| \geq$ min_samples, p is a core point. Create a new cluster C and add p to it. Add all points in $\mathrm{N} \mathrm{\epsilon}(\mathrm{p})$ to a seed set.
+            - 1. Start with an arbitrary unvisited point $`p`$.
+            - 2. Mark $`p`$ as visited.
+            - 3. Retrieve the $`\epsilon`$-neighborhood of $`p, N \epsilon(p)`$.
+            - 4. If $`|\mathrm{Ne}(\mathrm{p})|<`$ min_samples, mark $`p`$ as noise (temporarily).
+            - 5. If $`|\mathrm{N} \epsilon(\mathrm{p})| \geq`$ min_samples, p is a core point. Create a new cluster C and add p to it. Add all points in $`\mathrm{N} \mathrm{\epsilon}(\mathrm{p})`$ to a seed set.
             - 6. Expand the cluster: For each point q in the seed set:
-                - If q is unvisited, mark it visited, retrieve its neighborhood $\mathrm{N} \mathrm{\epsilon}(\mathrm{q})$. If $|\mathrm{N} \mathrm{\epsilon}(\mathrm{q})| \geq$ min_samples, add points in $N \epsilon(q)$ to the seed set.
+                - If q is unvisited, mark it visited, retrieve its neighborhood $`\mathrm{N} \mathrm{\epsilon}(\mathrm{q})`$. If $`|\mathrm{N} \mathrm{\epsilon}(\mathrm{q})| \geq`$ min_samples, add points in $`N \epsilon(q)`$ to the seed set.
                 - If q is not yet a member of any cluster, add q to cluster C. 
             - 7. Repeat step 6 until the seed set is empty. 
             - 8. Go back to step 1 and pick another unvisited point, until all points are visited.
@@ -556,7 +558,7 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Feedforward Neural Networks are the simplest form of artificial neural networks where data flows only in one direction—from the input layer, through one or more hidden layers, to the output layer. They are typically used for tasks where the mapping from input to output is straightforward and static (e.g., classification or regression).
     - Architecture: Input layer + hidden layers + output layer in only one direction - forward - with no cycles or loops.
         - For each neuron,  output = activation(weights inputs + bias).
-        - For each layer, $\mathbf{y}=f(\mathbf{W} \mathbf{x}+\mathbf{b})$.
+        - For each layer, $`\mathbf{y}=f(\mathbf{W} \mathbf{x}+\mathbf{b})`$.
         - If we use linear activations for hidden layers, the hidden layers do nothing!
     - Depth vs width
         - Deeper networks can learn more complex hierarchical representations. But face challenges like vanishing gradients and increased computational cost.
@@ -568,46 +570,46 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 - Activation functions [[ref](https://www.v7labs.com/blog/neural-networks-activation-functions)]
-    - **Sigmoid (1980s)** and its limitations: $\sigma(x)=\frac{1}{1+e^{-x}}$, which outputs to the range (0, 1) and is useful for probabilistic interpretations.
+    - **Sigmoid (1980s)** and its limitations: $`\sigma(x)=\frac{1}{1+e^{-x}}`$, which outputs to the range (0, 1) and is useful for probabilistic interpretations.
         - Limitations
             - Vanishing Gradients: In regions where the input is very positive or very negative, the output saturates close to 1 or 0. This can lead to extremely small gradients, slowing or even halting the training process in deep networks.
             - Non Zero-Centered: The sigmoid function’s outputs being always positive can lead to inefficient gradient updates, as the activations are not centered around zero.
-    - **Tanh (The hyperbolic tangent) (1980s)**: $\tanh (z)=\frac{e^z-e^{-z}}{e^z+e^{-z}}=\frac{2}{1+e^{-2 z}}-1$. 
+    - **Tanh (The hyperbolic tangent) (1980s)**: $`\tanh (z)=\frac{e^z-e^{-z}}{e^z+e^{-z}}=\frac{2}{1+e^{-2 z}}-1`$.
         - It's the improvement based on Sigmoid. It produces outputs in the range (-1, 1) and tends to center the data (0) better compared to the sigmoid.
 
-    Sigmoid and Tanh limits the output between (0,1) and (-1,1), which means that Sigmoid and tanh are suitable for processing probability values, such as various gates in LSTM; but ReLU is not suitable because ReLU there is no maximum value limit and very large values ​​may appear.
+    Sigmoid and Tanh limits the output between (0,1) and (-1,1), which means that Sigmoid and tanh are suitable for processing probability values, such as various gates in LSTM; but ReLU is not suitable because ReLU there is no maximum value limit and very large values may appear.
 
-    - **ReLU (2010) family (Rectified Linear Unit) (ReLU, Leaky ReLU, PReLU, ELU, SELU)**: $f(x)=\max (0, x)$ ReLU outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
+    - **ReLU (2010) family (Rectified Linear Unit) (ReLU, Leaky ReLU, PReLU, ELU, SELU)**: $`f(x)=\max (0, x)`$ ReLU outputs zero for negative inputs and linear (identity) for positive values; it is popular due to computational efficiency and reduced likelihood of vanishing gradients.
         - Dying issue: In some cases during training, a significant number of neurons can end up outputting zero for all inputs. This happens when the weights and biases of these neurons adjust in such a way that the input to ReLU is consistently negative. Once a neuron falls into this state, its gradient becomes zero for any input value (since the derivative of ReLU is zero for negative inputs). And Because it outputs zero consistently, the neuron effectively "dies," meaning it no longer contributes to the learning process.
-        - Solution-Leaky ReLU (2013): Instead of outputting zero for negative inputs, Leaky ReLU allows a small, non-zero gradient (e.g., $f(x)=\alpha x$ for $x<0$ with $\alpha$ being a small constant such as 0.01 ). This helps prevent neurons from dying.
-        - Parametric ReLU (PReLU) (2015): Similar to Leaky ReLU, but the coefficient $\alpha$ is learned during training.
+        - Solution-Leaky ReLU (2013): Instead of outputting zero for negative inputs, Leaky ReLU allows a small, non-zero gradient (e.g., $`f(x)=\alpha x`$ for $`x<0`$ with $`\alpha`$ being a small constant such as 0.01 ). This helps prevent neurons from dying.
+        - Parametric ReLU (PReLU) (2015): Similar to Leaky ReLU, but the coefficient $`\alpha`$ is learned during training.
         - ELU (Exponential Linear Unit) （2015） and SELU (Scaled ELU) （2017）: These functions introduce an exponential factor for negative inputs which can improve learning dynamics and sometimes contribute to self-normalizing properties in deeper networks.
     
     Why we expect zero-mean activations? When activations have a non-zero mean, especially if it's strongly positive or negative, it can cause what's called a "bias shift" in the next layer’s input. That means the inputs to each layer get skewed, and the network keeps needing to compensate for that. Zero-mean activation help: center the input distribution, keep the gradient more stable, and prevent saturation. Faster convergence.
 
-    - **GELU （2016）** uses the Gaussian cumulative distribution function to weight the inputs, often defined approximately as: $f(x)=0.5 x\left(1+\tanh \left[\sqrt{\frac{2}{\pi}}\left(x+0.044715 x^3\right)\right]\right)$.
+    - **GELU （2016）** uses the Gaussian cumulative distribution function to weight the inputs, often defined approximately as: $`f(x)=0.5 x\left(1+\tanh \left[\sqrt{\frac{2}{\pi}}\left(x+0.044715 x^3\right)\right]\right)`$.
         - GELU provides a smooth output which can help gradient flow.
         - It considers the probability that a neuron will be activated, which has shown benefits in several state-of-the-art architectures, especially in natural language processing.
-    - **Swish/SiLU (2017)**: The Swish, also known as SiLU (Sigmoid-weighted Linear Unit), is defined as: $f(x)=x \cdot \sigma(x)$, where $\sigma(x)$ is the sigmoid function.
+    - **Swish/SiLU (2017)**: The Swish, also known as SiLU (Sigmoid-weighted Linear Unit), is defined as: $`f(x)=x \cdot \sigma(x)`$, where $`\sigma(x)`$ is the sigmoid function.
         - The function is differentiable everywhere and its non-monotonicity can sometimes lead to better performance in deep networks.
         - Swish has been shown to outperform ReLU on deeper models in certain cases, due to its ability to maintain non-zero gradients across a wider range of inputs.
 
     - **GLU (Gated Linear Unit)** 
-        - Given an input $x \in \mathbb{R}^d$, two learned projections $W, V \in \mathbb{R}^{d \times h}$. $\text{GLU}(x)=(x W) \otimes \sigma(x V)$, where $\otimes$ is elementwise product.
-        - Intuition: One projection $(x W)$ carries "content," the other $(x V)$ gates it via a sigmoid. Allows the network to learn when to pass or suppress information.
+        - Given an input $`x \in \mathbb{R}^d`$, two learned projections $`W, V \in \mathbb{R}^{d \times h}`$. $`\text{GLU}(x)=(x W) \otimes \sigma(x V)`$, where $`\otimes`$ is elementwise product.
+        - Intuition: One projection $`(x W)`$ carries "content," the other $`(x V)`$ gates it via a sigmoid. Allows the network to learn when to pass or suppress information.
 
 
 
-    - **Mish (2019)**: Mish is defined as: $f(x)=x \cdot \tanh (\text{softplus}(x))$, where $\text{softplus}(x)=\ln \left(1+e^x\right)$.
+    - **Mish (2019)**: Mish is defined as: $`f(x)=x \cdot \tanh (\text{softplus}(x))`$, where $`\text{softplus}(x)=\ln \left(1+e^x\right)`$.
         - Mish provides a smooth activation that has continuous derivatives, aiding optimization.
         - It has been reported to offer improvements in generalization and training stability compared to ReLU and some of its variants.
 
     - **SwiGLU (Swish with Gating)**: SwiGLU combines the Swish activation with a gating mechanism, which allows the network to control the flow of information dynamically.
-        - A simple GLU variant that replaces the "content" branch with Swish (SiLU): $\text{SwiGLU}(x)=(\text{SiLU}(x W)) \otimes(x V) \quad \text { where } \quad \text{SiLU}(z)=z \cdot \sigma(z)$. Equivalently, split a linear projection into two halves, apply Swish to one half, and gate with the other.
+        - A simple GLU variant that replaces the "content" branch with Swish (SiLU): $`\text{SwiGLU}(x)=(\text{SiLU}(x W)) \otimes(x V) \quad \text { where } \quad \text{SiLU}(z)=z \cdot \sigma(z)`$. Equivalently, split a linear projection into two halves, apply Swish to one half, and gate with the other.
         - By incorporating gating, SwiGLU can further improve the representation power and stability of gradient propagation.
         - Often applied in transformer and language models, where dynamic control over activations can benefit deeper network architectures.
 
-    - **Softmax**: The softmax function converts a vector of raw scores (logits) into a probability distribution: $\text{Softmax}\left(z_i\right)=\frac{e^{z_i}}{\sum_j e^{z_j}}$
+    - **Softmax**: The softmax function converts a vector of raw scores (logits) into a probability distribution: $`\text{Softmax}\left(z_i\right)=\frac{e^{z_i}}{\sum_j e^{z_j}}`$
         - Each output value represents a probability (all outputs sum to 1), making it ideal for multi-class classification tasks.
         - Typically used in the output layer of classification networks where interpretability of class probabilities is important.
 
@@ -634,28 +636,28 @@ All following advanced optimization algorithms improve parameter updates by adju
     - **Random initialization**
 
         The simplest form of weight initialization involves drawing weights from a random distribution.
-        - Uniform Distribution: Weights are sampled uniformly from an interval $[-a, a]$. The choice of $a$ is critical—a too-large range can lead to activations exploding, whereas a too-small range can stall learning.
-        - Gaussian (Normal) Distribution: Weights are sampled from a normal distribution $\mathcal{N}\left(0, \sigma^2\right)$. Here, $\sigma$ must be chosen carefully to control the variance of the activations.
+        - Uniform Distribution: Weights are sampled uniformly from an interval $`[-a, a]`$. The choice of $`a`$ is critical—a too-large range can lead to activations exploding, whereas a too-small range can stall learning.
+        - Gaussian (Normal) Distribution: Weights are sampled from a normal distribution $`\mathcal{N}\left(0, \sigma^2\right)`$. Here, $`\sigma`$ must be chosen carefully to control the variance of the activations.
 
         Regardless of the distribution, it is important that the initialization breaks symmetry and starts the network in a regime where the gradients are neither too large nor too small.
 
     - **Xavier/Glorot initialization** (by Xavier Glorot and Yoshua Bengio in 2010)
 
         Xavier initialization was designed to keep the scale of the gradients roughly the same in all layers. 
-        - The initialization maintains the variance of the activations across layers. For a weight matrix $W$ connecting layers with fan_in (number of input units) and fan_out (number of output units), the variance is balanced by considering both quantities.
+        - The initialization maintains the variance of the activations across layers. For a weight matrix $`W`$ connecting layers with fan_in (number of input units) and fan_out (number of output units), the variance is balanced by considering both quantities.
         - When to use? Xavier initialization is most appropriate when using activation functions that are symmetric around zero (like **tanh**) or where the derivative saturates (**sigmoid**).
-        - weights can be drawn from a normal distribution with: $W \sim \mathcal{N}\left(0, \frac{2}{\text { fan } \_ \text {in }+ \text { fan } \_ \text {out }}\right)$.
+        - weights can be drawn from a normal distribution with: $`W \sim \mathcal{N}\left(0, \frac{2}{\text { fan } \_ \text {in }+ \text { fan } \_ \text {out }}\right)`$.
 
 
     - **He initialization**, proposed by Kaiming He et al., is tailored for networks that use **ReLU** or its variants. ReLU activations are not symmetric and have a different behavior, particularly because they zero out negative inputs.
-        - Weights are drawn from a normal distribution: $W \sim \mathcal{N}\left(0, \frac{2}{\text { fan } \_ \text {in }}\right)$.
+        - Weights are drawn from a normal distribution: $`W \sim \mathcal{N}\left(0, \frac{2}{\text { fan } \_ \text {in }}\right)`$.
         - Purpose: Compensates for the halving of the signal due to the ReLU activation (or its variants), maintaining signal variance by effectively “doubling” the variance contribution during initialization.
 
     - **LeCun initialization** is a weight initialization strategy designed to help maintain a consistent variance of activations as data flows through a network. 
         - It is particularly useful for networks utilizing activation functions that naturally preserve variance, such as tanh, sigmoid, and more recently, self-normalizing networks with SELU activations.
-        - weights can be drawn from a normal distribution with: $W \sim \mathcal{N}\left(0, \frac{1}{\text { fan } \_ \text {in }}\right)$.
+        - weights can be drawn from a normal distribution with: $`W \sim \mathcal{N}\left(0, \frac{1}{\text { fan } \_ \text {in }}\right)`$.
 
-    - **Orthogonal initialization** is another powerful technique especially beneficial for deep networks, including **RNNs**. It initializes weight matrices to be orthogonal ($W^T W=I$, where $I$ is the identity matrix. This property ensures that the transformations performed by the layer are norm-preserving.), which helps with gradient flow in very deep networks.
+    - **Orthogonal initialization** is another powerful technique especially beneficial for deep networks, including **RNNs**. It initializes weight matrices to be orthogonal ($`W^T W=I`$, where $`I`$ is the identity matrix. This property ensures that the transformations performed by the layer are norm-preserving.), which helps with gradient flow in very deep networks.
 
     - Implementations
 
@@ -668,7 +670,7 @@ All following advanced optimization algorithms improve parameter updates by adju
 
 
 - Backpropagation [[YouTube](https://www.youtube.com/watch?v=SmZmBKc7Lrs)] [[YouTube](https://www.youtube.com/watch?v=1GnfvhBUs_E&list=PLgPbN3w-ia_PeT1_c5jiLW3RJdR7853b9&index=8)]
-    - The chain rule in calculus is a method for computing the derivative of a composite function. If you have a function defined as a composition of several functions, for example:$z=f(g(h(x)))$, then the derivative with respect to $x$ is computed as: $\frac{d z}{d x}=\frac{d z}{d f} \cdot \frac{d f}{d g} \cdot \frac{d g}{d h} \cdot \frac{d h}{d x}$. This principle is essential in backpropagation because deep neural networks are, by nature, compositions of many nested functions.
+    - The chain rule in calculus is a method for computing the derivative of a composite function. If you have a function defined as a composition of several functions, for example:$`z=f(g(h(x)))`$, then the derivative with respect to $`x`$ is computed as: $`\frac{d z}{d x}=\frac{d z}{d f} \cdot \frac{d f}{d g} \cdot \frac{d g}{d h} \cdot \frac{d h}{d x}`$. This principle is essential in backpropagation because deep neural networks are, by nature, compositions of many nested functions.
     - Forward vs. backward pass
         - Forward pass: The forward pass is the process of feeding input data through the network and computing the output. Here, each node (or layer) processes the input it receives and passes on its output to subsequent nodes according to the network’s architecture. During this pass, the computational graph is effectively created, and intermediate values (activations) are stored because they will be needed during backpropagation.
         ```python
@@ -768,7 +770,7 @@ All following advanced optimization algorithms improve parameter updates by adju
     - Solutions: L1/L2 regularization (Alpha: how much attention to pay to this penalty), dropout, early stopping; Data augmentation(adding more info)
 
     - Beyond traditional methods
-        - Label smoothing: Modifies the hard target labels(0,1) to soften the output probabilities $(\varepsilon / 1-\varepsilon)$. Encourages the model to be less confident, reduces overfitting, and helps smooth the decision boundaries. (effective in image classification)
+        - Label smoothing: Modifies the hard target labels(0,1) to soften the output probabilities $`(\varepsilon / 1-\varepsilon)`$. Encourages the model to be less confident, reduces overfitting, and helps smooth the decision boundaries. (effective in image classification)
         - Dropout
             - How to apply dropout to LSTM
         - Early stopping
@@ -781,24 +783,24 @@ All following advanced optimization algorithms improve parameter updates by adju
             - Variable Batch Size → If batch size is of 1, then variance would be 0 which doesn’t allow batch norm to work. Furthermore, if we have small mini-batch size then it becomes too noisy and training might affect. There would also be a problem in distributed training. As, if you are computing in different machines then you have to take same batch size because otherwise γ and β will be different for different systems. It batch size too large, training might need more epochs.
             - Recurrent Neural Network → In an RNN, the recurrent activations of each time-step will have a different story to tell(i.e. statistics). This means that we have to fit a separate batch norm layer for each time-step. This makes the model more complicated and space consuming because it forces us to store the statistics for each time-step during training.
         
-        - **Weight normalization** reparameterizes the weights $(\omega)$ as: $\boldsymbol{w}=\frac{g}{\|\boldsymbol{v}\|} \boldsymbol{v}$. It separates the weight vector from its direction, this has a similar effect as in batch normalization with variance. The only difference is in variation instead of direction.
+        - **Weight normalization** reparameterizes the weights $`(\omega)`$ as: $`\boldsymbol{w}=\frac{g}{\|\boldsymbol{v}\|} \boldsymbol{v}`$. It separates the weight vector from its direction, this has a similar effect as in batch normalization with variance. The only difference is in variation instead of direction.
 
         - **Layer normalization** (2016) [[YouTube](https://www.youtube.com/watch?v=2V3Uduw1zwQ)] normalizes input across the features instead of normalizing input features across the batch dimension in batch normalization. Good for RNN.
-            - $\mathrm{y}=\frac{\mathrm{x}-\mathrm{E}(\mathrm{x})}{\sqrt{\mathrm{V} \text{ar}(\mathrm{x})+\epsilon}} * \gamma+\beta$.
-            - Post-layerNorm: $x_{i+1}=\text { LayerNorm }\left(x_i+\text{Sublayer}\left(x_i\right)\right)$. Apply the residual connection first, then normalize. Used in BERT, T5, and many earlier models. (BERT, T5)
-            - Pre-layerNorm: $x_{i+1}=x_i+\text{Sublayer}\left(\text{LayerNorm}\left(x_i\right)\right)$. Normalize before the sublayer (e.g., attention or MLP). Residual connection happens after the sublayer.  (GPT, LLaMa)
+            - $`\mathrm{y}=\frac{\mathrm{x}-\mathrm{E}(\mathrm{x})}{\sqrt{\mathrm{V} \text{ar}(\mathrm{x})+\epsilon}} * \gamma+\beta`$.
+            - Post-layerNorm: $`x_{i+1}=\text { LayerNorm }\left(x_i+\text{Sublayer}\left(x_i\right)\right)`$. Apply the residual connection first, then normalize. Used in BERT, T5, and many earlier models. (BERT, T5)
+            - Pre-layerNorm: $`x_{i+1}=x_i+\text{Sublayer}\left(\text{LayerNorm}\left(x_i\right)\right)`$. Normalize before the sublayer (e.g., attention or MLP). Residual connection happens after the sublayer.  (GPT, LLaMa)
             - Why post LN is better? [[科学空间](https://kexue.fm/archives/9009)] Under same setting, pre-LN is easier to be trained, but performance is not as good as post-LN. 
                 - In Pre-LN, because the input is normalized before the residual path, the updates across layers become smaller as depth increases.
                 - As a result, deeper layers contribute less and less, and the model starts acting like a shallow but wide network — you're stacking more layers, but they don't add much unique information.
                 - So while the model has many layers on paper, in practice, it’s not effectively using its depth — it becomes “deep in form but shallow in function.”
                 - Quote from DeepNet: The gradients of Pre-LN at bottom layers tend to be larger than at top layers, leading to a degradation in performance compared with Post-LN.
             - DeepNet introduces **DeepNorm** to merge the high performance of Post‑LN with the stability of Pre‑LN, enabling reliable training of ultra‑deep Transformers .
-                - In a vanilla Post‑LN Transformer, each sublayer updates via： $x_{l+1} = LayerNorm(x_l + G_l(x_l))$, where $G_l$ is the sublayer function (self-attention or feed-forward). DeepNorm replaces this with $x_{l+1} = LayerNorm(x_l + α·G_l(x_l))$.
-                - scaling the residual branch by a constant $\alpha$. Additionally, after standard initialization, the weights inside each residual branch (feed-forward projections and attention value/output projections) are multiplied by a constant $\beta$. These two scaling factors jointly bound the magnitude of model updates and gradients, stabilizing training even at depths of hundreds or thousands of layers.
+                - In a vanilla Post‑LN Transformer, each sublayer updates via： $`x_{l+1} = LayerNorm(x_l + G_l(x_l))`$, where $`G_l`$ is the sublayer function (self-attention or feed-forward). DeepNorm replaces this with $`x_{l+1} = LayerNorm(x_l + α·G_l(x_l))`$.
+                - scaling the residual branch by a constant $`\alpha`$. Additionally, after standard initialization, the weights inside each residual branch (feed-forward projections and attention value/output projections) are multiplied by a constant $`\beta`$. These two scaling factors jointly bound the magnitude of model updates and gradients, stabilizing training even at depths of hundreds or thousands of layers.
 
-        - **RMSnorm** simplifies LayerNorm by removing the mean and bias terms.  $\text{RMS}(\mathbf{x})=\sqrt{\frac{1}{n} \sum_{i=1}^n x_i^2}$, $\text{RMSNorm}(\mathbf{x})=\frac{\mathbf{x}}{\text{RMS}(\mathbf{x})} \cdot \mathbf{g}$.
+        - **RMSnorm** simplifies LayerNorm by removing the mean and bias terms.  $`\text{RMS}(\mathbf{x})=\sqrt{\frac{1}{n} \sum_{i=1}^n x_i^2}`$, $`\text{RMSNorm}(\mathbf{x})=\frac{\mathbf{x}}{\text{RMS}(\mathbf{x})} \cdot \mathbf{g}`$.
         - **pRMSNrom** is a normalization technique similar to RMSNorm, but with a twist: instead of computing the normalization over the entire vector, it does so over only part of it (hence the "partial").
-            - Instead of using all $d$ dimensions, pRMSNorm uses just a subset $d_p$ of them for computing the RMS: $\text{pRMSNorm}(x)=\frac{x}{\sqrt{\frac{1}{d_p} \sum_{i=1}^{d_p} x_i^2+\epsilon}} \cdot g$  (Mistral, Yi)
+            - Instead of using all $`d`$ dimensions, pRMSNorm uses just a subset $`d_p`$ of them for computing the RMS: $`\text{pRMSNorm}(x)=\frac{x}{\sqrt{\frac{1}{d_p} \sum_{i=1}^{d_p} x_i^2+\epsilon}} \cdot g`$  (Mistral, Yi)
 
         - **Instance/Constrast normalization** (2017): Layer normalization and instance normalization is very similar to each other but the difference between them is that instance normalization normalizes across each channel in each training example instead of normalizing across input features in an training example. Unlike batch normalization, the instance normalization layer is applied at test time as well(due to non-dependency of mini-batch). This technique is originally devised for style transfer, the problem instance normalization tries to address is that the network should be agnostic to the contrast of the original image.
         - **Group normalization** (2018) normalizes over group of channels for each training examples. We can say that, Group Norm is in between Instance Norm and Layer Norm. When we put all the channels into a single group, group normalization becomes Layer normalization. And, when we put each channel into different groups it becomes Instance normalization.
@@ -839,7 +841,7 @@ The number of these layers can increase depending on the complexity of the data 
 
 #### RNN 
 [[YouTube](https://www.youtube.com/watch?v=LHXXI4-IEns)]
-- Architecture: RNNs are designed to process sequences by recursively updating a hidden state. At each time step $t$, the network takes an input $x_t$ and the previous hidden state $h_{t-1}$ to produce a new hidden state $h_t$ : $h_t=f\left(W_x x_t+W_h h_{t-1}+b\right)$, where $W_x$ and $W_h$ are weight matrices, $b$ is a bias term, and $f$ is a nonlinear activation function (commonly tanh or ReLU). The same set of weights is used at every time step, which makes the network well-suited for variable-length sequences but also introduces challenges during training.
+- Architecture: RNNs are designed to process sequences by recursively updating a hidden state. At each time step $`t`$, the network takes an input $`x_t`$ and the previous hidden state $`h_{t-1}`$ to produce a new hidden state $`h_t`$ : $`h_t=f\left(W_x x_t+W_h h_{t-1}+b\right)`$, where $`W_x`$ and $`W_h`$ are weight matrices, $`b`$ is a bias term, and $`f`$ is a nonlinear activation function (commonly tanh or ReLU). The same set of weights is used at every time step, which makes the network well-suited for variable-length sequences but also introduces challenges during training.
 - BPTT: BPTT is an extension of the standard backpropagation algorithm. The network is “unrolled” along the time axis, and gradients are computed for each time step, then aggregated to update the shared weights. 
     - Unrolling over long sequences can be both memory-intensive and computationally heavy.
     - The repeated multiplication of gradients across many time steps often results in extremely small (vanishing) or large (exploding) gradients.
@@ -849,16 +851,16 @@ The number of these layers can increase depending on the complexity of the data 
 [[YouTube](https://www.youtube.com/watch?v=8HyCNIVRbSU)]
 - **LSTM** networks were introduced specifically to address the vanishing gradient problem inherent in basic RNNs. They do this by incorporating a memory cell that can maintain information over long periods.
     - Architecture
-        - Cell State $\left(C_t\right)$ : Acts as the "memory" of the network.
-        - Hidden State $\left(h_t\right)$ : Carries output information.
+        - Cell State $`\left(C_t\right)`$ : Acts as the "memory" of the network.
+        - Hidden State $`\left(h_t\right)`$ : Carries output information.
 
         <div align="center">
             <img src="figs/lstm_gates.png" width="80%">
         </div>
 
         - Update Equations:
-            - Cell State Update: $C_t=f_t \odot C_{t-1}+i_t \odot \tilde{C}_t$
-            - Hidden State Update: $h_t=o_t \odot \tanh \left(C_t\right)$ Here, $\odot$ denotes element-wise multiplication and $\sigma$ is the sigmoid activation.
+            - Cell State Update: $`C_t=f_t \odot C_{t-1}+i_t \odot \tilde{C}_t`$
+            - Hidden State Update: $`h_t=o_t \odot \tanh \left(C_t\right)`$ Here, $`\odot`$ denotes element-wise multiplication and $`\sigma`$ is the sigmoid activation.
 
     <div align="center">
         <img src="figs/lstm.png" width="60%">
@@ -932,19 +934,19 @@ The number of these layers can increase depending on the complexity of the data 
 - Attention
     - Basic idea (by Bahdanau et al. 2015): Encode each token in the sequence into a vector. When decoding, perform a linear combination of these vectors, weighted by "attention weights".
     - Cross attention: Each element in a sequence attends to elements of another sequence.
-    - Self attention (Cheng et al. 2016): Each element in the sequence attends to elements of that sequence $\rightarrow$ context sensitive encodings!  In this foundational paper, authors explicitly define $\mathrm{Q}, \mathrm{K}, \mathrm{V}$ as separate linear transformations: $Q=X W_q, \quad K=X W_k, \quad V=X W_v$,  where:
-        - $X$ is the original input embedding or hidden representation.
-        - $W_q, W_k, W_v$ are learnable parameter matrices. Each transformation matrix allows the Transformer to specialize and refine the embeddings differently, to optimize the embeddings specifically for each respective purpose (attention computation for Q and K, content retrieval for V).
+    - Self attention (Cheng et al. 2016): Each element in the sequence attends to elements of that sequence $`\rightarrow`$ context sensitive encodings!  In this foundational paper, authors explicitly define $`\mathrm{Q}, \mathrm{K}, \mathrm{V}`$ as separate linear transformations: $`Q=X W_q, \quad K=X W_k, \quad V=X W_v`$,  where:
+        - $`X`$ is the original input embedding or hidden representation.
+        - $`W_q, W_k, W_v`$ are learnable parameter matrices. Each transformation matrix allows the Transformer to specialize and refine the embeddings differently, to optimize the embeddings specifically for each respective purpose (attention computation for Q and K, content retrieval for V).
         - Why apply self attention on the same sentence? Distribution hypothesis: Approximate the word meaning by its surrounding words. Ex. Run in English.
         - Query (Q): Used to "ask" for relevant information.
         - Key (K): Used to "answer" how relevant a token is to the query.
-        - Value ( $V$ ): Contains the actual content/information to be aggregated.
-        - Attention Weights: Use "query" vector (decoder state) and "key" vectors (all encoder states). For each query-key pair, calculate weight. Then, normalize to add to one using softmax. Compute softmax $\left(\frac{Q K^T}{\sqrt{d}}\right)$, which determines how much focus each token gets.
-        - Output: Multiply the attention weights with $V$ to produce the final context-aware representation.
+        - Value ( $`V`$ ): Contains the actual content/information to be aggregated.
+        - Attention Weights: Use "query" vector (decoder state) and "key" vectors (all encoder states). For each query-key pair, calculate weight. Then, normalize to add to one using softmax. Compute softmax $`\left(\frac{Q K^T}{\sqrt{d}}\right)`$, which determines how much focus each token gets.
+        - Output: Multiply the attention weights with $`V`$ to produce the final context-aware representation.
 
     - Why dot product instead of additive attention? While the two are similar in theoretical complexity, the exp in the paper shows much faster and more space-efficient in practice, since it can be implemented using highly optimized matrix multiplication code.
 
-    - Why divide $\sqrt{d_k}$?  We suspect that for large values of $d_k$, the dot products grow large in magnitude, pushing the softmax function into regions where it has  extremely small gradients. To counteract this effect, we scale the dot products by $\sqrt{d_k}$. Besides, it is due to Variance stabilization. when using Xavier (or Glorot) initialization, the weights have a variance of 1/d (where d is the embedding dimension). Multiplying by √d scales the variance to 1, which helps maintain a stable variance throughout the network.
+    - Why divide $`\sqrt{d_k}`$?  We suspect that for large values of $`d_k`$, the dot products grow large in magnitude, pushing the softmax function into regions where it has  extremely small gradients. To counteract this effect, we scale the dot products by $`\sqrt{d_k}`$. Besides, it is due to Variance stabilization. when using Xavier (or Glorot) initialization, the weights have a variance of 1/d (where d is the embedding dimension). Multiplying by √d scales the variance to 1, which helps maintain a stable variance throughout the network.
     - Multi-head attention: Benefits of parallelizing attention mechanisms to capture multiple features. It was mentioned in the paper that Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions. 
         - Intuition: Information from different parts fo the sentence can be useful to disambiguate in different ways.   Ex. **I** run a small **business**.
         <div align="center">
@@ -963,9 +965,9 @@ The number of these layers can increase depending on the complexity of the data 
     - Positional Encoding
         In this work, we use sine and cosine functions of different frequencies:
 
-        $\begin{aligned} P E_{(p o s, 2 i)} & =\sin \left(p o s / 10000^{2 i / d_{\text {model }}}\right) \\ P E_{(p o s, 2 i+1)} & =\cos \left(p o s / 10000^{2 i / d_{\text {model }}}\right)\end{aligned}$
+        $`\begin{aligned} P E_{(p o s, 2 i)} & =\sin \left(p o s / 10000^{2 i / d_{\text {model }}}\right) \\ P E_{(p o s, 2 i+1)} & =\cos \left(p o s / 10000^{2 i / d_{\text {model }}}\right)\end{aligned}`$
 
-        where pos is the position and $i$ is the dimension. That is, each dimension of the positional encoding corresponds to a sinusoid. The wavelengths form a geometric progression from $2 \pi$ to $10000 \cdot 2 \pi$. We chose this function because we hypothesized it would allow the model to easily learn to attend by relative positions, since for any fixed offset $k, P E_{p o s+k}$ can be represented as a linear function of $P E_{\text {pos }}$.
+        where pos is the position and $`i`$ is the dimension. That is, each dimension of the positional encoding corresponds to a sinusoid. The wavelengths form a geometric progression from $`2 \pi`$ to $`10000 \cdot 2 \pi`$. We chose this function because we hypothesized it would allow the model to easily learn to attend by relative positions, since for any fixed offset $`k, P E_{p o s+k}`$ can be represented as a linear function of $`P E_{\text {pos }}`$.
         We also experimented with using learned positional embeddings [8] instead, and found that the two versions produced nearly identical results (see Table 3 row (E)). We chose the sinusoidal version because it may allow the model to extrapolate to sequence lengths longer than the ones encountered during training.
 
 
@@ -1075,13 +1077,13 @@ Statistical models learned parameters from data—first n‑grams, then classica
             - Out-of-Vocabulary Words: Struggles to handle new words or spelling variations.
         
     - TF–IDF [[YouTube](https://www.youtube.com/watch?v=zLMEnNbdh4Q)] (Term Frequency-Inverse Document Frequency) is a numerical statistic used in natural language processing and information retrieval to indicate the importance of a word in a document relative to a collection of documents (corpus).
-        - Term Frequency (TF): The term frequency measures how often a term appears in a document. $\text{TF}(t, d)=\frac{f_{t, d}}{\sum_{t^{\prime} \in d} f_{t^{\prime}, d}}$, $f_{t, d}$ represents the raw count of term $t$ in document $d$. The denominator sums the raw counts for all terms in document $d$ to normalize the frequency.
-        - Inverse Document Frequency (IDF) reflects how unique or rare a term is across an entire corpus.  $\text{IDF}(t, D)=\log \left(\frac{N}{1+|\{d \in D: t \in d\}|}\right)$, $N$ is the total number of documents in the corpus $D$. $|\{d \in D: t \in d\}|$ counts the number of documents that contain the term $t$. The addition of 1 in the denominator avoids division by zero for terms that might not appear in the corpus, though typically every term considered appears at least once.
-        - $\text{TF}-\text{IDF}(t, d, D)=\text{TF}(t, d) \times \text{IDF}(t, D)$. This formulation ensures that if **a term is very frequent in a document but rare in the corpus**, it gets a high TF-IDF score.
+        - Term Frequency (TF): The term frequency measures how often a term appears in a document. $`\text{TF}(t, d)=\frac{f_{t, d}}{\sum_{t^{\prime} \in d} f_{t^{\prime}, d}}`$, $`f_{t, d}`$ represents the raw count of term $`t`$ in document $`d`$. The denominator sums the raw counts for all terms in document $`d`$ to normalize the frequency.
+        - Inverse Document Frequency (IDF) reflects how unique or rare a term is across an entire corpus.  $`\text{IDF}(t, D)=\log \left(\frac{N}{1+|\{d \in D: t \in d\}|}\right)`$, $`N`$ is the total number of documents in the corpus $`D`$. $`|\{d \in D: t \in d\}|`$ counts the number of documents that contain the term $`t`$. The addition of 1 in the denominator avoids division by zero for terms that might not appear in the corpus, though typically every term considered appears at least once.
+        - $`\text{TF}-\text{IDF}(t, d, D)=\text{TF}(t, d) \times \text{IDF}(t, D)`$. This formulation ensures that if **a term is very frequent in a document but rare in the corpus**, it gets a high TF-IDF score.
 
 - Language Modeling
     - N-grams are sequential word or character sets, with "n" indicating the number of elements in a particular set. They play a crucial role in understanding context and text prediction, especially in statistical language models.
-        - Types: Unigrams: Single words $w_i$; Bigrams: Pairs of words $w_{i-1}, w_i$; Trigrams: Three-word sequences $w_{i-2}, w_{i-1}, w_i$.
+        - Types: Unigrams: Single words $`w_i`$; Bigrams: Pairs of words $`w_{i-1}, w_i`$; Trigrams: Three-word sequences $`w_{i-2}, w_{i-1}, w_i`$.
         - Code
         ```python
         !pip install nltk
@@ -1108,15 +1110,15 @@ Statistical models learned parameters from data—first n‑grams, then classica
 
     - Smoothing: In n‑gram language models, maximum likelihood estimation often assigns a zero probability to n‑grams that do not occur in the training data. Smoothing techniques redistribute some probability mass from frequent (observed) n‑grams to those unseen in order to: Prevent zero probabilities (which can cause issues in probability chains or likelihood computations); Improve the model’s generalizability when encountering new text.
         - Laplace (Add‑One) Smoothing is one of the simplest methods available. It adds one to every count in the frequency table, ensuring no event has a zero probability. Despite its simplicity, this method can be overly naive—especially when the vocabulary size is large, since it tends to overestimate the probability of rare (or unseen) events.
-            - For an n-gram $w_1, \ldots, w_n$ with count $c\left(w_1, \ldots, w_n\right)$, the smoothed probability is: $P\left(w_n \mid w_1, \ldots, w_{n-1}\right)=\frac{c\left(w_1, \ldots, w_n\right)+1}{c\left(w_1, \ldots, w_{n-1}\right)+V}$
+            - For an n-gram $`w_1, \ldots, w_n`$ with count $`c\left(w_1, \ldots, w_n\right)`$, the smoothed probability is: $`P\left(w_n \mid w_1, \ldots, w_{n-1}\right)=\frac{c\left(w_1, \ldots, w_n\right)+1}{c\left(w_1, \ldots, w_{n-1}\right)+V}`$
                 where:
-                - $c\left(w_1, \ldots, w_n\right)$ is the count of the n-gram.
-                - $c\left(w_1, \ldots, w_{n-1}\right)$ is the count of the ( $\mathrm{n}-1$ )-gram context.
-                - $V$ is the vocabulary size.
+                - $`c\left(w_1, \ldots, w_n\right)`$ is the count of the n-gram.
+                - $`c\left(w_1, \ldots, w_{n-1}\right)`$ is the count of the ( $`\mathrm{n}-1`$ )-gram context.
+                - $`V`$ is the vocabulary size.
             - Laplace smoothing is computationally simple but may not be optimal for larger vocabularies where its additive nature overly penalizes higher-frequency events.
         - Good–Turing Smoothing focuses on adjusting the probability estimates based on the frequency of frequencies—or counts‑of‑counts. The key observation is that the probability mass “lost” to unseen events can be estimated by how many events have been seen once, twice, etc.
         - Kneser–Ney smoothing is regarded as one of the most effective and sophisticated smoothing methods for n‑gram models. Its power lies in two key aspects:
-            - Absolute Discounting: Subtract a constant discount $D$ from each nonzero n-gram count.
+            - Absolute Discounting: Subtract a constant discount $`D`$ from each nonzero n-gram count.
             - Continuation Probability: Instead of backing off to the raw frequency of lower-order n-grams, Kneser-Ney considers how likely it is that a word appears as a novel continuation. This is captured by the "continuation probability," which is the proportion of contexts in which a word appears.
 
 
@@ -1148,7 +1150,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - Skip-gram predicts surrounding words given the current word.
             - Objective function: Maximize the probability of any context word given the current center word.
 
-        - Hierarchical Softmax reduces the cost of computing softmax from $\mathrm{O}(\mathrm{V})$ to $\mathrm{O}(\log \mathrm{V})$ using a binary tree specifically a Huffman Tree.
+        - Hierarchical Softmax reduces the cost of computing softmax from $`\mathrm{O}(\mathrm{V})`$ to $`\mathrm{O}(\log \mathrm{V})`$ using a binary tree specifically a Huffman Tree.
         - In the follow-up work, negative sampling is purposed.
 
 
@@ -1199,8 +1201,8 @@ Neural nets brought continuous representations and end‑to‑end learning.
 
 - Training objectives
     - At its core, an LLM’s training objective is Maximum Likelihood Estimation (MLE): we maximize the probability of the observed text under the model, which in practice means minimizing the cross‑entropy loss for next‑token prediction.
-    - What Is Maximum Likelihood Estimation (MLE)? Maximum Likelihood Estimation is a classical statistical method for fitting a parameterized model to data. Given training sequences $\left\{x^{(i)}\right\}_{i=1}^N$, MLE chooses $\theta$ to maximize the likelihood of observing that data under the model. Equivalently, one maximizes the log-likelihood. $\mathcal{L}(\theta)=\sum_{i=1}^N \log p_\theta\left(x^{(i)}\right)$ or, in practice, minimizes the negative log-likelihood.
-    - MLE in LLM training: Training objective: $\max _\theta \sum_{i=1}^N \sum_{t=1}^{\left|x^{(i)}\right|} \log p_\theta\left(x_t^{(i)} \mid x_{<t}^{(i)}\right)$. In deep‑learning code this becomes the familiar cross‑entropy loss between the model’s predicted token‑distribution and the true next token.
+    - What Is Maximum Likelihood Estimation (MLE)? Maximum Likelihood Estimation is a classical statistical method for fitting a parameterized model to data. Given training sequences $`\left\{x^{(i)}\right\}_{i=1}^N`$, MLE chooses $`\theta`$ to maximize the likelihood of observing that data under the model. Equivalently, one maximizes the log-likelihood. $`\mathcal{L}(\theta)=\sum_{i=1}^N \log p_\theta\left(x^{(i)}\right)`$ or, in practice, minimizes the negative log-likelihood.
+    - MLE in LLM training: Training objective: $`\max _\theta \sum_{i=1}^N \sum_{t=1}^{\left|x^{(i)}\right|} \log p_\theta\left(x_t^{(i)} \mid x_{<t}^{(i)}\right)`$. In deep‑learning code this becomes the familiar cross‑entropy loss between the model’s predicted token‑distribution and the true next token.
 
         ```python
         loss = CrossEntropyLoss(logits, targets)
@@ -1237,23 +1239,23 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - Have regular patterns that extend naturally beyond training range
 
 
-    - **Absolute positinal encodings**  attach a vector $p_k$ (depending only on position $k$ ) to each token embedding $x_k$, typically via addition $x_k \leftarrow x_k+p_k$.
-        - Learnable embeddings: Initialize a $\left(P_{\max } \times d\right)$ matrix of parameters and train jointly.
+    - **Absolute positinal encodings**  attach a vector $`p_k`$ (depending only on position $`k`$ ) to each token embedding $`x_k`$, typically via addition $`x_k \leftarrow x_k+p_k`$.
+        - Learnable embeddings: Initialize a $`\left(P_{\max } \times d\right)`$ matrix of parameters and train jointly.
             - Pros: highly expressive.
-            - Cons: no inherent extrapolation beyond $P_{\max }$ without further fine-tuning.
-        - Sinusoidal ("triangular") encodings $p_{k, 2 i}=\sin \left(k / 10000^{2 i / d}\right), \quad p_{k, 2 i+1}=\cos \left(k / 10000^{2 i / d}\right)$.
+            - Cons: no inherent extrapolation beyond $`P_{\max }`$ without further fine-tuning.
+        - Sinusoidal ("triangular") encodings $`p_{k, 2 i}=\sin \left(k / 10000^{2 i / d}\right), \quad p_{k, 2 i+1}=\cos \left(k / 10000^{2 i / d}\right)`$.
             - Pros: closed-form, constant memory, some theoretical extrapolation via periodicity.
             - Cons: distant positions eventually "wrap around" and become hard to distinguish without decay tweaks.
-        - Recursive / ODE-based encodings: Define $p_{k+1}=f\left(p_k\right)$ (e.g. an RNN) or even an ODE $d p_t / d t=h\left(p_t, t\right)$ (FLOATER).
+        - Recursive / ODE-based encodings: Define $`p_{k+1}=f\left(p_k\right)`$ (e.g. an RNN) or even an ODE $`d p_t / d t=h\left(p_t, t\right)`$ (FLOATER).
             - Pros: highly flexible, can be shown to generalize sinusoidal as a special case.
             - Cons: sequential dependency hurts parallelism and speed.
-        - Multiplicative encodings [[知乎](https://zhuanlan.zhihu.com/p/183234823)]: Inject position by element-wise scaling $x_k \leftarrow x_k$ $\odot p_k$ instead of adding.
+        - Multiplicative encodings [[知乎](https://zhuanlan.zhihu.com/p/183234823)]: Inject position by element-wise scaling $`x_k \leftarrow x_k`$ $`\odot p_k`$ instead of adding.
             - Pros: sometimes better empirical performance.
             - Cons: less commonly used, few systematic studies.
 
-    - **Relative positional encodings** explicitly êncode relative position
+    - **Relative positional encodings** explicitly encode relative position
     - **RoPE** uses trigonometry and imaginary numbers to come up with a function that satisfies this property. It uses absolute positions to represent relative positions.
-        - $f_q\left(\mathbf{x}_m, m\right) \cdot f_k\left(\mathbf{x}_n, n\right)=g\left(\mathbf{x}_m, \mathbf{x}_n, m-n\right)$
+        - $`f_q\left(\mathbf{x}_m, m\right) \cdot f_k\left(\mathbf{x}_n, n\right)=g\left(\mathbf{x}_m, \mathbf{x}_n, m-n\right)`$
     - when it's not that important?
 
 
@@ -1371,7 +1373,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - ZeRO-3: Full Sharding (Optimizer + Gradients + Parameters). Shards everything: parameters, gradients, and optimizer states. At any moment, each GPU holds only a part of the full model. This essentially blends **data parallelism** and **model parallelism**.
             - Reduce + AllGather can simulate AllReduce.
 
-        <div align="center">s
+        <div align="center">
             <img src="figs/zero.png" width="90%">
         </div>
     
@@ -1445,7 +1447,7 @@ Neural nets brought continuous representations and end‑to‑end learning.
 - Memory optimization technique (activation checkpointing, )
     - Activation checkpointing/ Activation recomputation: Recompute some activations during the backward pass. Store some activations during the forward pass as checkpoints. Discard other activations and recompute them during the backward pass.
         - Save memory but take longer to compute.
-    - Gradient accumulation: Split batch into micro-batches, do forward/backward passes on each micro-batch, average the gradients: $b s=g b s=m b s \cdot g r a d \_a c c$.
+    - Gradient accumulation: Split batch into micro-batches, do forward/backward passes on each micro-batch, average the gradients: $`b s=g b s=m b s \cdot g r a d \_a c c`$.
         - could be combined with multi-GPU techniques.
         - Overlap + bucketing
 
