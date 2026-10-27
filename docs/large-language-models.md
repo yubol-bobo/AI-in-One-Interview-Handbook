@@ -26,6 +26,14 @@
         - [Relationships, Hybrids, and Evaluation](#to-be-reviewed-relationships-hybrids-and-evaluation)
     - [Online RL: Objectives, PPO, and GRPO](#online-rl)
         - [PPO Update Details](#to-be-reviewed-ppo-update-details)
+        - [Credit Assignment: Returns, Baselines, and GAE](#rl-credit-assignment)
+        - [Reward Hacking: Proxy Gains Versus Intended Outcomes](#rl-reward-hacking)
+        - [Outcome Rewards, Process Rewards, and Reward Shaping](#rl-reward-design)
+        - [Exploration, Sparse Rewards, and Critic-Free Estimators](#rl-exploration)
+        - [KL Control, PPO Clipping, Entropy, and Length](#rl-kl-control)
+        - [On-Policy, Off-Policy, and Offline Learning](#rl-policy-data)
+        - [Interview Discussion and Debugging](#rl-interview)
+            - [A Practical RL Debugging Sequence](#rl-debugging)
     - [Preferences, Reward Models, and AI Feedback](#preference-optimization)
         - [Direct Preference Optimization (DPO)](#to-be-reviewed-direct-preference-optimization-dpo)
         - [Feedback Collection and Reward-model Evaluation](#to-be-reviewed-feedback-collection-and-reward-model-evaluation)
@@ -283,6 +291,118 @@ Choose and validate the reward source using the [RLHF/RLAIF/RLVR/RLCD comparison
 
 - PPO uses an importance ratio $`r_t(\theta)=\pi_\theta(a_t\mid s_t)/\pi_{\mathrm{old}}(a_t\mid s_t)`$ and a clipped surrogate $`\mathbb{E}[\min(r_t A_t,\operatorname{clip}(r_t,1-\epsilon,1+\epsilon)A_t)]`$. In language generation, actions are tokens and states are prefixes.
 - A language-model RLHF implementation also needs rollout generation, advantage estimation, masking, and a chosen reference-policy regularization scheme. Clipping limits parts of the surrogate objective; it is not a hard guarantee on policy KL. **Example:** reward gain accompanied by collapsing output diversity signals the need to examine optimization and the reward proxy. [PPO](https://arxiv.org/abs/1707.06347)
+
+<a id="rl-credit-assignment"></a>
+#### [To be reviewed] Credit Assignment: Returns, Baselines, and GAE
+
+**The question is which earlier decisions should change after a delayed outcome.** In an LLM, a state can be a prompt-plus-prefix and an action a token; in an agent, an action can contain many tokens and trigger an environment transition. A terminal test result does not identify a unique responsible token or tool call. Separate temporal credit assignment, variance reduction, and causal attribution.
+
+**Contextual bandit versus MDP:** for a single-turn prompt with only response-level feedback, the complete response can be treated as one contextual-bandit action. Autoregressive factorization still gives tokenwise log-probability gradients. A multi-turn tool agent additionally acts on an environment and receives new observations; model that sequential structure explicitly rather than treating tool results as tokens controlled by the policy.
+
+For rewards r_t on transitions and an episode ending after T actions, define reward-to-go as $`G_t=\sum_{l=0}^{T-t-1}\gamma^l r_{t+l}`$. In the **undiscounted** episodic case, $`J(\theta)=\mathbb E[\sum_t r_t]`$ has the score-function gradient $`\nabla_\theta J=\mathbb E[\sum_t\nabla_\theta\log\pi_\theta(a_t\mid s_t)(G_t-b(s_t))]`$ under the usual regularity/support conditions and policy-independent environment dynamics. An action-independent baseline has zero expected score contribution. Hold the sampled advantage/baseline fixed in the actor surrogate; train a learned value function with its own objective. For a discounted start-state objective, retain the corresponding discount weighting or explicitly use a discounted-occupancy formulation; silently reusing the undiscounted identity changes the estimand.
+
+**Actor–critic.** A state value estimates expected future return under the policy; an advantage measures an action's return relative to that state baseline. A common TD residual is $`\delta_t=r_t+\gamma(1-d_t)V(s_{t+1})-V(s_t)`$, where d_t indicates a genuine terminal transition. Generalized Advantage Estimation uses $`\widehat A_t=\sum_{l=0}^{T-t-1}(\gamma\lambda)^l\delta_{t+l}`$, stopping at episode boundaries. It combines bootstrapped residuals: smaller lambda can reduce variance but increases dependence on value accuracy; lambda = 1 recovers the corresponding Monte Carlo-minus-value expression with compatible terminal/bootstrap treatment. [GAE](https://arxiv.org/abs/1506.02438)
+
+**Worked example, not a measured result:** take three actions, rewards (0, 0, 1), gamma = 0.9, lambda = 0.8, values (0.4, 0.5, 0.6), and terminal value zero. The TD residuals are (0.05, 0.04, 0.4); backward recursion $`\widehat A_t=\delta_t+\gamma\lambda\widehat A_{t+1}`$ gives advantages (0.28616, 0.328, 0.4). Monte Carlo returns are (0.81, 0.9, 1). These are different objects, and none establishes that the third action alone caused success.
+
+**LLM-specific consequences:** with gamma = 1 and only one terminal outcome reward, all response tokens initially share the same Monte Carlo return. Their score gradients still differ; a prefix-dependent value baseline, tokenwise KL penalties, or intermediate rewards can further differentiate advantages. Group-relative response rewards remove a critic, but do not automatically discover which reasoning step was wrong. See [agent credit assignment](agents.md#agent-rl) for tool transitions and [process supervision](reasoning.md#reasoning-overview) for intermediate labels.
+
+**Termination versus truncation:** a token/time cap can either define failure in the actual task or merely cut a continuing trajectory for collection. Bootstrap only when the objective and available continuation state justify it; do not treat every timeout as a natural terminal or every truncation as safely continuable. Never propagate returns across unrelated packed responses. Track masks, EOS handling, value error, advantage variance, and action/token normalization.
+
+<a id="rl-reward-hacking"></a>
+#### [To be reviewed] Reward Hacking: Proxy Gains Versus Intended Outcomes
+
+Reward hacking occurs when optimization exploits a mismatch between the implemented reward and the intended objective. It need not involve an explicit intent to deceive. Ordinary generalization error, reward-model noise, benchmark contamination, and reward exploitation can produce overlapping symptoms; rising training reward alone does not diagnose which mechanism occurred.
+
+| Failure mechanism | Illustrative LLM / agent behavior | Evidence and intervention |
+| --- | --- | --- |
+| Learned-proxy exploitation | Verbose, confident, or agreeable answers win a judge despite worse factual accuracy | Compare blinded independent judgments and task checks; test length/style-controlled pairs and audit reward extrapolation |
+| Incomplete verifier specification | A patch passes narrow tests while violating an untested nonmutation or edge-case requirement | Expand development checks from the task contract; use independent final tests and inspect the actual artifact |
+| Process-reward exploitation | A response adds many superficially plausible intermediate steps to collect positive local scores | Check step correctness, redundancy, terminal success, and reward aggregation; compare matched-token alternatives |
+| Reward-channel tampering | An agent changes a result file or evaluation component instead of solving the task | Grade the submitted artifact in an isolated evaluator; preserve access boundaries and immutable evaluation records |
+| Misweighted objectives | Formatting or brevity bonuses outweigh required correctness or evidence | Inspect every reward component and their units; compare constrained/gated objectives with a weighted sum |
+
+**Diagnosis example:** suppose training reward rises while hidden-test success falls. Freeze several checkpoints and rerun them with the same sampling budget, independent grader, and held-out inputs. Inspect disagreement cases: are tests incomplete, labels wrong, or outputs exploiting a style/format shortcut? Fixing the verifier and retraining is different from lowering the learning rate against the same defective objective. Keep final tests outside iterative reward development. The reward-overoptimization study by Gao et al. demonstrates proxy/gold divergence in a controlled setup where the “gold” signal is itself another model, not an infallible measurement of human utility. [Reward-model overoptimization](https://proceedings.mlr.press/v202/gao23h.html)
+
+**Mitigations are complementary:** improve reward coverage, audit on-policy failures, use independent evaluation, isolate grading from mutable agent state, and limit unsupported distributional drift. A stronger reward model, KL regularization, ensembles, or early stopping may help, but none repairs an incorrect specification by definition. RLVR removes the need for a learned reward model in its pure form; it still optimizes acceptance by a finite checker. See [feedback-source limitations](#rl-feedback-comparison) and [grader validity](benchmarking-and-evaluation.md#eval-graders).
+
+<a id="rl-reward-design"></a>
+#### [To be reviewed] Outcome Rewards, Process Rewards, and Reward Shaping
+
+**Outcome supervision** rewards the final answer or environment state; **process supervision** labels intermediate reasoning/actions. Outcome feedback can be sparse but comparatively easy to verify. Process feedback can provide earlier distinctions, while introducing annotation cost, local-label errors, and incentives to optimize the visible step format. Neither granularity guarantees a faithful reasoning trace or better end-to-end behavior. [Process supervision](https://arxiv.org/abs/2305.20050)
+
+Specify whether process rewards are summed, averaged, minimized, or used to score whole trajectories. Summing positive step scores can reward unnecessary steps; averaging changes relative sequence weighting and does not remove judge exploitation. A per-token cost explicitly trades task performance against length, rather than being a neutral implementation trick. Keep correctness, format, latency, and resource costs separately logged even when the training objective combines them.
+
+**Potential-based shaping** illustrates when an auxiliary signal can preserve a task's optimal policies under specific MDP assumptions. Add $`F(s_t,s_{t+1})=\gamma\Phi(s_{t+1})-\Phi(s_t)`$ to the original transition reward. Its discounted sum telescopes to $`\sum_{t=0}^{T-1}\gamma^tF(s_t,s_{t+1})=-\Phi(s_0)+\gamma^T\Phi(s_T)`$. If the boundary term is policy-independent, for example zero terminal potential in the episodic setting, this adds only a fixed offset for a fixed start. Infinite-horizon discounted results need the corresponding boundedness/vanishing-boundary conditions. A learned “good reasoning step” bonus is not automatically of this form. [Ng, Harada, and Russell](https://people.eecs.berkeley.edu/~russell/papers/icml99-shaping.pdf)
+
+**Example:** rewarding an agent every time it runs a test can favor repeatedly running the same test without fixing the bug. A potential tied to verified progress must still satisfy the shaping definition and boundary conditions to inherit that invariance argument. Under finite compute, function approximation, clipping, or imperfect optimization, policy invariance of the ideal objective is not a guarantee of an identical learned policy.
+
+<a id="rl-exploration"></a>
+#### [To be reviewed] Exploration, Sparse Rewards, and Critic-Free Estimators
+
+Policy gradients need informative sampled behavior. When every attempted solution fails, a terminal binary reward gives little differentiation; when every solution succeeds, it gives little discrimination among those successes. With iid binary outcomes of probability p and group size G, the probability of a mixed-success group is $`1-p^G-(1-p)^G`$. At p = 0.1 and G = 4, it is 0.3438; “at least one success” is 0.3439. The distinction matters because all-success groups also have zero relative outcome advantage. Real samples can be correlated, so this calculation is an illustrative conditional model.
+
+| Estimator / algorithm | Baseline or advantage source | Main trade-off |
+| --- | --- | --- |
+| REINFORCE | Sampled reward-to-go, optionally minus an action-independent baseline | Simple Monte Carlo estimator; variance and sparse exploration can be costly |
+| RLOO | Other independent responses to the same prompt supply a leave-one-out reward baseline | Avoids a separately learned critic; needs multiple samples and valid baseline/independence assumptions |
+| PPO actor–critic | Commonly learned values plus GAE, with a clipped actor surrogate | Supports prefix-dependent baselines; adds value fitting, memory, and update choices |
+| GRPO | Group-relative feedback, commonly centered and standardized | Avoids a learned value model in the original recipe; normalization, zero-variance groups, and prompt weighting need care |
+
+For a fixed-size group of iid responses and unnormalized rewards, including a sample's own reward in its group-mean baseline scales the expected REINFORCE signal by $`(G-1)/G`$ compared with the no-baseline signal. A leave-one-out mean avoids that particular self-inclusion effect. Dividing by a random group standard deviation adds another transformation; it is not merely baseline subtraction and need not preserve the same gradient target. [RLOO / REINFORCE-style optimization](https://arxiv.org/abs/2402.14740), [original GRPO](https://arxiv.org/abs/2402.03300)
+
+**Concrete group:** rewards (0, 0, 1, 1) have mean 0.5 and population standard deviation 0.5, producing standardized advantages (-1, -1, 1, 1) before any epsilon adjustment. Four zero rewards produce no relative **outcome** signal; entropy/KL terms or other reward components may still produce updates. A larger group increases sampling cost and does not create missing capabilities by itself.
+
+Improve exploration using a suitable initialization, difficulty curriculum, useful demonstrations, diversity-aware prompt/sample collection, or a better environment/action interface. Higher temperature and entropy regularization can expand coverage but can also produce invalid actions. Verify that changed sampling filters match the behavior probabilities used for correction. Report mixed-reward-group rate, success by difficulty, distinct valid solutions, rollout cost, and independent pass@1; avoid claiming a gain from selecting only productive groups without counting discarded rollouts. [Sampling/length optimization study](https://arxiv.org/abs/2503.14476)
+
+<a id="rl-kl-control"></a>
+#### [To be reviewed] KL Control, PPO Clipping, Entropy, and Length
+
+**Two different anchors:** PPO's old policy generated the rollout; the reference policy defines a regularization target, often a fixed SFT checkpoint. Refreshing the old policy does not refresh the reference unless the recipe explicitly says so. Ratio clipping controls a surrogate relative to the former; a reference-KL term penalizes drift from the latter. Neither is a guarantee of preserving task quality. See [PPO update details](#to-be-reviewed-ppo-update-details).
+
+For one fixed prompt, a fixed response reward, beta > 0, and a finite normalizer, optimizing expected reward minus $`\beta D_{\mathrm{KL}}(\pi\|\pi_{\mathrm{ref}})`$ over response distributions supported by the reference gives $`\pi^*(y\mid x)=\pi_{\mathrm{ref}}(y\mid x)\exp(R(x,y)/\beta)/Z(x)`$. This idealized distributional optimum is not a guarantee about a finite neural-network PPO run. It shows why reward scale and beta interact: multiplying an unnormalized reward by ten at fixed beta has the same ideal trade-off as dividing beta by ten. Reward whitening, clipping, and other objective changes require a separate analysis. [KL-regularized preference framework](https://arxiv.org/abs/2305.18290)
+
+**Sequence versus token KL:** with matching autoregressive sample spaces and termination conventions, sequence KL equals the current-policy expectation of summed conditional token KLs. On current-policy samples, the log-ratio sum $`\sum_t\log[\pi_\theta(a_t\mid s_t)/\pi_{\mathrm{ref}}(a_t\mid s_t)]`$ estimates the sequence divergence in expectation; an individual sample can be negative. A per-token mean is a different length-weighted quantity. Filtered/stale rollouts, missing EOS, and truncation can invalidate a naive interpretation of that logged estimate. The conditional-divergence and sampling distinctions are developed in [OPD](#distillation-and-opd).
+
+**Entropy is another control.** An entropy bonus encourages a wider policy at visited states; it is not the same as staying near a reference distribution. More entropy can mean useful strategy diversity or merely more malformed tokens. Longer answers can reflect useful computation, a verbosity-biased reward, reward aggregation, or changed stopping behavior. Compare verified quality at matched output/tool budgets, monitor EOS/truncation, and inspect length by success/failure rather than assuming either longer or shorter is always better.
+
+<a id="rl-policy-data"></a>
+#### [To be reviewed] On-Policy, Off-Policy, and Offline Learning
+
+**On-policy** describes compatibility between the collection policy and the update estimator. PPO collects from an old policy and intentionally reuses that batch for bounded updates; it is not “fresh data for every gradient step.” **Off-policy** methods learn from behavior generated by another policy with a justified estimator/objective. **Offline RL** uses a fixed interaction dataset without new collection; its major challenges include support/coverage and distribution shift. These are different axes from whether labels were supplied by humans, an AI judge, or a verifier. [Offline RL review](https://arxiv.org/abs/2005.01643)
+
+For a fixed prompt, sequence importance sampling can use $`w(y)=\prod_t\pi_\theta(a_t\mid s_t)/\mu(a_t\mid s_t)`$ when the behavior policy mu has adequate support. Products can have extreme variance; clipping or self-normalization trades bias for stability. Per-token PPO ratios alone are not a general exact correction for arbitrary stale histories or changed environment distributions. Record actual behavior probabilities, rollout version/age, sampler, and environment state.
+
+**Interview distinction:** a frozen set of successful rollouts trained by negative log-likelihood is rejection-sampling SFT. Basic offline DPO uses preference pairs and a reference-relative objective. Neither becomes online policy-gradient RL merely because an earlier model generated the examples. OPD identifies teacher feedback on student-visited states, not one particular reward source. Use the [SFT/RL/OPD comparison](#sft-rl-opd-comparison) instead of assigning a training method from data provenance alone.
+
+<a id="rl-interview"></a>
+#### [To be reviewed] Interview Discussion: Questions and Follow-ups
+
+A useful answer states the objective, sampling assumptions, failure mechanism, and an experiment that could distinguish competing explanations. The following prompts connect the derivations above to concrete system decisions.
+
+| Question | Core answer | Follow-up to prepare |
+| --- | --- | --- |
+| Why use RL after SFT? | SFT imitates provided targets; RL can optimize a specified outcome on policy-generated behavior. Gains depend on reward validity, exploration, and budget. | Compare with stronger demonstrations, rejection-sampling SFT, and inference-time selection at matched total cost. |
+| Is LLM RL a contextual bandit or an MDP? | A whole single-turn response can be one bandit action, or be factorized into token decisions. Interactive agents add environment transitions and observations. | Which quantities does the policy control, and what changes when feedback arrives after several tool calls? |
+| How does a final scalar reward train earlier tokens? | The likelihood-ratio gradient changes sampled action probabilities according to return/advantage. Baselines reduce variance, without proving which token caused success. | Derive reward-to-go, explain GAE, and handle observation tokens and trajectory boundaries. |
+| Does removing the critic solve credit assignment? | No. GRPO changes the estimator and memory cost; a response-level advantage can still assign the same outcome signal to every token. | What happens with all-equal rewards, tiny groups, or unequal prompt difficulty? |
+| Why can reward improve while answer quality falls? | The proxy or verifier may be exploitable, or evaluation/sampling may have changed. | Freeze checkpoints, compare independent graders, and inspect reward–correctness disagreements. |
+| Does RLVR eliminate reward hacking? | It eliminates some learned-proxy issues, but a verifier still defines a limited acceptance specification. | Design hidden edge cases and isolate artifact grading from the agent's mutable workspace. |
+| Why does PPO clipping not guarantee small KL? | The clipped surrogate is not a hard global constraint on distributions or all unseen actions. | Distinguish old-policy ratios, reference KL, actual KL monitoring, and early stopping. |
+| Can larger groups or higher temperature fix sparse rewards? | They can increase exploration under a fixed capability distribution, at extra cost and possibly more invalid actions. | Estimate mixed-group probability, count discarded rollouts, and compare curriculum or SFT initialization. |
+| Are process rewards always better? | They offer denser measurements but can be wrong, correlated, or vulnerable to step/length incentives. | Compare outcome-only, process-only, and combined rewards with independent terminal grading. |
+| Can we reuse old rollouts indefinitely? | Only with an objective/estimator justified for the behavior distribution and sufficient support; variance and policy lag remain constraints. | Audit filtered behavior log-probabilities, importance weights, environment drift, and refresh cadence. |
+| What does lower actor loss establish? | Only progress on that sampled surrogate under its sign/reduction convention; changing advantages and clipping make cross-run loss values hard to compare. | Show independent correctness, actual KL, entropy, length, cost, and retained capabilities. |
+
+<a id="rl-debugging"></a>
+##### [To be reviewed] A Practical RL Debugging Sequence
+
+1. **Validate the reward contract:** feed known valid/invalid outputs through the parser, verifier, and reward aggregator. Check units, format bonuses, empty outputs, exceptions, and reward provenance.
+2. **Validate the estimator:** compare sampled log-probabilities with the actual behavior sampler; inspect masks, advantage signs, detached targets, reduction denominators, and terminal/truncation handling. Before an update, the current/old ratio should be one when weights and likelihood/sampler conventions truly match.
+3. **Locate signal loss:** inspect all-equal groups, value error, reward/advantage variance, gradient norms, clipping fraction, and rollout age. Separate actor signal from KL/entropy contributions.
+4. **Measure the intended outcome:** hold evaluation prompts, grading, and inference budget fixed across checkpoints. Track hidden-test/task success, reward components, length, diversity, retained capabilities, and total rollout/judge/tool cost.
+5. **Run one controlled intervention:** change the verifier, curriculum, KL scale, rollout refresh, or estimator reduction individually. A joint recipe change may improve a system while leaving the mechanism unidentified. Use the [evaluation protocol](benchmarking-and-evaluation.md#eval-protocol) to preserve that distinction.
+
 
 <a id="preference-optimization"></a>
 ### [To be reviewed] Preferences, Reward Models, and AI Feedback

@@ -28,3 +28,5 @@
 For math/coding/agent benchmark families, saturation, and the distinction between pass@k search opportunity and pass^k repeated-run reliability, see [Benchmarking & Evaluation](benchmarking-and-evaluation.md#eval-metrics).
 
 For turning reasoning into tool actions, dependency-aware plans, and multi-agent coordination, see [Agents](agents.md#agent-planning). Runtime continuity and recursive improvement are covered in [RSI & Harness](rsi-and-harness.md).
+
+[To be reviewed] For learning from a final verifier or intermediate step labels, see [credit assignment and GAE](large-language-models.md#rl-credit-assignment) and [outcome/process rewards and shaping](large-language-models.md#rl-reward-design). A process score supplies another measurement; it does not automatically establish causal token attribution or immunity to [reward hacking](large-language-models.md#rl-reward-hacking).

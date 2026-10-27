@@ -47,6 +47,8 @@ The unresolved label **KPO** remains explicitly marked for review in [LLM termin
 
 ## Validation
 
+The figures in this section describe the review snapshot committed as `f28d16b`. Subsequent RL additions are recorded separately below.
+
 - All **353 baseline review markers** are retained; the reviewed documents and this report contain **367 markers** in total.
 - **441 formulas** survive GitHub Markdown rendering intact and compile with MathJax without errors.
 - **425 local links**, **11 local image references**, **40 tables**, and all baseline heading/alias fragments pass structural checks across **15 Markdown files** (README, 13 chapters, and this report).
@@ -86,3 +88,9 @@ The following retained sources rejected the direct checker with 403. They are **
 | [ASA statement DOI](https://doi.org/10.1080/00031305.2016.1154108) | Statistics: publisher rejects the direct checker; bibliographic source retained |
 
 Version-sensitive checks included the [SWE-bench Pro V2 report](https://arxiv.org/abs/2610.24206), [Terminal-Bench homepage](https://www.tbench.ai/), [LiveBench site](https://livebench.ai/), and the [dated provider SFT guide](https://developers.openai.com/api/docs/guides/supervised-fine-tuning). Their availability/version statements are dated observations, not permanent training or evaluation rules.
+
+## RL follow-up — 2026-10-27
+
+Expanded the [LLM RL discussion](large-language-models.md#online-rl) with credit assignment, reward-to-go, baselines/GAE, reward hacking, process/outcome rewards, potential-based shaping, sparse exploration, RLOO/PPO/GRPO distinctions, KL/entropy/length effects, on/off-policy data, interview questions, and a debugging sequence. New curricular sections and cross-chapter explanations carry review markers. Existing content and review markers from `f28d16b` are preserved.
+
+The examples explicitly separate estimator credit from causal attribution, verified acceptance from full correctness, and surrogate-loss improvement from independent task improvement. The worked GAE, shaping, mixed-group probability, and self-inclusion calculations are checked numerically; GitHub/MathJax rendering, local references, and newly cited source availability are checked for the extension.

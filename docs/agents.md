@@ -184,6 +184,8 @@ For reward 1 at action index 3, zero rewards elsewhere, and gamma = 0.9, the dis
 
 RAGEN studies multi-turn agent RL and training instability; Search-R1 studies learning to reason and invoke search. Their environment and reward designs are part of the method. An external search response is a sampled observation, not automatically a differentiable path through which ordinary backpropagation updates the environment. [RAGEN](https://arxiv.org/abs/2504.20073), [Search-R1](https://arxiv.org/abs/2503.09516)
 
+[To be reviewed] For the estimator derivation, the worked GAE example, and why response-level normalization does not identify the responsible action, see [RL credit assignment](large-language-models.md#rl-credit-assignment). For agents that can affect evaluation files or reward channels, distinguish [reward hacking and tampering](large-language-models.md#rl-reward-hacking) from ordinary task failure; the [runtime/evaluator boundary](rsi-and-harness.md#harness-runtime) explains the corresponding execution separation.
+
 For multiple learned agents, team rewards create shared credit-assignment and nonstationarity problems. Centralized training with decentralized execution is one family of approaches; it does not make every worker's contribution identifiable. MAPPO is a useful non-LLM multi-agent RL reference, rather than evidence that the same configuration is optimal for language agents. [MAPPO](https://arxiv.org/abs/2103.01955)
 
 <a id="agent-distillation"></a>
