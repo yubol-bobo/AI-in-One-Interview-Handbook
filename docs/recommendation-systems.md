@@ -2,7 +2,26 @@
 <a id="personalized-rec-system"></a>
 # [To be reviewed] Recommendation Systems
 
-[Back to the handbook](../README.md#table-of-contents)
+[Handbook contents](../README.md#table-of-contents) | [Previous: Large Language Models](large-language-models.md)
+
+## Contents
+
+- [Problem Definition, Exposure, and Training Data](#rec-problem-data)
+- [Traditional Recommendation: Strong Baselines and Their Assumptions](#rec-traditional)
+- [The Serving Funnel: Recall, Coarse Ranking, Fine Ranking, and Reranking](#rec-pipeline)
+- [Two-Tower Retrieval: Objective, Negatives, and ANN Serving](#rec-two-tower)
+- [Coarse and Fine Ranking: Interactions, Distillation, and Utility](#rec-ranking)
+- [Slate Reranking: Redundancy, Diversity, and Constraints](#rec-reranking)
+- [Sequential Interests and Cold Start](#rec-sequential)
+- [Generative Recommendation: Four Related but Different Designs](#rec-generative)
+    - [Semantic IDs and the Generative Retrieval Objective](#rec-semantic-ids)
+    - [Decoding, Catalog Validity, and Freshness](#rec-generative-serving)
+    - [HSTU: Generative Modeling of User Actions](#rec-hstu)
+    - [OneRec: Session-wise Generation and Preference Alignment](#rec-onerec)
+    - [LLM-based and Conversational Recommendation](#rec-language-models)
+- [Offline Metrics, Exposure Bias, and Online Experiments](#rec-evaluation)
+- [Architecture Comparison and a Concrete Research Plan](#rec-comparison)
+
 
 Recommendation selects useful items or an ordered slate given a user's available history, current context, and an eligible catalog. The progression below connects traditional collaborative filtering, two-tower retrieval, coarse/fine ranking, slate reranking, and generative recommendation. These methods can coexist: a generative retriever can feed an ordinary ranker, and a sequence encoder can power either retrieval or ranking. Examples and system sizes below are illustrative designs, not reported production configurations.
 
@@ -84,7 +103,7 @@ Separate **model retrieval quality** from **ANN approximation quality**. On an a
 
 **Fine ranking** can afford candidate-conditioned computation. DeepFM combines FM-style low-order interactions and a deep component; DCN-V2 explicitly learns feature crosses. DIN builds an interest representation conditioned on the candidate, allowing different history events to matter for different items. Such pair-specific computation is useful after retrieval but is generally too costly to apply independently to every catalog item. [DeepFM](https://arxiv.org/abs/1703.04247), [DCN-V2](https://arxiv.org/abs/2008.13535), [DIN](https://arxiv.org/abs/1706.06978)
 
-**Re-ranker is an overloaded name.** In search/RAG it often means a richer model that rescores each query-document pair. In a recommendation funnel, that operation may correspond to fine ranking. A slate reranker additionally conditions decisions on other selected items or list constraints; name the computation rather than inferring it from the label. See the separate [RAG reranking discussion](../README.md#re-ranking).
+**Re-ranker is an overloaded name.** In search/RAG it often means a richer model that rescores each query-document pair. In a recommendation funnel, that operation may correspond to fine ranking. A slate reranker additionally conditions decisions on other selected items or list constraints; name the computation rather than inferring it from the label. See the separate [RAG reranking discussion](large-language-models.md#re-ranking).
 
 **Loss versus serving utility.** Pointwise log loss estimates a specified outcome probability on a specified data distribution; pairwise losses compare items; listwise losses use a defined candidate list. Neither an improved AUC nor a lower pairwise loss guarantees better top-K utility or calibration. If negatives are subsampled, an uncorrected classifier learns the sampled class prior; restore appropriate weighting/calibration before treating its outputs as impression-level probabilities.
 
@@ -149,7 +168,7 @@ The following are system-design consequences of generating IDs rather than exhau
 <a id="rec-hstu"></a>
 ### [To be reviewed] HSTU: Generative Modeling of User Actions
 
-HSTU reformulates retrieval/ranking through sequential transduction of heterogeneous user events. Its design includes pointwise aggregated attention, gated feature interactions, relative attention biases, and efficiency techniques for variable-length histories and shared computation. Its attention is not simply the softmax Transformer operator explained in the [Transformer chapter](../README.md#tf-attention). [HSTU, Sections 2–3](https://arxiv.org/html/2402.17152v3#S3)
+HSTU reformulates retrieval/ranking through sequential transduction of heterogeneous user events. Its design includes pointwise aggregated attention, gated feature interactions, relative attention biases, and efficiency techniques for variable-length histories and shared computation. Its attention is not simply the softmax Transformer operator explained in the [Transformer chapter](transformer.md#tf-attention). [HSTU, Sections 2–3](https://arxiv.org/html/2402.17152v3#S3)
 
 This is a different design from autoregressively spelling out an item's semantic ID, and it need not generate natural-language descriptions. Distinguish history representation, retrieval heads, ranking targets, and serving execution. The paper's scaling/latency and online results belong to its measured workloads; they do not establish universal scaling laws or a fixed speedup over every Transformer recommender. Compare dense computation, embedding storage, history lengths, candidate counts, and hardware when assessing parameter/throughput claims.
 
@@ -158,7 +177,7 @@ This is a different design from autoregressively spelling out an item's semantic
 
 OneRec (2025) studies a unified retrieve/rank generative model with an encoder–decoder, sparse MoE, session-wise generation, and iterative preference alignment using DPO. Generating a session conditions later recommendations on earlier generated items, unlike independently predicting one next item repeatedly. Its alignment procedure uses a learned reward model and a sampling strategy to construct preferences when only one response slate is actually exposed to a user. Those simulated preferences are model feedback, not observed outcomes for both alternative slates. [Original OneRec paper](https://arxiv.org/abs/2502.18965)
 
-The probability factorization over item IDs and items within a slate can support this richer output, but maximum-likelihood imitation of logged sessions still inherits the logging policy. Preference alignment changes the objective; it does not make a reward model an unbiased counterfactual user simulator. Inspect slate-label validity, reward exploitation, diversity, catalog constraints, and total serving cost. Refer to [DPO and reward-model evaluation](../README.md#preference-optimization) for the underlying mechanisms.
+The probability factorization over item IDs and items within a slate can support this richer output, but maximum-likelihood imitation of logged sessions still inherits the logging policy. Preference alignment changes the objective; it does not make a reward model an unbiased counterfactual user simulator. Inspect slate-label validity, reward exploitation, diversity, catalog constraints, and total serving cost. Refer to [DPO and reward-model evaluation](large-language-models.md#preference-optimization) for the underlying mechanisms.
 
 **Dated follow-up, 2026-10-27:** OneReason (June 2026) studies item-token/language grounding, structured recommendation reasoning supervision, and RL. Its report notes that adding a thinking mode did not automatically beat non-thinking baselines in preliminary studies. Test reasoning against a no-reasoning model at matched training access, inference budget, and item-selection metrics; longer rationales alone do not establish better recommendations. [OneReason report](https://arxiv.org/abs/2606.06260)
 
