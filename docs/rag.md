@@ -97,3 +97,5 @@
 - Mitigating hallucinations through retrieval context management
 
 For benchmark selection, evidence-oracle ablations, judge validity, and end-to-end system comparisons, see the [Benchmarking & Evaluation portfolio](benchmarking-and-evaluation.md#eval-portfolio).
+
+Tool-driven evidence gathering, persistent memory, and bounded investigation workflows are discussed in [Agents](agents.md#agent-tools); their execution and recovery mechanisms are discussed in [RSI & Harness](rsi-and-harness.md#harness-state).

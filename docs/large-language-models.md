@@ -1,6 +1,6 @@
 # Large Language Models
 
-[Handbook contents](../README.md#table-of-contents) | [Previous: NLP (Pre-LLM Era)](nlp.md) | [Next: Benchmarking & Evaluation](benchmarking-and-evaluation.md)
+[Handbook contents](../README.md#table-of-contents) | [Previous: NLP (Pre-LLM Era)](nlp.md) | [Next: Agents](agents.md)
 
 ## Contents
 
@@ -168,6 +168,8 @@ Mid-training commonly continues from a pretrained checkpoint while changing the 
 ## [To be reviewed] Post-training
 
 Post-training changes task behavior using demonstrations, preferences, rewards, teacher feedback, or a mixture. **SFT, online RL, and OPD answer different questions about supervision and the states visited during learning.** They are compatible components, not three mandatory consecutive steps. Full tuning and PEFT specify which parameters can change; either can implement a suitable SFT, RL, or distillation objective.
+
+For applying these objectives to stateful tool/environment trajectories, see [Agent Training](agents.md#agent-training). Prompt, memory, and runtime-code optimization are compared separately in [RSI & Harness](rsi-and-harness.md#rsi-learning).
 
 <a id="sft-rl-opd-comparison"></a>
 ### [To be reviewed] SFT, RL, and OPD: Relationships and Differences
@@ -609,6 +611,8 @@ For each paper, record **claim → assumptions → comparison baseline → ablat
 
 ## Related chapters
 
+- [Agents](agents.md#agents)
+- [RSI & Harness](rsi-and-harness.md#rsi-and-harness)
 - [Benchmarking & Evaluation](benchmarking-and-evaluation.md#benchmarking-and-evaluation)
 
 <a id="chunking-and-vectorization"></a>

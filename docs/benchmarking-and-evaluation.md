@@ -1,7 +1,7 @@
 <a id="benchmarking-and-evaluation"></a>
 # [To be reviewed] Benchmarking & Evaluation
 
-[Handbook contents](../README.md#table-of-contents) | [Previous: Large Language Models](large-language-models.md) | [Next: RAG](rag.md)
+[Handbook contents](../README.md#table-of-contents) | [Previous: RSI & Harness](rsi-and-harness.md) | [Next: RAG](rag.md)
 
 ## Contents
 
@@ -87,6 +87,8 @@ For an accuracy number, check how an answer is extracted. Scoring a multiple-cho
 ## [To be reviewed] 4. Representative Agent and Workflow Benchmarks
 
 Agent results depend on both the policy and the environment/tool interface. Record observation modality, allowed actions, persistence, network access, user simulation, execution budget, and graders. A fixed repository issue or web task can remain fully interactive during execution.
+
+For the evaluated system components, see [Agents](agents.md) and the [runtime/evaluation harness distinction](rsi-and-harness.md#harness-runtime). For candidate selection and recursive-improvement claims, use the [RSI evidence and ablation plan](rsi-and-harness.md#rsi-evidence).
 
 | Family | Representative benchmark | What the agent must accomplish | Main scoring / reproducibility concern |
 | --- | --- | --- | --- |

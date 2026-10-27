@@ -26,3 +26,5 @@
     - **Example:** answering a disputed release date may require the original announcement and a later correction. Track source dates and claim provenance, and stop when the available evidence resolves the question or a stated search budget is exhausted. Repeating equivalent searches is additional activity rather than additional evidence.
 
 For math/coding/agent benchmark families, saturation, and the distinction between pass@k search opportunity and pass^k repeated-run reliability, see [Benchmarking & Evaluation](benchmarking-and-evaluation.md#eval-metrics).
+
+For turning reasoning into tool actions, dependency-aware plans, and multi-agent coordination, see [Agents](agents.md#agent-planning). Runtime continuity and recursive improvement are covered in [RSI & Harness](rsi-and-harness.md).

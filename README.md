@@ -206,6 +206,28 @@ This README is the handbook index. Each chapter has its own contents and chapter
     - [Evaluation and Monitoring](docs/large-language-models.md#evaluation-and-monitoring)
     - [Research Reading List](docs/large-language-models.md#recent-interesting-papers)
 
+<a id="agents"></a>
+
+- [Agents](docs/agents.md#agents)
+    - [Tool Use and Action Contracts](docs/agents.md#agent-tools)
+    - [Planning and Search](docs/agents.md#agent-planning)
+    - [Memory and Context](docs/agents.md#agent-memory)
+    - [Workflows](docs/agents.md#agent-workflows)
+    - [Multi-Agent Systems](docs/agents.md#agent-multi-agent)
+    - [Agent Training: SFT / RL / OPD](docs/agents.md#agent-training)
+    - [Worked Coding-Agent Example](docs/agents.md#agent-example)
+
+<a id="rsi-and-harness"></a>
+
+- [RSI & Harness](docs/rsi-and-harness.md#rsi-and-harness)
+    - [Self-Improvement and Recursion](docs/rsi-and-harness.md#rsi-definitions)
+    - [Runtime and Evaluation Harnesses](docs/rsi-and-harness.md#harness-runtime)
+    - [State Persistence and Recovery](docs/rsi-and-harness.md#harness-state)
+    - [Bounded Improvement Loops](docs/rsi-and-harness.md#rsi-loop)
+    - [Research Map: DGM / SICA / GEPA / AIDE²](docs/rsi-and-harness.md#rsi-literature)
+    - [Evidence, Ablations, and Transfer](docs/rsi-and-harness.md#rsi-evidence)
+    - [Worked Harness-Improvement Example](docs/rsi-and-harness.md#rsi-example)
+
 <a id="benchmarking-and-evaluation"></a>
 
 - [Benchmarking & Evaluation](docs/benchmarking-and-evaluation.md#benchmarking-and-evaluation)
