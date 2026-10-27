@@ -133,6 +133,9 @@ Stability and generalization require a task-specific comparison; they are not fi
 
 
 ### Model evaluation and selection
+
+For probability, sampling uncertainty, and calibration foundations, see [Statistics](statistics.md#stats-uncertainty) and [probability calibration](statistics.md#stats-information).
+
 - Evaluation
     - TP, FP, TN, FN
 

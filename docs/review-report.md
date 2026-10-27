@@ -94,3 +94,9 @@ Version-sensitive checks included the [SWE-bench Pro V2 report](https://arxiv.or
 Expanded the [LLM RL discussion](large-language-models.md#online-rl) with credit assignment, reward-to-go, baselines/GAE, reward hacking, process/outcome rewards, potential-based shaping, sparse exploration, RLOO/PPO/GRPO distinctions, KL/entropy/length effects, on/off-policy data, interview questions, and a debugging sequence. New curricular sections and cross-chapter explanations carry review markers. Existing content and review markers from `f28d16b` are preserved.
 
 The examples explicitly separate estimator credit from causal attribution, verified acceptance from full correctness, and surrogate-loss improvement from independent task improvement. The worked GAE, shaping, mixed-group probability, and self-inclusion calculations are checked numerically; GitHub/MathJax rendering, local references, and newly cited source availability are checked for the extension.
+
+## Statistics foundations follow-up — 2026-10-27
+
+Expanded [Statistics](statistics.md) with a compact foundation for ML/DL: conditional probability and common distributions, moments/dependence, sampling and uncertainty, testing/power/multiplicity, Bayesian/MAP inference, experimental design/causality, and information/calibration. Original hypothesis-test and MLE material and review markers remain. New curricular headings carry review markers, and the README/ML chapter link to the foundations.
+
+Checked the base-rate, mean/variance, Bernoulli-interval, and Beta–Bernoulli examples numerically, plus formula rendering and local/source links. The prior audit's validation counts remain a historical snapshot rather than totals for these later additions.

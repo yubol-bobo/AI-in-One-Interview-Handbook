@@ -15,6 +15,12 @@ This README is the handbook index. Each chapter has its own contents and chapter
 <a id="statistics"></a>
 
 - [Statistics](docs/statistics.md#statistics)
+    - [Probability / Conditioning / Moments](docs/statistics.md#stats-probability)
+    - [Sampling / Confidence Intervals / Bootstrap](docs/statistics.md#stats-uncertainty)
+    - [Hypothesis Tests / Power / Multiplicity](docs/statistics.md#hypothesis-test)
+    - [MLE / MAP / Bayesian Prediction](docs/statistics.md#stats-bayes)
+    - [Experiments / Causality](docs/statistics.md#stats-experiments)
+    - [Information Theory / Calibration](docs/statistics.md#stats-information)
 
 <a id="algorithm-categories"></a>
 <a id="algorithm-categories-super-quick-overview"></a>
