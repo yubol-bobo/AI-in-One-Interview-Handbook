@@ -648,6 +648,9 @@ For the data/supervision taxonomy, see [Algorithm Categories](#algorithm-categor
 
 ----
 ## XAI
+
+[To be reviewed] For internal language-model representations and interventions, continue to [LLM Interpretability](llm-interpretability.md#llm-interpretability). It distinguishes general input attribution from [activation patching](llm-interpretability.md#interp-patching), [steering](llm-interpretability.md#interp-steering), and [sparse dictionary features](llm-interpretability.md#interp-sae).
+
 <a id="feature-importance"></a>
 ### [To be reviewed] Feature importance
 

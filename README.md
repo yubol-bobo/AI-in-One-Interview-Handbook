@@ -234,6 +234,21 @@ This README is the handbook index. Each chapter has its own contents and chapter
     - [Evaluation and Monitoring](docs/large-language-models.md#evaluation-and-monitoring)
     - [Research Reading List](docs/large-language-models.md#recent-interesting-papers)
 
+<a id="llm-interpretability"></a>
+
+- [LLM Interpretability](docs/llm-interpretability.md#llm-interpretability)
+    - [Features / Neurons / Superposition](docs/llm-interpretability.md#interp-features)
+    - [Probes / Logit Lens](docs/llm-interpretability.md#interp-probes)
+    - [Activation Patching / Metrics / Causal Limits](docs/llm-interpretability.md#interp-patching)
+    - [Attribution Patching / Path Patching](docs/llm-interpretability.md#interp-paths)
+    - [Activation Steering](docs/llm-interpretability.md#interp-steering)
+    - [SAE: Objective / Dictionary Geometry](docs/llm-interpretability.md#interp-sae)
+    - [SAE Evaluation / Feature Absorption](docs/llm-interpretability.md#interp-sae-evaluation)
+    - [Feature Interventions / Reconstruction Error](docs/llm-interpretability.md#interp-feature-editing)
+    - [Circuits / Transcoders / Attribution Graphs](docs/llm-interpretability.md#interp-circuits)
+    - [Research Experiment / Implementation](docs/llm-interpretability.md#interp-experiment)
+    - [Interview Questions / Primary Reading](docs/llm-interpretability.md#interp-interview)
+
 <a id="agents"></a>
 
 - [Agents](docs/agents.md#agents)

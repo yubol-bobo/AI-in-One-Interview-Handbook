@@ -1,12 +1,13 @@
 # Large Language Models
 
-[Handbook contents](../README.md#table-of-contents) | [Previous: NLP (Pre-LLM Era)](nlp.md) | [Next: Agents](agents.md)
+[Handbook contents](../README.md#table-of-contents) | [Previous: NLP (Pre-LLM Era)](nlp.md) | [Next: LLM Interpretability](llm-interpretability.md)
 
 ## Contents
 
 - [LLM Foundations](#llm-basic)
     - [Architecture and Visibility](#architecture)
     - [Representations: Token States and Retrieval Vectors](#embedding)
+    - [Interpretability: Features / Patching / Steering / SAE](llm-interpretability.md#llm-interpretability)
     - [Tokenization](#tokenization)
 - [Training Overview: Three Stages](#stages)
 - [Pre-training](#pre-training)
@@ -85,6 +86,8 @@ Decoder-only models offer a uniform next-token training/generation interface. Th
 ### [To be reviewed] Representations: Token States and Retrieval Vectors
 
 A [token embedding](transformer.md#tf-embedding) is a learned input lookup; a contextual token state incorporates the permitted surrounding sequence. A sentence/document embedding additionally specifies pooling, padding masks, layer selection, normalization, and possibly query/document instructions. Raw `[CLS]` or mean-pooled causal states do not automatically have a useful retrieval geometry. Position encodings and their length-generalization limits are explained once in [position information](transformer.md#tf-position).
+
+[To be reviewed] For what these internal states represent and how to test their behavioral role, see [LLM Interpretability](llm-interpretability.md#llm-interpretability): [activation patching](llm-interpretability.md#interp-patching), [steering](llm-interpretability.md#interp-steering), and [SAE features](llm-interpretability.md#interp-sae). Decoding a property, controlling behavior, and explaining the natural computation require different evidence.
 
 For paired queries and positive passages, a contrastive retrieval objective can minimize $`-\log\frac{\exp(s(q,d^+)/\tau)}{\sum_{d\in\mathcal{B}}\exp(s(q,d)/\tau)}`$. In-batch and mined hard negatives teach different distinctions; exclude known alternative positives where possible. The objective differs from ordinary next-token prediction. [Sentence-BERT](https://aclanthology.org/D19-1410/), [DPR](https://arxiv.org/abs/2004.04906)
 

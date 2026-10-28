@@ -30,3 +30,5 @@ For math/coding/agent benchmark families, saturation, and the distinction betwee
 For turning reasoning into tool actions, dependency-aware plans, and multi-agent coordination, see [Agents](agents.md#agent-planning). Runtime continuity and recursive improvement are covered in [RSI & Harness](rsi-and-harness.md).
 
 [To be reviewed] For learning from a final verifier or intermediate step labels, see [credit assignment and GAE](large-language-models.md#rl-credit-assignment) and [outcome/process rewards and shaping](large-language-models.md#rl-reward-design). A process score supplies another measurement; it does not automatically establish causal token attribution or immunity to [reward hacking](large-language-models.md#rl-reward-hacking).
+
+[To be reviewed] For the difference between a generated rationale and evidence about internal computation, see [LLM Interpretability](llm-interpretability.md#interp-scope). [Patching](llm-interpretability.md#interp-patching) and [circuit analysis](llm-interpretability.md#interp-circuits) test specific internal mechanisms rather than inferring them from a persuasive reasoning trace.

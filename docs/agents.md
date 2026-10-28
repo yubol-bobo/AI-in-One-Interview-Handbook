@@ -1,7 +1,7 @@
 <a id="agents"></a>
 # [To be reviewed] Agents
 
-[Handbook contents](../README.md#table-of-contents) | [Previous: Large Language Models](large-language-models.md) | [Next: RSI & Harness](rsi-and-harness.md)
+[Handbook contents](../README.md#table-of-contents) | [Previous: LLM Interpretability](llm-interpretability.md) | [Next: RSI & Harness](rsi-and-harness.md)
 
 ## Contents
 
