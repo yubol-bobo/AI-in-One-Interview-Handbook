@@ -18,7 +18,9 @@
 - [5. Visibility Masks, Padding, and Teacher Forcing](#tf-masking)
 - [6. Multi-Head Attention, MQA, and GQA](#tf-heads)
     - [MHA / MQA / GQA: Sharing and Cost](#tf-head-sharing)
+        - [Structure Diagram](#tf-head-sharing-diagram)
     - [MLA: Latent Compression and Decoupled RoPE](#tf-mla)
+        - [Structure Diagram](#tf-mla-diagram)
 - [7. Encoder Memory and Decoder Cross-Attention](#tf-cross-attention)
     - [Self / Cross Attention Comparison](#tf-self-cross)
 - [8. Positionwise MLP, SwiGLU, and MoE](#tf-mlp)
@@ -28,6 +30,7 @@
 - [12. Parameter, Arithmetic, and Memory Costs](#tf-cost)
     - [FlashAttention: IO-Aware Exact Attention](#tf-flash-attention)
     - [Native Sparse Attention (NSA)](#tf-nsa)
+        - [Structure Diagram](#tf-nsa-diagram)
 - [13. Architecture Families and Historical Examples](#tf-architecture-families)
 - [14. Minimal Attention Reference and Failure Checks](#tf-reference)
 
@@ -181,6 +184,14 @@ For the common grouped layout, h_q is divisible by h_kv. Q retains all query hea
 
 **MHA = Multi-Head Attention; MQA = Multi-Query Attention; GQA = Grouped-Query Attention.** MQA retains multiple query heads despite its name. With $`g=h_q/h_{kv}`$ query heads per KV group, query head $`a`$ uses KV head $`\lfloor a/g\rfloor`$ under a contiguous, zero-indexed grouping convention. The separate query projections still yield different attention weights even when K/V are shared. [MQA](https://arxiv.org/abs/1911.02150), [GQA](https://arxiv.org/abs/2305.13245)
 
+<a id="tf-head-sharing-diagram"></a>
+
+**[To be reviewed] Structure diagram — MHA / MQA / GQA: query heads and shared KV groups.**
+
+![MHA / MQA / GQA: query heads and shared KV groups](../figs/attention-head-sharing.png)
+
+[Editable SVG](../figs/attention-head-sharing.svg). All three panels keep four query heads. Only the number of cached KV groups changes; every query still computes separate attention weights.
+
 Ignoring biases and assuming equal key/value widths, Q/K/V/O have $`2d h_qd_h+2d h_{kv}d_h`$ parameters. If $`h_qd_h=d`$, this becomes $`2d^2+2d h_{kv}d_h`$. Stored KV elements per token per layer are $`2h_{kv}d_h`$. Sharing therefore reduces KV projections and reusable cache state; it does not remove query heads or automatically reduce the dense QK/AV arithmetic by the same factor. Actually repeating shared K/V into independent physical head copies can defeat the intended memory saving.
 
 **Head-index example:** for eight query heads and two KV heads, heads 0–3 read the first KV head and heads 4–7 read the second. A prompt position can receive different weights in all eight heads because their queries differ. With a causal mask, all heads remain causal; sharing is independent of visibility.
@@ -191,6 +202,14 @@ Ignoring biases and assuming equal key/value widths, Q/K/V/O have $`2d h_qd_h+2d
 ### [To be reviewed] MLA: Multi-Head Latent Attention and Compressed KV State
 
 **Multi-Head Latent Attention (MLA)** in DeepSeek-V2 jointly compresses K/V into a low-dimensional latent per token, while preserving head-specific learned content projections. Using column vectors here, $`c_j=W_{DKV}h_j\in\mathbb{R}^{d_c}`$, $`k^C_{j,a}=U^K_a c_j`$, and $`v^C_{j,a}=U^V_a c_j`$. An absorbed decode implementation stores the latent rather than all reconstructed per-head K/V. [DeepSeek-V2, Section 2.1](https://arxiv.org/html/2405.04434v5#S2.SS1), [official model repository](https://github.com/deepseek-ai/DeepSeek-V2)
+
+<a id="tf-mla-diagram"></a>
+
+**[To be reviewed] Structure diagram — MLA: latent-plus-position cache and absorbed decode.**
+
+![MLA: latent-plus-position cache and absorbed decode](../figs/attention-mla.png)
+
+[Editable SVG](../figs/attention-mla.svg). The left panel writes one latent plus one positional key per token; the right panel reads the same history with head-specific queries. The positional score and content score are combined before softmax.
 
 For the content part, $`(q^C_{i,a})^T U^K_a c_j=((U^K_a)^Tq^C_{i,a})^Tc_j`$: transform the new query into latent coordinates instead of expanding every historical key. Similarly, with head weights $`\alpha_{ij,a}`$, linearity gives $`\sum_j\alpha_{ij,a}U^V_a c_j=U^V_a\sum_j\alpha_{ij,a}c_j`$; the up-projection can be moved after aggregation and composed with the output projection. This is an algebraic implementation of the trained low-rank parameterization, not lossless compression of arbitrary MHA weights.
 
@@ -307,6 +326,14 @@ FlashAttention-2 improves work partitioning, parallelism, and non-matmul overhea
 ### [To be reviewed] Native Sparse Attention (NSA): Compression, Selection, and Locality
 
 **NSA is Native Sparse Attention**, the method in *Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention*; these are one topic. Unlike an exact dense FlashAttention kernel, NSA changes the context representations used by attention and trains with that mechanism. [NSA paper, v2](https://arxiv.org/html/2502.11089v2)
+
+<a id="tf-nsa-diagram"></a>
+
+**[To be reviewed] Structure diagram — NSA: compression, selected blocks, and a local window.**
+
+![NSA: compression, selected blocks, and a local window](../figs/attention-nsa.png)
+
+[Editable SVG](../figs/attention-nsa.svg). The dashed link carries compression-attention weights into block selection. The three attention outputs are combined by separate sigmoid gates; selected blocks and local windows are illustrative.
 
 Its three branches provide complementary information:
 

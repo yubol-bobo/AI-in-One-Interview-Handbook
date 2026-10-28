@@ -57,6 +57,7 @@
     - [Accumulation, Checkpointing, and Communication](#optimization-and-efficiency)
 - [Inference and Serving](#llm-inference)
     - [Prefill, Decode, and Cache Lifetime](#llm-prefill)
+        - [Prefill / Decode / KV Flow Diagram](#llm-prefill-diagram)
     - [Decoding Strategies](#llm-decoding)
     - [KV Cache Management and Kernels](#llm-cache-management)
         - [PagedAttention: Blocks, Mapping, and Sharing](#llm-paged-attention)
@@ -778,6 +779,14 @@ State/parameter sharding is described once in [Distributed Training](#distribute
 ### [To be reviewed] Prefill, Decode, and the Lifetime of Cached Tokens
 
 **Prefill is model computation, not merely reserving cache memory.** It processes the known input tokens through all layers, computes their contextual states, and writes layerwise K/V (or architecture-specific compressed state). In a causal decoder, positions within a known input block can run in parallel with a causal mask. The final prompt position's logits provide the distribution for the first generated token; output-head work for other prompt positions can often be omitted at inference. [Transformer derivation](transformer.md#tf-cache), [cache execution reference](https://huggingface.co/docs/transformers/cache_explanation)
+
+<a id="llm-prefill-diagram"></a>
+
+**[To be reviewed] Flow diagram — prefill, incremental decode, and growing KV state.**
+
+![Prefill processes a three-token prompt; decode passes feed sampled tokens back and grow the layerwise KV cache](../figs/prefill-decode-kv-cache.png)
+
+[Editable SVG](../figs/prefill-decode-kv-cache.svg). Blue shows model input/computation, amber shows newly sampled output, and purple shows processed-token KV. Solid purple arrows write state; dashed purple arrows carry it forward, and dashed amber arrows feed the selected token into the next pass. This is ordinary single-token execution; speculative/block decoding needs additional commit/rollback bookkeeping.
 
 **An explicit timeline:** let the prompt contain P tokens, with no reusable cache initially. Ordinary single-token autoregressive execution is:
 
