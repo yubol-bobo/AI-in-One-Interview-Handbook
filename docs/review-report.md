@@ -114,3 +114,9 @@ Made the [training/runtime infra map](large-language-models.md#llm-infra) explic
 Checked temperature/top-k/top-p examples, cache payload arithmetic, and speculative accept/reject reconstruction numerically. Formula/local-link checks and new source availability were validated; this is documentation validation, not a claim to have benchmarked a production serving engine.
 
 The new Hugging Face generation/cache documentation opened through independent web retrieval; direct-script requests encountered connection resets. The other four new source URLs returned HTTP 200. No missing source was established by those connection failures.
+
+## DAPO, GSPO, and OPSD follow-up — 2026-10-27
+
+Added [DAPO](large-language-models.md#rl-dapo), [GSPO](large-language-models.md#rl-gspo), a [GRPO/DAPO/GSPO comparison](large-language-models.md#rl-method-comparison), and [OPSD](large-language-models.md#opd-opsd), with four new marked curricular sections, interview prompts, and README/section navigation. All preceding review markers remain. Primary sources are pinned to DAPO v2, GSPO v2, and Self-Distilled Reasoner v3 where method/version details matter.
+
+The additions distinguish token versus sequence clipping, normalized versus raw sequence importance ratios, pooled-token versus equal-response reduction, filtered-sampling compute, and supervision provenance. OPSD's conceptual shared-model teacher is separated from the fixed initial teacher in its reported experiments; privileged reference access, detached local updates, vocabulary-entry clipping, and inference-time input restrictions are explicit. Numerical checks cover clipping direction, length weighting, mixed-group probability, GSPO ratios/gradients, and OPSD divergence/gradient examples; formula rendering, local navigation, review-marker preservation, and new source links are checked. No model training or reported-paper-result reproduction is claimed.

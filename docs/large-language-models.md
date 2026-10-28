@@ -26,6 +26,9 @@
         - [Relationships, Hybrids, and Evaluation](#to-be-reviewed-relationships-hybrids-and-evaluation)
     - [Online RL: Objectives, PPO, and GRPO](#online-rl)
         - [PPO Update Details](#to-be-reviewed-ppo-update-details)
+        - [DAPO: Clipping, Sampling, and Token Weighting](#rl-dapo)
+        - [GSPO: Sequence Ratios and Sequence Clipping](#rl-gspo)
+        - [GRPO, DAPO, and GSPO Comparison](#rl-method-comparison)
         - [Credit Assignment: Returns, Baselines, and GAE](#rl-credit-assignment)
         - [Reward Hacking: Proxy Gains Versus Intended Outcomes](#rl-reward-hacking)
         - [Outcome Rewards, Process Rewards, and Reward Shaping](#rl-reward-design)
@@ -42,6 +45,7 @@
     - [Distillation: Offline Traces and On-policy Distillation (OPD)](#distillation-and-opd)
         - [OPD Objectives and the Gradient Distinction](#to-be-reviewed-opd-objectives-and-the-gradient-distinction)
         - [OPD Implementation and Evaluation](#to-be-reviewed-opd-implementation-and-evaluation)
+        - [OPSD: Self-Distillation with Privileged Solutions](#opd-opsd)
     - [Synthetic Data, Rejection Sampling, and Iterative Recipes](#to-be-reviewed-synthetic-data-rejection-sampling-and-iterative-recipes)
     - [Stage Gates and Reproducible Comparisons](#to-be-reviewed-stage-gates-and-reproducible-comparisons)
 - [Shared Training Systems](#llm-engineering)
@@ -296,6 +300,56 @@ Choose and validate the reward source using the [RLHF/RLAIF/RLVR/RLCD comparison
 - PPO uses an importance ratio $`r_t(\theta)=\pi_\theta(a_t\mid s_t)/\pi_{\mathrm{old}}(a_t\mid s_t)`$ and a clipped surrogate $`\mathbb{E}[\min(r_t A_t,\operatorname{clip}(r_t,1-\epsilon,1+\epsilon)A_t)]`$. In language generation, actions are tokens and states are prefixes.
 - A language-model RLHF implementation also needs rollout generation, advantage estimation, masking, and a chosen reference-policy regularization scheme. Clipping limits parts of the surrogate objective; it is not a hard guarantee on policy KL. **Example:** reward gain accompanied by collapsing output diversity signals the need to examine optimization and the reward proxy. [PPO](https://arxiv.org/abs/1707.06347)
 
+<a id="rl-dapo"></a>
+#### [To be reviewed] DAPO: Clipping, Sampling, and Token Weighting
+
+**Decoupled Clip and Dynamic sAmpling Policy Optimization (DAPO)** is a GRPO-related optimization and sampling recipe. It retains group-relative outcome advantages and token probability ratios, with four coordinated changes. [Paper, v2](https://arxiv.org/html/2503.14476v2), [authors' overview](https://dapo-sia.github.io/)
+
+1. **Clip-Higher:** decouple the lower/upper ratio thresholds, with a larger upper allowance. This leaves more room to increase probabilities of positively advantaged, initially unlikely tokens; it does not directly impose a minimum entropy or guarantee exploration.
+2. **Dynamic sampling:** discard all-correct/all-incorrect prompt groups in the binary-outcome setting and replenish the batch with mixed groups. Retain both successful and failed responses within a mixed group. This is different from training only on successful traces.
+3. **Token-level reduction:** pool token contributions rather than average each response's token mean equally. Longer responses consequently have more aggregate weight; the effect includes penalizing undesirable patterns in long failed responses.
+4. **Overlong reward shaping:** distinguish a truncated solution from a demonstrated reasoning error. The paper studies masking truncated-response loss and a soft length penalty near the generation cap. These choices change which behavior is rewarded; document the exact masking and EOS conventions. [DAPO Sections 3.1–3.4](https://arxiv.org/html/2503.14476v2#S3), [implementation controls](https://docs.nvidia.com/nemo/rl/latest/guides/dapo.html)
+
+Write $`\rho_{i,t}=\pi_\theta(y_{i,t}\mid x,y_{i,<t})/\pi_{\mathrm{old}}(y_{i,t}\mid x,y_{i,<t})`$, with response length $`T_i=|y_i|`$ and detached group advantage $`A_i`$. A retained-group surrogate to maximize is:
+
+$`J_{\mathrm{DAPO}}=\mathbb{E}\left[\frac{\sum_{i=1}^{G}\sum_{t=1}^{T_i}\min\left(\rho_{i,t}A_i,\operatorname{clip}(\rho_{i,t},1-\epsilon_{\mathrm{low}},1+\epsilon_{\mathrm{high}})A_i\right)}{\sum_{i=1}^{G}T_i}\right]`$.
+
+The expectation includes the sampling/filtering procedure. Specify whether an implementation pools over each group, minibatch, or global batch: averaging separately normalized group losses differs from pooling all tokens when groups have unequal total lengths. Distributed workers must reproduce the intended global denominator, including response masks. The paper's recipe omits reference KL in its studied reasoning setup; this is not evidence that reference regularization is universally unnecessary.
+
+**Worked distinctions.** For a positive advantage, ratio 1.25 reaches the flat part of a surrogate with upper threshold 1.20, but remains active with threshold 1.28. A negative advantage has the opposite relevant clipping direction. For responses of lengths 2 and 8, equal-response reduction gives aggregate weights 1/2 and 1/2; pooled-token reduction gives 1/5 and 4/5, before accounting for different token gradients. Neither reduction identifies which step caused success.
+
+**Sampling cost and selection:** if iid responses succeed with probability $`p`$, a binary-reward group of size $`G`$ is mixed with probability $`1-p^G-(1-p)^G`$. At $`p=0.99,G=8`$, this is about 7.73%; idealized replenishment needs about 12.94 sampled groups per retained group. Filtering therefore changes prompt weighting and can consume substantial rollout work. Report discarded tokens, generation rounds, wall time, and independent accuracy, not only optimizer steps. See [exploration](#rl-exploration), [reward hacking](#rl-reward-hacking), and [NeMo's sampling diagnostics](https://docs.nvidia.com/nemo/rl/latest/guides/dapo.html#dynamic-sampling).
+
+<a id="rl-gspo"></a>
+#### [To be reviewed] GSPO: Sequence Ratios and Sequence Clipping
+
+**Group Sequence Policy Optimization (GSPO)** retains a group-relative response advantage but replaces individual token ratios in the surrogate with a shared, length-normalized sequence ratio. With the same notation:
+
+$`s_i(\theta)=\left(\frac{\pi_\theta(y_i\mid x)}{\pi_{\mathrm{old}}(y_i\mid x)}\right)^{1/T_i}=\exp\left(\frac{1}{T_i}\sum_{t=1}^{T_i}\log\rho_{i,t}\right)`$,
+
+$`J_{\mathrm{GSPO}}=\mathbb{E}\left[\frac{1}{G}\sum_{i=1}^{G}\min\left(s_i A_i,\operatorname{clip}(s_i,1-\epsilon_-,1+\epsilon_+)A_i\right)\right]`$.
+
+Clipping is decided for the response as a whole in the relevant advantage direction. Reference KL is omitted from these displayed formulas; the GSPO paper omits it for exposition, whereas the DAPO recipe explicitly removes it. [GSPO paper, v2](https://arxiv.org/html/2507.18071v2#S4), [Qwen's method description](https://qwenlm.github.io/blog/gspo/)
+
+**What the ratio means:** $`s_i`$ is the geometric mean of token ratios, not the raw sequence importance weight $`\prod_t\rho_{i,t}`$. Taking its length root changes the objective; clipping changes it further. Do not describe this as an unbiased exact importance-sampling estimator of arbitrary current-policy sequence rewards. Compute it from summed log-probability differences for numerical stability.
+
+**Gradient and example.** On an unclipped branch with detached advantage, a response contributes a gradient proportional to $`(s_i A_i/T_i)\sum_t\nabla_\theta\log\pi_\theta(y_{i,t}\mid x,y_{i,<t})`$. Every token shares the same scalar coefficient, although token score gradients differ. For token ratios 1.44 and 0.81, the raw product is 1.1664 and the geometric mean is 1.08. With positive advantage and illustrative bounds [0.8, 1.2], tokenwise clipping flattens the first token's direct contribution, while sequence clipping leaves the GSPO response active. Real GSPO clipping widths require separate tuning; PPO's token-ratio thresholds are not transferable defaults.
+
+The authors report improved stability in their long-response/MoE experiments and reduced dependence on routing replay. Treat these as results under their configurations; routing behavior and inference/training numerical differences still require monitoring. **GSPO-token** is a distinct implementation variant: its stop-gradient construction preserves a shared sequence-ratio value while allowing token-specific advantages; with identical response advantages it matches GSPO's objective and gradient. Ordinary GSPO does not itself supply finer causal [credit assignment](#rl-credit-assignment). [Gradient analysis and variant](https://arxiv.org/html/2507.18071v2#S4.SS2), [reported systems implications](https://qwenlm.github.io/blog/gspo/#benefits-for-moe-rl-and-infrastructure)
+
+<a id="rl-method-comparison"></a>
+#### [To be reviewed] GRPO, DAPO, and GSPO: What Actually Changes?
+
+| Axis | Original outcome-supervised GRPO | DAPO recipe | GSPO |
+| --- | --- | --- | --- |
+| Advantage | Response reward centered/standardized within a prompt group | Group-relative response advantage | Group-relative response advantage |
+| Ratio and clipping | Per-token ratio; per-token clipping | Per-token ratio; decoupled lower/upper clipping | Geometric-mean sequence ratio; response-level clipping |
+| Reduction in displayed objectives | Mean of response token means | Pooled token contributions within the specified reduction unit | Mean of response-level surrogates; gradient includes inverse response length |
+| Handling all-equal groups | Outcome-based group advantage vanishes | Replenish filtered prompt groups | No automatic remedy from changing the ratio alone |
+| Main diagnostic | Group variance, token clipping, KL/entropy | Also acceptance rate, discarded generation, length weighting/truncation | Also sequence-ratio/clipping distribution, MoE routing, numerical mismatch |
+
+These are update/sampling choices, while [RLHF/RLAIF/RLVR](#rl-feedback-comparison) describe supervision. Compare methods with matched data access and total rollout compute, recording all sampling, masking, reward, KL, and reduction differences. A win after changing five recipe components does not isolate the ratio estimator's effect. [OPSD](#opd-opsd) changes the source and density of supervision; it is not another group-reward clipping rule.
+
 <a id="rl-credit-assignment"></a>
 #### [To be reviewed] Credit Assignment: Returns, Baselines, and GAE
 
@@ -396,6 +450,8 @@ A useful answer states the objective, sampling assumptions, failure mechanism, a
 | Can larger groups or higher temperature fix sparse rewards? | They can increase exploration under a fixed capability distribution, at extra cost and possibly more invalid actions. | Estimate mixed-group probability, count discarded rollouts, and compare curriculum or SFT initialization. |
 | Are process rewards always better? | They offer denser measurements but can be wrong, correlated, or vulnerable to step/length incentives. | Compare outcome-only, process-only, and combined rewards with independent terminal grading. |
 | Can we reuse old rollouts indefinitely? | Only with an objective/estimator justified for the behavior distribution and sufficient support; variance and policy lag remain constraints. | Audit filtered behavior log-probabilities, importance weights, environment drift, and refresh cadence. |
+| How do DAPO and GSPO differ from GRPO? | DAPO changes token-ratio clipping, group sampling, reduction, and length handling; GSPO changes the ratio and clipping unit to the response. | Derive the geometric-mean ratio and distinguish it from the raw sequence importance weight. |
+| Does OPSD require a stronger external teacher? | The cited method uses privileged reference context with a self teacher; reported experiments freeze its initial checkpoint. | Separate new information from model size, and compare full-vocabulary gradients with sampled-token feedback. |
 | What does lower actor loss establish? | Only progress on that sampled surrogate under its sign/reduction convention; changing advantages and clipping make cross-run loss values hard to compare. | Show independent correctness, actual KL, entropy, length, cost, and retained capabilities. |
 
 <a id="rl-debugging"></a>
@@ -473,6 +529,32 @@ An illustrative local objective is $`\mathcal{L}_{\mathrm{local}}(\theta;\theta_
 5. Update the student and refresh rollouts at a justified cadence. Measure teacher entropy/reliability, policy lag, response length, gradient statistics, retained capabilities, and **teacher-inclusive** GPU time or API cost. Keep teacher computation outside the student gradient graph unless joint training is explicitly intended.
 
 **Evaluation example.** Compare verified teacher-trace SFT, offline soft-target distillation, OPD, and reward-based RL from the same student checkpoint. Match prompts, data access, target evaluation decoding, and a clearly defined compute budget; report both student-update and total rollout/teacher cost. Judge final correctness independently of the teacher and test new problem families. A smaller student can outperform its teacher on a particular benchmark after additional training or selection, but this is an empirical result, not a guarantee of distillation. Recent analyses document teacher-support and tokenizer/special-token failures. [OPD failure-mode study](https://arxiv.org/abs/2603.25562)
+
+<a id="opd-opsd"></a>
+#### [To be reviewed] OPSD: On-Policy Self-Distillation with Privileged Solutions
+
+Here **OPSD** means *On-Policy Self-Distillation* in **Self-Distilled Reasoner** (2026). A model supplies both student and teacher distributions under different contexts: the student sees question $`x`$, while the teacher additionally sees reference solution $`y^\star`$. The student samples a response; the teacher scores continuations along **that student's exact prefixes**, using the reference as privileged training information. The reference is absent at student inference. This is supervised self-distillation, not learning from no new information. [Paper, v3](https://arxiv.org/html/2601.18734v3), [official implementation](https://github.com/siyan-zhao/OPSD)
+
+**Framework versus experimental teacher.** The conceptual algorithm writes both branches as the same parameterized model with different conditioning, with gradients stopped through the teacher. The v3 experiments instead hold the teacher at the **initial checkpoint** for stability. A frozen initial teacher and a refreshed current-model teacher are different training targets; record the actual choice. Self-distillation does not require that the teacher track every student update. [Experimental setup, Section 4.1](https://arxiv.org/html/2601.18734v3#S4.SS1)
+
+For a fixed teacher checkpoint $`\theta_0`$, write $`q_t=p_{\theta_0}(\cdot\mid x,y^\star,\hat y_{<t})`$ and $`p_t=p_\theta(\cdot\mid x,\hat y_{<t})`$. For rollout length $`T=|\hat y|`$, a local full-vocabulary update uses:
+
+$`L_{\mathrm{OPSD}}(\theta)=\mathbb{E}_{(x,y^\star),\,\hat y\sim p_{\mathrm{old}}(\cdot\mid x)}\left[\frac{1}{T}\sum_{t=1}^{T}D\left(\operatorname{sg}[q_t],p_t\right)\right]`$.
+
+Here $`p_{\mathrm{old}}`$ denotes the rollout snapshot refreshed during training; sampled prefixes and teacher targets are detached in this local update. Specify the divergence direction: forward KL is $`D_{\mathrm{KL}}(q_t\Vert p_t)`$, reverse KL is $`D_{\mathrm{KL}}(p_t\Vert q_t)`$; generalized JSD is another option. The paper also studies sampled-token policy-gradient feedback. Full-distribution matching, its sampled-action surrogate, and the exact gradient of sequence KL should not be conflated; see the [OPD gradient distinction](#to-be-reviewed-opd-objectives-and-the-gradient-distinction).
+
+**Implementation detail worth checking:** v3 caps individual *vocabulary-entry divergence contributions* at each rollout position before summing, rather than clipping a response probability ratio or merely the scalar total KL. In its notation, $`\ell_{t,v}=q_t(v)f(p_t(v)/q_t(v))`$ and the clipped token mean is $`T^{-1}\sum_t\sum_v\min(\ell_{t,v},\tau)`$. This changes the divergence objective; the chosen generator, threshold, and support handling matter. The released code also reports chat-template fixes, so pin a revision and verify student/teacher response alignment. [Clipping definition](https://arxiv.org/html/2601.18734v3#S3.SS2), [code updates](https://github.com/siyan-zhao/OPSD#updates)
+
+**Illustrative two-token vocabulary.** On the student's prefix, suppose $`p_t=(0.6,0.4)`$ and the solution-conditioned teacher gives $`q_t=(0.9,0.1)`$. Forward KL is approximately 0.2263 nats; reverse KL is approximately 0.3112 nats. Forward-KL gradients with respect to student logits are $`p_t-q_t=(-0.3,0.3)`$. These directions favor the teacher's first continuation even when the completed student response is incorrect; no all-correct/all-wrong group is required. This toy distribution does not establish that the teacher can recover from every wrong reasoning prefix.
+
+| Recipe | States used for updates | What supplies supervision? |
+| --- | --- | --- |
+| Verified-trace SFT / rejection-sampling self-training | Fixed retained demonstration prefixes | Hard next-token targets in accepted traces |
+| OPD with an external teacher | Refreshed student prefixes | A separately selected teacher's conditional distribution |
+| OPSD in the cited paper | Refreshed student prefixes | Same-model-family teacher with a privileged reference solution; frozen initial teacher in reported experiments |
+| Outcome-based GRPO/DAPO/GSPO | Sampled response groups | Verifier rewards and relative advantages |
+
+**Evaluation design:** ablate reference access, teacher freezing, divergence/clipping, and rollout length separately. Keep verified references inside training splits, evaluate with question-only inputs on held-out problem families, and grade independently of teacher likelihood. Report teacher-prefill/scoring cost and checkpoint selection as well as sampled student tokens; sharing a model lineage does not make teacher inference free. Compare against SFT and RL at matched supervision access and clearly defined budgets, with multiple seeds and retained-capability checks. Dense guidance can inherit flawed solutions or reward stylistic agreement, so it complements rather than replaces [reward-hacking analysis](#rl-reward-hacking) and [independent evaluation](benchmarking-and-evaluation.md#benchmarking-and-evaluation).
 
 ### [To be reviewed] Synthetic Data, Rejection Sampling, and Iterative Recipes
 
