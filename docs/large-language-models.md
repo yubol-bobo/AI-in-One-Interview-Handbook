@@ -56,8 +56,10 @@
     - [Training Toolchains](#to-be-reviewed-training-toolchains)
     - [Accumulation, Checkpointing, and Communication](#optimization-and-efficiency)
 - [Inference and Serving](#llm-inference)
+    - [Prefill, Decode, and Cache Lifetime](#llm-prefill)
     - [Decoding Strategies](#llm-decoding)
     - [KV Cache Management and Kernels](#llm-cache-management)
+        - [PagedAttention: Blocks, Mapping, and Sharing](#llm-paged-attention)
     - [Speculative Decoding](#llm-speculative)
     - [Scheduling and Serving Performance](#llm-serving-systems)
 - [Evaluation and Monitoring](#evaluation-and-monitoring)
@@ -772,6 +774,32 @@ State/parameter sharding is described once in [Distributed Training](#distribute
     - **Example:** a few 100k-token prompts can monopolize prefill and harm short-request latency. Compare time to first token, inter-token latency, end-to-end latency, and throughput under specified prompt/output length distributions and arrival rates. Report p50/p95/p99 and the fraction meeting a latency objective, not only peak tokens/second.
     - Prefix caching requires exact compatibility of token prefix, model state, and cache semantics. Quantization and parallelism change both capacity and numerical behavior; benchmark quality as well as latency. Record model/tokenizer versions, sampling settings, cache policy, and error/timeout rates. [Serving system design](https://arxiv.org/abs/2309.06180)
 
+<a id="llm-prefill"></a>
+### [To be reviewed] Prefill, Decode, and the Lifetime of Cached Tokens
+
+**Prefill is model computation, not merely reserving cache memory.** It processes the known input tokens through all layers, computes their contextual states, and writes layerwise K/V (or architecture-specific compressed state). In a causal decoder, positions within a known input block can run in parallel with a causal mask. The final prompt position's logits provide the distribution for the first generated token; output-head work for other prompt positions can often be omitted at inference. [Transformer derivation](transformer.md#tf-cache), [cache execution reference](https://huggingface.co/docs/transformers/cache_explanation)
+
+**An explicit timeline:** let the prompt contain P tokens, with no reusable cache initially. Ordinary single-token autoregressive execution is:
+
+| Event | Tokens passed through the model in this forward pass | Cache length after the pass | Next-token distribution available |
+| --- | --- | --- | --- |
+| Prompt prefill | Prompt positions 0 through P−1 | P | First generated token y1 |
+| Sample y1 from those logits | No forward pass | Still P | y1 has been selected, but its K/V do not yet exist |
+| First incremental decode pass | y1 at absolute position P | P+1 | y2 |
+| Second incremental decode pass | y2 at absolute position P+1 | P+2 | y3 |
+
+For example, a three-token prompt prefills three cache positions; sampling the first output leaves three cached positions, and processing that output increases the cache to four. If generation stops immediately after sampling EOS, its K/V need not be computed. Speculative/block decoding can process several candidate positions and commit only accepted state, so its bookkeeping differs.
+
+**Shapes and cost:** for C uncached input positions after a cached prefix of length P0, one layer has query shape [B, h_q, C, d_h] and conventional K/V length P0+C. Query offset i may read positions $`j\leq P_0+i`$ in the same permitted segment. A full prompt has P0 = 0; single-token decode has C = 1; chunked prefill has intermediate C. Standard dense attention in that pass costs on the order of $`B h_q C(P_0+C)d_h`$ operations, omitting constants and projections/MLP. Tiling can avoid the corresponding full score tensor without removing these dense interactions. See [FlashAttention](transformer.md#tf-flash-attention) and [rectangular causal masks](transformer.md#tf-masking).
+
+**Why cache K/V rather than Q?** Future queries compare with historical keys and mix historical values. The old query already served its position's output and is not needed for ordinary future attention. Appending a future token leaves old causal states unchanged; editing earlier tokens, changing adapters, or changing conditioning may invalidate that argument. For MLA, use its [latent-plus-position cache](transformer.md#tf-mla), rather than applying the conventional two-tensor formula mechanically.
+
+**Chunking versus reuse:** chunked prefill schedules one prompt in several causal blocks while preserving earlier KV; with correct positions/masks it computes the same causal operator up to numerical effects. It is not truncating history or allowing each chunk to attend only within itself. Prefix caching instead reuses already computed state for an identical compatible prefix. If 3,000 of 4,000 input tokens are reused, the remaining 1,000 queries still read the relevant cached history; the computation is not just a standalone 1,000-token prompt. If the entire prompt's KV is reused, the engine still needs next-token logits: retain appropriate output state or recompute a suitable final portion. KV alone is not a stored vocabulary distribution. [Prefix reuse](https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/), [chunked prefill scheduling](https://docs.vllm.ai/en/latest/configuration/optimization/#chunked-prefill)
+
+**Performance interpretation:** prefill offers many queries per weight/KV load and is often compute-intensive; small-batch decode often spends more time moving weights and growing historical KV. These are workload tendencies, not universal bottleneck labels. TTFT includes queueing, preprocessing, uncached prefill, and first-token delivery; inter-token latency covers subsequent output intervals. For M output tokens and no finalization overhead, end-to-end delivery time is TTFT plus the sum of M−1 intervals. Prefix-cache hits primarily reduce repeated prefill; they do not eliminate the continuation's attention reads.
+
+Chunk size trades TTFT against interference with active decodes. [Prefill/decode disaggregation](https://arxiv.org/abs/2401.09670) separates execution pools but adds KV-transfer and scheduling costs. Choose using measured [service latency and goodput](#llm-serving-systems), including cache misses, preemption, and transfer. A two-GPU split is not automatically faster for a short, lightly loaded request.
+
 <a id="llm-decoding"></a>
 ### [To be reviewed] Decoding Strategies: Search, Sampling, and Constraints
 
@@ -807,6 +835,19 @@ The [Transformer cache explanation](transformer.md#tf-cache) derives why unchang
 Keep model/adapters, exact token prefix, positions, masks, and execution semantics compatible when reusing cache. Shared services also need appropriate cache isolation. Beam branches need correct cache sharing or reordering; stale beam-to-cache indices can produce plausible but wrong outputs. [Cache strategy reference](https://huggingface.co/docs/transformers/kv_cache), [prefix-caching implementation](https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/)
 
 **FlashAttention and PagedAttention address different layers of the problem.** FlashAttention reduces attention-kernel memory traffic and avoids materializing the full score matrix; paged KV management organizes persistent decoding state. They can coexist. Neither is equivalent to changing the sampling rule. See [attention arithmetic and memory](transformer.md#tf-cost) for the kernel-level distinction.
+
+<a id="llm-paged-attention"></a>
+#### [To be reviewed] PagedAttention: Logical Blocks, Physical Pages, and Sharing
+
+**PagedAttention** evaluates attention over KV stored in fixed-size physical token blocks, with a per-sequence mapping from logical blocks to physical blocks. A request need not own one growing contiguous KV allocation or reserve its maximum output length in advance. The kernel follows the mapping and combines contributions across the sequence's blocks. This addresses fragmentation and storage duplication while preserving the specified attention computation. It does not introduce sparse attention by ignoring arbitrary old pages. [Original paper, Sections 4.1–4.3](https://arxiv.org/html/2309.06180v1#S4), [authors' explanation](https://vllm.ai/blog/2023-06-20-vllm)
+
+**Address example:** with four token slots per block and logical-to-physical mapping [7, 2, 9], token position 5 is in logical block 1, offset 1, hence physical block 2 at offset 1. A ten-token sequence occupies three blocks/twelve slots, leaving two unused tail slots. If its length grows to twelve, those slots can be filled; appending position 12 needs another block. Logical order is independent of physical block number.
+
+**Sharing and copy-on-write:** multiple continuations can reference common immutable prefix blocks. Track references; before changing a shared partially filled block, copy its contents into an exclusive block, update that continuation's mapping, then append. A fully shared read-only block needs no copy. Reclamation must wait until no live request references the block. Prefix sharing, beam forks, and eviction therefore need correct ownership, not only a fast indexing kernel. [Cache manager and parallel sampling](https://arxiv.org/html/2309.06180v1#S4.SS2)
+
+**Memory accounting:** without sharing, sequences of lengths $`T_i`$ and block size $`b_t`$ need $`\sum_i b_t\lceil T_i/b_t\rceil`$ token slots in a uniform block pool. Multiply by the architecture's per-token layer payload, then add mappings, alignment, and buffers. With sharing, count unique live physical blocks instead. Smaller blocks reduce tail waste but increase mapping/scheduling overhead; large blocks reverse that trade-off. This is distinct from a GPU thread block, a FlashAttention computation tile, and an operating-system virtual-memory page. Host-memory offload requires an additional policy/transfer mechanism; “paged” does not by itself mean CPU paging.
+
+**Composition and correctness:** a compatible FlashAttention-style kernel can read a paged cache, and paged storage can hold GQA or supported MLA state. The paging layout does not make these architectures interchangeable. Current engines select different kernels by device, model, and phase; the original PagedAttention algorithm is not a claim about every current vLLM kernel. Compare mapped attention with a contiguous reference under uneven lengths, block boundaries, shared-prefix forks, copy-on-write, and reclamation/reuse. Test allocation savings separately from per-request latency and total serving throughput. See the [attention taxonomy](transformer.md#tf-attention-map).
 
 <a id="llm-speculative"></a>
 ### [To be reviewed] Speculative Decoding: Acceleration Versus a New Output Policy

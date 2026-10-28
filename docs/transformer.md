@@ -14,14 +14,20 @@
 - [2. Token Embeddings: IDs to a Learned Coordinate System](#tf-embedding)
 - [3. Position Information: Addition, Relative Bias, and RoPE](#tf-position)
 - [4. Q, K, V and Scaled Dot-Product Attention](#tf-attention)
+    - [Attention Taxonomy and Compatible Choices](#tf-attention-map)
 - [5. Visibility Masks, Padding, and Teacher Forcing](#tf-masking)
 - [6. Multi-Head Attention, MQA, and GQA](#tf-heads)
+    - [MHA / MQA / GQA: Sharing and Cost](#tf-head-sharing)
+    - [MLA: Latent Compression and Decoupled RoPE](#tf-mla)
 - [7. Encoder Memory and Decoder Cross-Attention](#tf-cross-attention)
+    - [Self / Cross Attention Comparison](#tf-self-cross)
 - [8. Positionwise MLP, SwiGLU, and MoE](#tf-mlp)
 - [9. Residual Paths, LayerNorm, RMSNorm, and Dropout](#tf-norm)
 - [10. Vocabulary Projection, Loss, and Decoding](#tf-readout)
 - [11. Prefill, Incremental Decode, and KV Caching](#tf-cache)
 - [12. Parameter, Arithmetic, and Memory Costs](#tf-cost)
+    - [FlashAttention: IO-Aware Exact Attention](#tf-flash-attention)
+    - [Native Sparse Attention (NSA)](#tf-nsa)
 - [13. Architecture Families and Historical Examples](#tf-architecture-families)
 - [14. Minimal Attention Reference and Failure Checks](#tf-reference)
 
@@ -131,6 +137,23 @@ Under independent, zero-mean, unit-variance Q/K coordinates, a dot product's var
 
 **Numerical example:** scaled allowed logits [ln 3, 0] produce weights [0.75, 0.25]. With value vectors (1, 0) and (0, 2), the output is (0.75, 0.5). The **comparison scores** choose the mixture, while the **values** determine what is mixed. Changing only V changes the output without changing those attention weights. This also explains why a heatmap is not by itself a causal explanation of the model's final prediction; later transformations and residual paths remain active. See [attention-based explanation](machine-learning.md#attention-based).
 
+<a id="tf-attention-map"></a>
+### [To be reviewed] Attention Taxonomy: Different Axes, Compatible Choices
+
+**Attention (attn)** is a query-dependent read over key/value representations. The [score history](#tf-score-history) explains additive and dot-product compatibility; the scaled-dot-product operator above specifies one widely used form. The following names describe different design axes, so a single system can use several of them together.
+
+| Axis | Choices | Question being answered |
+| --- | --- | --- |
+| Representation source | [Self / cross attention](#tf-self-cross) | Do queries and memory originate in the same stream or different streams? |
+| Visibility | Causal, bidirectional, padding/segment masks | Which query–key pairs are permitted? |
+| Head and cache representation | [MHA / MQA / GQA](#tf-head-sharing), [MLA](#tf-mla) | How are projections shared or compressed across heads? |
+| Attention connectivity | Full attention, local/block sparse, [NSA](#tf-nsa) | Which context representations are actually scored and mixed? |
+| Kernel execution | [FlashAttention](#tf-flash-attention) | How is the specified operator evaluated with less memory traffic? |
+| Persistent cache layout | [PagedAttention](large-language-models.md#llm-paged-attention) | How are logical token positions mapped to physical KV storage? |
+| Runtime phase | [Prefill / decode](large-language-models.md#llm-prefill) | Are known input tokens processed together, or is generation advanced incrementally? |
+
+**Composition example:** a causal decoder can use GQA projections, a FlashAttention-compatible prefill kernel, and paged KV storage during serving. Compatibility still depends on masks, head dimensions, dtype, hardware, and backend support. MLA is an architectural parameterization; NSA is a particular sparse architecture. Neither is a generic switch that can be applied to arbitrary pretrained weights with unchanged behavior. A faster kernel and a new sparse operator also require different validation: numerical agreement for the former, model-quality evaluation for the latter.
+
 <a id="tf-masking"></a>
 ## [To be reviewed] 5. Visibility Masks, Padding, and Teacher Forcing
 
@@ -153,6 +176,37 @@ MHA computes several head outputs, concatenates them, and applies an output proj
 
 For the common grouped layout, h_q is divisible by h_kv. Q retains all query heads, while K/V projections and cache shrink. **Example:** 32 query heads with 8 KV heads share each KV head among four query heads. Relative to 32-KV-head MHA, that cache has one quarter the K/V entries at the same layer count, length, dtype, and head width. It does not imply a fourfold speedup: attention computation, other weights, batching, and hardware still matter. The GQA paper also studies converting existing MHA checkpoints by additional training; changing head counts in a saved checkpoint is not a free tensor-layout operation. [GQA](https://arxiv.org/abs/2305.13245)
 
+<a id="tf-head-sharing"></a>
+### [To be reviewed] MHA, MQA, and GQA: Sharing Is Along the Head Axis
+
+**MHA = Multi-Head Attention; MQA = Multi-Query Attention; GQA = Grouped-Query Attention.** MQA retains multiple query heads despite its name. With $`g=h_q/h_{kv}`$ query heads per KV group, query head $`a`$ uses KV head $`\lfloor a/g\rfloor`$ under a contiguous, zero-indexed grouping convention. The separate query projections still yield different attention weights even when K/V are shared. [MQA](https://arxiv.org/abs/1911.02150), [GQA](https://arxiv.org/abs/2305.13245)
+
+Ignoring biases and assuming equal key/value widths, Q/K/V/O have $`2d h_qd_h+2d h_{kv}d_h`$ parameters. If $`h_qd_h=d`$, this becomes $`2d^2+2d h_{kv}d_h`$. Stored KV elements per token per layer are $`2h_{kv}d_h`$. Sharing therefore reduces KV projections and reusable cache state; it does not remove query heads or automatically reduce the dense QK/AV arithmetic by the same factor. Actually repeating shared K/V into independent physical head copies can defeat the intended memory saving.
+
+**Head-index example:** for eight query heads and two KV heads, heads 0–3 read the first KV head and heads 4–7 read the second. A prompt position can receive different weights in all eight heads because their queries differ. With a causal mask, all heads remain causal; sharing is independent of visibility.
+
+**Trade-off to discuss:** fewer KV heads constrain the representation but improve capacity/bandwidth economics. Quality depends on training, tasks, and conversion recipe, not a universal MHA > GQA > MQA ranking. MQA can require KV replication under some tensor-parallel layouts; nominal global cache savings are not automatically per-device savings. Compare actual resident bytes and attention kernels at the intended batch/context sizes.
+
+<a id="tf-mla"></a>
+### [To be reviewed] MLA: Multi-Head Latent Attention and Compressed KV State
+
+**Multi-Head Latent Attention (MLA)** in DeepSeek-V2 jointly compresses K/V into a low-dimensional latent per token, while preserving head-specific learned content projections. Using column vectors here, $`c_j=W_{DKV}h_j\in\mathbb{R}^{d_c}`$, $`k^C_{j,a}=U^K_a c_j`$, and $`v^C_{j,a}=U^V_a c_j`$. An absorbed decode implementation stores the latent rather than all reconstructed per-head K/V. [DeepSeek-V2, Section 2.1](https://arxiv.org/html/2405.04434v5#S2.SS1), [official model repository](https://github.com/deepseek-ai/DeepSeek-V2)
+
+For the content part, $`(q^C_{i,a})^T U^K_a c_j=((U^K_a)^Tq^C_{i,a})^Tc_j`$: transform the new query into latent coordinates instead of expanding every historical key. Similarly, with head weights $`\alpha_{ij,a}`$, linearity gives $`\sum_j\alpha_{ij,a}U^V_a c_j=U^V_a\sum_j\alpha_{ij,a}c_j`$; the up-projection can be moved after aggregation and composed with the output projection. This is an algebraic implementation of the trained low-rank parameterization, not lossless compression of arbitrary MHA weights.
+
+**RoPE is the complication.** Applying position-dependent rotations to the expanded content keys generally prevents a single position-independent matrix absorption. DeepSeek-V2 separates a positional query/key component from the content component; the shared rotated positional key must also be cached. For latent width $`d_c`$ and positional-key width $`d_r`$, the compact cache contains $`d_c+d_r`$ elements per token per layer, rather than two copies of the latent. Query compression is a further training-activation choice and does not itself shrink persistent historical KV. [Compression and decoupled RoPE](https://arxiv.org/html/2405.04434v5#S2.SS1.SSS2)
+
+**Illustrative payload comparison:** use 32 layers, 8,192 cached tokens, two-byte elements, 32 query heads, and conventional head width 128. For MLA choose latent width 512 and positional-key width 64; these are illustrative dimensions, not a matched-quality benchmark.
+
+| Representation | Elements per token per layer | One sequence's cache payload |
+| --- | --- | --- |
+| MHA, 32 KV heads | 8,192 | 4 GiB |
+| GQA, 8 KV heads | 2,048 | 1 GiB |
+| MQA, 1 KV head | 256 | 128 MiB |
+| MLA, latent 512 + positional key 64 | 576 | 288 MiB |
+
+MLA is therefore not guaranteed smaller than MQA. Its benefit is a particular representation/quality/compute trade-off. Backend reconstruction, quantization scales, alignment, metadata, and sharding can change actual memory; prefill may use an expanded execution path while decode uses absorption. MLA can still attend densely over all earlier latents, so compression alone does not make sequence attention sparse. Use a compatible implementation and measure the two runtime phases separately.
+
 <a id="tf-cross-attention"></a>
 ## [To be reviewed] 7. Encoder Memory and Decoder Cross-Attention
 
@@ -161,6 +215,19 @@ In the original encoder–decoder model, encoder self-attention processes the so
 **Translation example:** while generating a target verb, the decoder can select source positions that appeared anywhere in the supplied sentence. Its decoder Q changes as the target prefix grows, but a layer's encoder-derived K/V can be projected once and reused while the source is unchanged. Each decoder layer may have its own cross-attention projections. This differs from a single shared bidirectional prefix stack, whose representations and parameter-sharing pattern are different.
 
 A conventional decoder-only block has no separate encoder-memory cross-attention. Prompt tokens and generated tokens occupy the causal stream together. Multimodal or retrieval systems may insert extra cross-attention or other fusion modules; the presence of external information does not determine a unique architecture.
+
+<a id="tf-self-cross"></a>
+### [To be reviewed] Self versus Cross Attention: Sources, Masks, and Cache Lifetime
+
+| Operation | Query source | Key/value source | Score shape per head | What can be reused during generation? |
+| --- | --- | --- | --- | --- |
+| Encoder self-attention | Source states | Same source stream | S by S | Encoded memory when the source and model are fixed |
+| Decoder self-attention | Target-stream states | Same target stream | T by T in a full pass | Layerwise past K/V for an unchanged causal prefix |
+| Decoder cross-attention | Current target states | Encoder or other external memory | T by S | Each layer's projected source K/V while that memory is unchanged |
+
+“Self” describes the originating stream, not equality of Q, K, and V after their distinct projections. “Cross” does not imply causality or a specific score function. The source memory of a translation model can be fully visible while target self-attention stays causal. Cross-attention can use multi-head or grouped projections when supported; head sharing is a separate axis. [Original Transformer](https://arxiv.org/abs/1706.03762), [Q/K/V shape semantics](https://docs.pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html)
+
+**Retrieval example:** inserting retrieved text into a decoder's prompt normally uses causal self-attention over the combined stream. Encoding passages separately and reading their states through a dedicated module uses cross-attention. Both use external information, but their compute, masks, and cache invalidation differ. Replacing the passage memory invalidates its projected cross-attention K/V. Reusing old decoder states after changing that conditioning also requires a justified architecture-specific rule; those states may already depend on the old memory. See [RAG](rag.md#rag) and [prefix-cache correctness](large-language-models.md#llm-cache-management).
 
 <a id="tf-mlp"></a>
 ## [To be reviewed] 8. Positionwise MLP, SwiGLU, and MoE
@@ -204,6 +271,8 @@ For an attention-only step with a cache of length P, a common layout has Q [B, h
 
 For persistent-state allocation, sharing, quantization/offload, and the difference from attention kernels, see [KV cache management](large-language-models.md#llm-cache-management).
 
+For the first-output-token/cache timeline, chunked prefill, and TTFT implications, see [prefill and decode execution](large-language-models.md#llm-prefill); for block mapping and copy-on-write, see [PagedAttention](large-language-models.md#llm-paged-attention).
+
 **Correctness experiment:** compare full causal attention with incremental cached attention using identical projected Q/K/V, positions, weights, and disabled dropout. Then change a future input token and verify that earlier causal outputs stay unchanged. Compare within appropriate floating-point tolerances; speed or a plausible generated sentence is not a cache-correctness test.
 
 <a id="tf-cost"></a>
@@ -216,6 +285,44 @@ In **multiply-accumulate operations (MACs)**, ordinary dense MHA prefill uses ro
 **Memory example:** a single explicitly materialized score matrix at B = 1, h = 32, T = 8,192 and two bytes per score occupies 4 GiB. That is one tensor, not the full training peak. FlashAttention tiles operations and uses online softmax/recomputation to reduce memory traffic and avoid storing the full score matrix in high-bandwidth memory. Its dense exact attention still has quadratic sequence-length arithmetic, up to kernel/mask constants. “Exact” means the attention operator rather than a sparse/low-rank approximation; floating-point reduction order can differ. [FlashAttention](https://arxiv.org/abs/2205.14135)
 
 Decode performance often depends on weight/cache bandwidth, batch size, and concurrency as well as arithmetic. Report time to first token, inter-token latency, throughput, and peak memory under specified prompt/output distributions. A fourfold reduction in one attention tensor does not imply a fourfold reduction in total model cost.
+
+<a id="tf-flash-attention"></a>
+### [To be reviewed] FlashAttention: Exact Softmax Through IO-Aware Tiling
+
+A naive dense implementation writes scores and attention probabilities of shape T by T per head into GPU high-bandwidth memory (HBM). **FlashAttention** tiles Q/K/V through on-chip storage and combines partial softmax results, avoiding those full intermediate matrices in HBM. Backward computation recomputes needed quantities rather than retaining the entire probability matrix. It evaluates the same chosen dense/masked attention operator up to floating-point effects; it is not top-k attention. [FlashAttention](https://arxiv.org/abs/2205.14135)
+
+**Why blocks can be combined exactly:** for one query row, let a processed set of allowed logits have maximum $`m`$, exponential sum $`\ell=\sum_j e^{s_j-m}`$, and unnormalized value accumulator $`u=\sum_j e^{s_j-m}v_j`$. For a new block with statistics $`(m_b,\ell_b,u_b)`$, combine them as:
+
+$`m'=\max(m,m_b),\qquad \ell'=e^{m-m'}\ell+e^{m_b-m'}\ell_b,\qquad u'=e^{m-m'}u+e^{m_b-m'}u_b`$.
+
+The final output is $`u'/\ell'`$. Rescaling both accumulators preserves the common softmax denominator across blocks. Independently normalizing each block and averaging its output is generally wrong. Empty/masked tiles need a valid initialization/skip convention; no fully masked row has a defined reference softmax.
+
+**Worked row:** logits [ln 3, 0] and values (1, 0), (0, 2), split across two blocks, combine to output (0.75, 0.5), matching the dense example above. The second tile contributes denominator mass 1/3 relative to the first tile's maximum, rather than receiving equal block weight.
+
+FlashAttention-2 improves work partitioning, parallelism, and non-matmul overhead; it does not turn dense quadratic attention arithmetic into linear arithmetic. Kernel support for masks, head layouts, dropout, precision, and devices is version-specific. [FlashAttention-2](https://tridao.me/publications/flash2/flash2.pdf)
+
+**Interview distinction:** training/prefill score-matrix savings and decode KV bandwidth are different issues. A tiled kernel still needs persistent historical K/V (or the model's compressed state); [paging](large-language-models.md#llm-paged-attention) changes its layout, [GQA/MLA](#tf-head-sharing) its representation, and [sparse attention](#tf-nsa) which memory is read. Compare numerical agreement against the reference operator before attributing a speedup to a new architecture.
+
+<a id="tf-nsa"></a>
+### [To be reviewed] Native Sparse Attention (NSA): Compression, Selection, and Locality
+
+**NSA is Native Sparse Attention**, the method in *Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention*; these are one topic. Unlike an exact dense FlashAttention kernel, NSA changes the context representations used by attention and trains with that mechanism. [NSA paper, v2](https://arxiv.org/html/2502.11089v2)
+
+Its three branches provide complementary information:
+
+1. **Compression:** learned block summaries give a coarse view of earlier context, with block positions and causal boundaries respected.
+2. **Selection:** compression-attention scores guide selection of important blocks; attention then reads their fine-grained token K/V. Scores are aggregated across query heads sharing a KV group so their selections can share memory fetches.
+3. **Sliding window:** a separate branch reads recent local context. The design uses independent branch K/V to reduce interference.
+
+The branch outputs are combined as $`o_t=\sum_{c\in\{\mathrm{cmp},\mathrm{slc},\mathrm{win}\}}g_t^c\operatorname{Attn}(q_t,\tilde K_t^c,\tilde V_t^c)`$. Its sigmoid gates lie in [0, 1]; they are not necessarily softmax weights summing to one. Block-aligned accesses and group-wise reuse matter for actual GPU speed. Training the mechanism end to end does not mean the discrete top-block choice has an ordinary derivative through its indices. [Framework, selection, and kernels](https://arxiv.org/html/2502.11089v2#S3)
+
+**Illustrative access budget:** at a 65,536-token history, non-overlapping 64-token summaries would give about 1,024 compressed positions. Selecting 16 blocks of 64 tokens adds 1,024 fine-grained positions; a 512-token local branch adds another 512. That is about 2,560 branch positions before boundary/overlap details, not a measured 25.6-fold end-to-end speedup. This toy uses simpler block geometry than the paper. Selection, compression, projections, three softmaxes, gating, and memory traffic also cost work.
+
+The compressed branch still grows with history; a constant-factor reduction of its length does not prove linear-time prefill. Selecting a subset for the current query also does not justify permanently evicting every unselected historical KV: a later query may need it. Cache capacity and per-step reads require separate accounting.
+
+**Compare against other sparsity:** a fixed local window has predictable access but may miss distant evidence; a generic dynamic top-k rule adds selection cost and irregular accesses; NSA couples coarse context, selected details, and local context with a trained architecture and hardware-oriented kernels. MLA compresses features per token, whereas NSA remaps/selects positions or blocks. Combining them needs a compatible trained model and implementation. In particular, do not relabel every later DeepSeek sparse-attention mechanism as this specific NSA design.
+
+**Quality check:** sweep evidence position, context length, distractors, and multi-hop dependencies; measure selection misses and answer quality alongside prefill/decode latency and peak resident cache. A sparse kernel can exactly implement its own sparse operator while differing from full attention. Preserving that operator is different from preserving a pretrained full-attention model's outputs. See [long-context evaluation](benchmarking-and-evaluation.md#eval-llm-benchmarks).
 
 <a id="tf-architecture-families"></a>
 ## [To be reviewed] 13. Architecture Families and Historical Examples
