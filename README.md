@@ -98,6 +98,8 @@ This README is the handbook index. Each chapter has its own contents and chapter
 <a id="transformer"></a>
 
 - [Transformer Deep Dive and Diagram](docs/transformer.md#transformer)
+    - [Background: Distributional Hypothesis and Attention History](docs/transformer.md#tf-background)
+    - [Additive / Dot-Product / Scaled Dot-Product](docs/transformer.md#tf-score-history)
     - [Positions and RoPE](docs/transformer.md#tf-position)
     - [Attention / Masks / Heads](docs/transformer.md#tf-attention)
     - [Cross-Attention](docs/transformer.md#tf-cross-attention)

@@ -168,6 +168,8 @@ Statistical models learned parameters from data—first n‑grams, then classica
 
 Neural nets brought continuous representations and end‑to‑end learning.
 
+[To be reviewed] The [distributional-hypothesis background](transformer.md#tf-distributional) connects context statistics to learned word representations and explains the move from static lexical vectors to input-dependent states. It is an intellectual motivation for distributional semantics, not a theorem requiring every contextual model to use attention.
+
 - [To be reviewed] Word embeddings represent lexical items by dense vectors learned from a specified objective and corpus. Similarity depends on training, context definitions, and geometry; nearby words may be related or even antonyms rather than substitutable synonyms.
     - Word2Vec (2013) [[知乎](https://zhuanlan.zhihu.com/p/61635013)]
         - [To be reviewed] Word2Vec demonstrated useful distributional and analogy regularities in particular trained embeddings. Vector offsets such as king − man + woman can retrieve queen in some models, but success depends on corpus, vocabulary, scoring, and relations; it is not a guaranteed algebra of meaning.
@@ -213,10 +215,11 @@ Neural nets brought continuous representations and end‑to‑end learning.
         - An encoder maps a variable-length source into a representation; an autoregressive decoder models a conditional output sequence. The original fixed-vector bottleneck can lose information on long inputs, motivating attention over encoder states.
         - **Example:** translation trains with ground-truth output prefixes but generates with model-produced prefixes, creating a train-generation mismatch often called exposure bias. Evaluate complete generated sequences. [Seq2Seq](https://arxiv.org/abs/1409.3215)
 
-    - [To be reviewed] Attention Mechanism (2015).
+    - [To be reviewed] Attention Mechanism (2014 preprint / ICLR 2015).
 
         - Additive attention scores each encoder state against the current decoder state, normalizes the scores, and forms a weighted context. It makes relevant source information available at each output step instead of compressing everything into one vector.
         - **Example:** successive target words can attend to different source spans. Attention weights alone do not establish causal explanations of the final output. [Neural translation with alignment](https://arxiv.org/abs/1409.0473)
+        - [To be reviewed] Continue with the [seq2seq-to-attention path](transformer.md#tf-seq2seq-attention) and [Bahdanau/Luong/Transformer score comparison](transformer.md#tf-score-history). Scoring functions, self/cross-attention sources, and visibility masks are separate design choices.
 
     - [To be reviewed] Transformer (2017)
 

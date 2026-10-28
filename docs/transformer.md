@@ -5,6 +5,11 @@
 
 ## Contents
 
+- [Background: From Distributional Semantics to Attention](#tf-background)
+    - [Distributional Hypothesis and Learned Representations](#tf-distributional)
+    - [Fixed-Vector Seq2Seq to Soft Alignment](#tf-seq2seq-attention)
+    - [Additive / Dot-Product / Scaled Dot-Product Scores](#tf-score-history)
+    - [From Alignment to Transformer Self-Attention](#tf-contextual-attention)
 - [1. Tensor Shapes and the Residual Stream](#tf-shapes)
 - [2. Token Embeddings: IDs to a Learned Coordinate System](#tf-embedding)
 - [3. Position Information: Addition, Relative Bias, and RoPE](#tf-position)
@@ -26,6 +31,57 @@ The diagram separates the **original encoder–decoder Transformer** from one **
 ![Transformer architecture: original encoder–decoder and a common modern decoder-only block](../figs/transformer-architecture.png)
 
 [Editable SVG](../figs/transformer-architecture.svg). This original schematic omits dropout, projection biases, and implementation-specific distributed layouts for readability. The following sections specify the operations and assumptions behind each box.
+
+<a id="tf-background"></a>
+## [To be reviewed] Background: From Distributional Semantics to Attention
+
+The useful NLP thread is **context statistics → learned representations → dynamic source alignment → scalable contextual computation**. It combines a hypothesis about language with solutions to specific modeling/optimization problems. Distributional semantics motivates learning from context; it does not mathematically imply the attention operator, and attention also applies to images, graphs, and other nonlinguistic inputs.
+
+<a id="tf-distributional"></a>
+### [To be reviewed] Distributional Hypothesis and Learned Representations
+
+The **distributional hypothesis** connects linguistic similarity with similarity of usage environments. Harris's 1954 distributional analysis is a foundational reference. In modern distributional semantics, corpus contexts supply evidence for learning useful lexical relationships. This is an empirical modeling principle, not a guarantee that co-occurrence recovers complete meaning, reference, or truth. [Harris, Distributional Structure](https://www.its.caltech.edu/~matilde/ZelligHarrisDistributionalStructure1954.pdf)
+
+Count-based representations and [LSA](nlp.md#statistical--ml-era) summarize co-occurrence structure; [Word2Vec](https://arxiv.org/abs/1301.3781) and [GloVe](https://aclanthology.org/D14-1162/) learn dense vectors from specified context-prediction or co-occurrence objectives. The objective, context window, corpus, and geometry determine which relationships become easy to represent. Antonyms can have similar contexts, so distributional proximity is not identical to synonymy.
+
+**Example:** a conventional single-vector static embedding gives one lexical item a shared representation across occurrences, while “river bank” and “bank approved a loan” call for different context-sensitive states. Attention provides one trainable mechanism for combining information from the actual input. That connection is useful, but contextual representations can also be built with recurrence, as in [ELMo and earlier neural encoders](nlp.md#embedding--deeplearning-era); attention is not the only way to use context.
+
+<a id="tf-seq2seq-attention"></a>
+### [To be reviewed] Fixed-Vector Seq2Seq to Learned Soft Alignment
+
+A basic recurrent encoder–decoder compresses a source sequence into a fixed-width summary used for generation. Bahdanau et al. identify this as a potential bottleneck, especially for longer inputs. Their attention-based NMT work appeared as a **2014 preprint / ICLR 2015 paper**: the decoder accesses a collection of encoder annotations through a target-step-dependent context. It does not remove the recurrent encoder/decoder. [Bahdanau et al.](https://arxiv.org/abs/1409.0473)
+
+With source annotations h_j, alignment scores e_tj, and source length S, a soft alignment uses $`\alpha_{tj}=\exp(e_{tj})/\sum_{l=1}^{S}\exp(e_{tl})`$ and $`c_t=\sum_{j=1}^{S}\alpha_{tj}h_j`$, excluding masked positions when applicable. The normalized weights and context change with the decoder's current information need. The alignment network is trained jointly with translation, rather than requiring an externally supplied word-alignment label for every attention weight.
+
+**Translation example:** when generating a target verb, information about the source subject and verb may matter; when generating a location phrase, another source span may matter. A single fixed vector must carry all of these distinctions in advance, whereas attention offers a learned read over stored source states. This is soft information selection, not a guarantee of linguistically correct alignments or causal explanations. In a retrospective Q/K/V description, the decoder supplies a query and encoder annotations supply addressable content; modern separate key/value projections are a further parameterization choice.
+
+<a id="tf-score-history"></a>
+### [To be reviewed] Additive, Dot-Product, and Scaled Dot-Product Scores
+
+The defining difference below is the compatibility function **before** softmax. For this comparison use column-vector q and k. Additive scoring can map unequal query/key widths into a common alignment width a; dot-product scoring requires matching comparison widths.
+
+| Score family | Representative score | Design implication |
+| --- | --- | --- |
+| Additive / Bahdanau-style | $`e(q,k)=v_a^T\tanh(W_q q+W_k k+b)`$ | Learned nonlinear compatibility after query/key projections; v_a is a scoring parameter, not the content/value vector |
+| Dot product | $`e(q,k)=q^Tk`$ | Simple inner-product compatibility; many pair scores can be computed by one matrix multiplication |
+| General / bilinear | $`e(q,k)=q^TW_a k`$ | Learns the metric/projection between query and key; W_a has query-width by key-width shape |
+| Scaled dot product | $`e(q,k)=q^Tk/\sqrt{d_h}`$ | Controls dot-product scale using comparison width d_h; it is not cosine normalization |
+
+For the additive form, W_q and W_k have a rows, and v_a has length a. Luong et al. (2015) examine **dot**, **general**, and **concat** scores, along with global/local attention. A concat scorer applies a learned nonlinear function to concatenated query/key features and is closely related to additive scoring. These variants coexisted; this representative NMT progression is not a claim that all attention was invented in one exclusive sequence. Bahdanau and Luong also differ in decoder timing/connections, so replacing a score formula alone does not reproduce their entire architectures. [Luong et al.](https://aclanthology.org/D15-1166/)
+
+Dot products are attractive for batched matrix operations. Additive scoring can cache projections, but still evaluates nonlinear pairwise compatibility; actual speed depends on dimensions, kernels, and implementation. It is not correct to infer that a dot product is more expressive, or that additive attention always has a worse asymptotic complexity, merely from the names.
+
+**Why scale?** As comparison width increases, unscaled dot products can grow in magnitude under the motivating initialization assumptions, making softmax sharply peaked and some gradients small. Scaling addresses this numerical/optimization issue; it is not a new semantic hypothesis. The [variance calculation and softmax Jacobian](#tf-attention) derive the reasoning. For q = (1, 0), keys (2, 0) and (1, 1), unscaled logits (2, 1) give first-key weight about 0.7311. Dividing by the square root of two preserves the ordering but changes that weight to about 0.6698. Learned norms and correlations still matter.
+
+<a id="tf-contextual-attention"></a>
+### [To be reviewed] From Alignment to Transformer Self-Attention
+
+The 2017 Transformer uses scaled dot-product attention in both **self-attention** and **encoder–decoder cross-attention**, with multiple heads and positionwise transformations. It makes attention central to contextual computation while dispensing with recurrence in that architecture. Attention had already appeared inside recurrent systems; the Transformer contribution is more than dividing an existing score by a square root. [Attention Is All You Need](https://arxiv.org/abs/1706.03762)
+
+Keep three choices separate: **where q/k/v come from** (self versus cross attention), **how compatibility is scored** (additive, bilinear, scaled dot product, etc.), and **which positions are visible** (bidirectional, causal, padding/segment restrictions). Additive scoring is not synonymous with cross-attention, and dot-product scoring is not synonymous with self-attention.
+
+In encoder self-attention, source positions form contextual states by reading permitted source positions. Decoder self-attention reads the permitted target prefix; decoder cross-attention reads encoder memory. These operations connect the distributional learning intuition to input-dependent representations, while the actual training signal comes from the specified objective. Follow the numbered modules below for tensor shapes, projections, visibility, and execution costs.
+
 
 <a id="tf-shapes"></a>
 ## [To be reviewed] 1. Tensor Shapes and the Residual Stream

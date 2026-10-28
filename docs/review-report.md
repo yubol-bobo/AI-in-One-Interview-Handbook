@@ -100,3 +100,9 @@ The examples explicitly separate estimator credit from causal attribution, verif
 Expanded [Statistics](statistics.md) with a compact foundation for ML/DL: conditional probability and common distributions, moments/dependence, sampling and uncertainty, testing/power/multiplicity, Bayesian/MAP inference, experimental design/causality, and information/calibration. Original hypothesis-test and MLE material and review markers remain. New curricular headings carry review markers, and the README/ML chapter link to the foundations.
 
 Checked the base-rate, mean/variance, Bernoulli-interval, and Beta–Bernoulli examples numerically, plus formula rendering and local/source links. The prior audit's validation counts remain a historical snapshot rather than totals for these later additions.
+
+## Attention background follow-up — 2026-10-27
+
+Added a [historical/conceptual introduction](transformer.md#tf-background): distributional semantics and static/contextual representations, the recurrent seq2seq bottleneck and soft alignment, additive/dot/bilinear/scaled scores, and the architecture-level move to Transformer self-attention. The representative NMT path is distinguished from a claim that distributional semantics mathematically implies attention or that the score families replaced one another universally.
+
+All five new background headings carry review markers; the 14 numbered Transformer modules and diagram numbering are preserved. The README and NLP chapter point to the canonical explanation. Checked score dimensions, additive/concat equivalence, softmax/context calculations and scaling examples, plus formula rendering and source/local links.
