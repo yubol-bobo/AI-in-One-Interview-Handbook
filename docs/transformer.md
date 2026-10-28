@@ -191,7 +191,7 @@ After the final hidden state, a vocabulary head produces $`z_t=h_tW_{\mathrm{voc
 
 For the input `[BOS, A, B]`, the three aligned next-token labels can be `[A, B, EOS]`. Training on the current input token at the same position instead would teach a different, often trivial copying task if the token is already visible. In a chat example, the causal mask still protects visibility while a separate loss mask may exclude system/user targets. Padding and masked targets must be excluded from the denominator of the desired mean.
 
-At generation time, select from the final available position's logits using the specified policy: greedy selection, temperature scaling, top-k, top-p, or another rule. Selecting a token, appending it, and updating the cache defines the next state. Temperature zero is a greedy limiting convention, not division by zero. Sampling parameters affect outputs, measured benchmark scores, and the rollout distribution used in [RL/OPD](large-language-models.md#sft-rl-opd-comparison).
+At generation time, select from the final available position's logits using the specified policy: greedy selection, temperature scaling, top-k, top-p, or another rule. Selecting a token, appending it, and updating the cache defines the next state. Temperature zero is a greedy limiting convention, not division by zero. Sampling parameters affect outputs, measured benchmark scores, and the rollout distribution used in [RL/OPD](large-language-models.md#sft-rl-opd-comparison). See the [decoding strategy comparison](large-language-models.md#llm-decoding) for greedy/beam search, sampling, constraints, and stopping rules.
 
 <a id="tf-cache"></a>
 ## [To be reviewed] 11. Prefill, Incremental Decode, and KV Caching
@@ -201,6 +201,8 @@ At generation time, select from the final available position's logits using the 
 For an attention-only step with a cache of length P, a common layout has Q [B, h_q, 1, d_h] and K/V [B, h_kv, P+1, d_h]. New keys must use the correct positional transformation before storage. Encoder–decoder generation can additionally reuse fixed source cross-attention K/V. A bidirectional prefix may be cached for unchanged-prefix continuation, but modifying that prefix can require recomputation.
 
 **What caching buys:** a new token attends to about P previous positions rather than recomputing every earlier token's layer projections. It does not eliminate attention's growing history reads or the sequential dependence of exact ordinary autoregressive generation. Cache memory grows with active tokens and concurrency; [LLM inference](large-language-models.md#llm-inference) gives the memory formula, a 1-GiB-per-sequence example, paging, and speculative decoding.
+
+For persistent-state allocation, sharing, quantization/offload, and the difference from attention kernels, see [KV cache management](large-language-models.md#llm-cache-management).
 
 **Correctness experiment:** compare full causal attention with incremental cached attention using identical projected Q/K/V, positions, weights, and disabled dropout. Then change a future input token and verify that earlier causal outputs stay unchanged. Compare within appropriate floating-point tolerances; speed or a plausible generated sentence is not a cache-correctness test.
 

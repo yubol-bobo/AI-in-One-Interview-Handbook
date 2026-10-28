@@ -106,3 +106,11 @@ Checked the base-rate, mean/variance, Bernoulli-interval, and Beta–Bernoulli e
 Added a [historical/conceptual introduction](transformer.md#tf-background): distributional semantics and static/contextual representations, the recurrent seq2seq bottleneck and soft alignment, additive/dot/bilinear/scaled scores, and the architecture-level move to Transformer self-attention. The representative NMT path is distinguished from a claim that distributional semantics mathematically implies attention or that the score families replaced one another universally.
 
 All five new background headings carry review markers; the 14 numbered Transformer modules and diagram numbering are preserved. The README and NLP chapter point to the canonical explanation. Checked score dimensions, additive/concat equivalence, softmax/context calculations and scaling examples, plus formula rendering and source/local links.
+
+## LLM infrastructure follow-up — 2026-10-27
+
+Made the [training/runtime infra map](large-language-models.md#llm-infra) explicit and expanded [Inference and Serving](large-language-models.md#llm-inference) with decoding strategies, KV cache management, exact speculative sampling, and service scheduling/performance. The new four subsections carry review markers; existing prefill/cache-memory/serving explanations and all earlier markers are retained. README and Transformer references point to the detailed entries.
+
+Checked temperature/top-k/top-p examples, cache payload arithmetic, and speculative accept/reject reconstruction numerically. Formula/local-link checks and new source availability were validated; this is documentation validation, not a claim to have benchmarked a production serving engine.
+
+The new Hugging Face generation/cache documentation opened through independent web retrieval; direct-script requests encountered connection resets. The other four new source URLs returned HTTP 200. No missing source was established by those connection failures.

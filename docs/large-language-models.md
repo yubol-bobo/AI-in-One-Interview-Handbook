@@ -52,6 +52,10 @@
     - [Training Toolchains](#to-be-reviewed-training-toolchains)
     - [Accumulation, Checkpointing, and Communication](#optimization-and-efficiency)
 - [Inference and Serving](#llm-inference)
+    - [Decoding Strategies](#llm-decoding)
+    - [KV Cache Management and Kernels](#llm-cache-management)
+    - [Speculative Decoding](#llm-speculative)
+    - [Scheduling and Serving Performance](#llm-serving-systems)
 - [Evaluation and Monitoring](#evaluation-and-monitoring)
 - [Recent interesting papers](#recent-interesting-papers)
 - [Related chapters](#related-chapters)
@@ -485,8 +489,11 @@ At each transition, save a checkpoint and evaluate **target capability, general 
 **Ablation plan:** (a) original checkpoint, (b) additional tokens at the old mixture, (c) mid-training at the new mixture, (d) behavior-restoring SFT, (e) OPD, and (f) RL when justified by the task. Match the budgets appropriate to the causal question: fixed tokens for a data-mixture comparison, and total compute/cost for a practical pipeline comparison. An equal number of gradient steps is insufficient when sequence lengths, teacher inference, or rollout multiplicities differ.
 
 
+<a id="llm-infra"></a>
 <a id="llm-engineering"></a>
 ## [To be reviewed] Shared Training Systems
+
+**LLM infra map:** training infrastructure covers precision, state sharding, parallelism, parameter updates, and checkpoint execution in this section. Runtime infrastructure is covered in [Inference and Serving](#llm-inference): [decoding policy](#llm-decoding), [KV cache management](#llm-cache-management), [speculative acceleration](#llm-speculative), and [serving systems](#llm-serving-systems). Transformer [cache mechanics](transformer.md#tf-cache) and [kernel/memory costs](transformer.md#tf-cost) provide the architectural foundations.
 
 <a id="mixed-precision"></a>
 ### [To be reviewed] Mixed Precision
@@ -682,6 +689,63 @@ State/parameter sharding is described once in [Distributed Training](#distribute
     - Continuous batching admits new requests as others finish, improving utilization for variable-length generation. Admission control should budget prompt work, active KV cache, and expected output work; a fixed request count does not characterize load.
     - **Example:** a few 100k-token prompts can monopolize prefill and harm short-request latency. Compare time to first token, inter-token latency, end-to-end latency, and throughput under specified prompt/output length distributions and arrival rates. Report p50/p95/p99 and the fraction meeting a latency objective, not only peak tokens/second.
     - Prefix caching requires exact compatibility of token prefix, model state, and cache semantics. Quantization and parallelism change both capacity and numerical behavior; benchmark quality as well as latency. Record model/tokenizer versions, sampling settings, cache policy, and error/timeout rates. [Serving system design](https://arxiv.org/abs/2309.06180)
+
+<a id="llm-decoding"></a>
+### [To be reviewed] Decoding Strategies: Search, Sampling, and Constraints
+
+A decoding rule converts conditional logits into an actual output policy; it does not change the trained weights. For temperature tau > 0, $`p_\tau(v\mid s)=\exp(z_v/\tau)/\sum_u\exp(z_u/\tau)`$. Tau = 1 retains the original softmax; a zero-temperature setting conventionally selects greedily rather than dividing by zero. Temperature modifies relative probabilities, not a calibrated probability of factual correctness.
+
+| Strategy | Operation | Main trade-off / failure |
+| --- | --- | --- |
+| Greedy | Choose the highest-scoring allowed token at each step | Cheap, locally optimal choices need not maximize full-sequence probability or task utility |
+| Beam search | Keep a limited set of high-scoring partial sequences | Approximate sequence search, with extra state/cache work; width and length scoring matter, and likelihood need not track usefulness |
+| Categorical sampling | Sample from the specified conditional distribution | Preserves diversity but can sample low-quality continuations |
+| Top-k sampling | Retain k highest-probability tokens and renormalize | Fixed candidate count can be too restrictive or include a weak tail depending on context |
+| Nucleus / top-p sampling | Retain the smallest sorted prefix whose cumulative probability reaches the threshold, under a stated tie convention | Adapts candidate count to concentration; still changes the model distribution |
+| Constrained decoding | Restrict allowed tokens using a grammar/schema or task-specific state | Can enforce supported structural constraints, but valid JSON or an allowed ID does not establish semantic correctness |
+
+**Example:** probabilities (0.55, 0.25, 0.15, 0.05) give top-k with k = 2 the renormalized distribution (0.6875, 0.3125, 0, 0). Top-p = 0.9 instead retains the first three entries, whose cumulative mass is 0.95. Temperature, penalties, constraints, and truncation filters can interact; record their order and implementation rather than assuming named options commute. [Generation strategies](https://huggingface.co/docs/transformers/generation_strategies), [nucleus sampling](https://arxiv.org/abs/1904.09751)
+
+Specify EOS, stop strings, maximum new tokens, truncation, repetition/length penalties, and invalid-output handling. For beam search, a length-normalized score is a different objective from raw sequence log-likelihood; larger beams do not guarantee better open-ended generation. For reproducibility, record the random seed and full configuration; hardware, kernels, batching, and ties can still affect results. For RL/OPD, the filtered sampling distribution is the behavior policy whose probabilities matter for correction. See [on/off-policy data](#rl-policy-data).
+
+<a id="llm-cache-management"></a>
+### [To be reviewed] KV Cache Management and Attention Kernels
+
+The [Transformer cache explanation](transformer.md#tf-cache) derives why unchanged causal-prefix K/V can be reused. The memory formula above counts cache payload; allocation and sharing determine how much device memory is actually required. For unequal sequence lengths, replace B times T by the sum of active cached lengths under the assumed architecture. Prefix/block sharing can reduce physical duplication, while reservation, metadata, and temporary buffers add overhead.
+
+| Mechanism | What it changes | Limit to check |
+| --- | --- | --- |
+| Dynamic / static cache | Grow storage as needed versus reserve a configured capacity/layout | Static layouts can suit compilation, but unused capacity consumes memory or needs masking |
+| Paged KV allocation / PagedAttention | Address logical token blocks through a block mapping instead of requiring one contiguous request allocation | Reduces fragmentation/redundant storage; does not remove the full-context payload or history reads |
+| Prefix caching | Reuse compatible K/V for an identical processed prefix | Saves repeated prefix work; unrelated or changed prefixes miss, and continuation work remains |
+| GQA / MQA | Share K/V heads structurally | Reduces cache entries at matched shapes, but changing an existing checkpoint requires compatible architecture/training |
+| KV quantization / offload | Lower storage precision or move some state away from device memory | Metadata, dequantization, transfers, and quality changes can offset gains |
+| Sliding-window cache | Retain only the attention history required by the model's window pattern | Truncating an arbitrary full-attention model changes its computation; hybrid layers need layer-specific policies |
+
+Keep model/adapters, exact token prefix, positions, masks, and execution semantics compatible when reusing cache. Shared services also need appropriate cache isolation. Beam branches need correct cache sharing or reordering; stale beam-to-cache indices can produce plausible but wrong outputs. [Cache strategy reference](https://huggingface.co/docs/transformers/kv_cache), [prefix-caching implementation](https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/)
+
+**FlashAttention and PagedAttention address different layers of the problem.** FlashAttention reduces attention-kernel memory traffic and avoids materializing the full score matrix; paged KV management organizes persistent decoding state. They can coexist. Neither is equivalent to changing the sampling rule. See [attention arithmetic and memory](transformer.md#tf-cost) for the kernel-level distinction.
+
+<a id="llm-speculative"></a>
+### [To be reviewed] Speculative Decoding: Acceleration Versus a New Output Policy
+
+An exact speculative-sampling algorithm uses a cheap draft distribution q and a target distribution p, then verifies drafted tokens with the target. At a given matched prefix, accept a proposed token x with probability $`\min(1,p(x)/q(x))`$. On rejection, sample from the normalized positive residual $`[p-q]_+`$ when it has nonzero mass. The full algorithm also handles prefixes, accepted blocks, and the additional target sample after a fully accepted block. Simply accepting the target's top few draft matches is not this stochastic correction rule.
+
+**One-step example:** p = (0.6, 0.4), q = (0.8, 0.2). Accepted contributions are (0.6, 0.2); the remaining rejection mass 0.2 is assigned to the second token, recovering p. Exactness concerns the target distribution under the specified algorithm and processing rules, not identical random outputs under arbitrary seeds or an approximate verifier. [Speculative sampling algorithm](https://arxiv.org/abs/2211.17192)
+
+Draft cost, acceptance, verification shape, KV rollback, concurrency, and hardware determine speed. Report end-to-end latency/throughput, not only accepted draft tokens. Quantized or otherwise changed target logits define a potentially different target distribution; distribution preservation does not undo that numerical change.
+
+<a id="llm-serving-systems"></a>
+### [To be reviewed] Serving: Scheduling, Parallelism, and Performance Evidence
+
+**Scheduling:** continuous/iteration-level batching admits and retires requests during generation. Chunked prefill divides long prompt processing into schedulable pieces so one prompt need not monopolize a scheduling interval. Prefill/decode disaggregation uses separate execution pools, requiring KV transfer and additional scheduling. These choices can improve a particular latency/throughput frontier, but communication, queueing, and workload mix can reverse the benefit. [Orca](https://www.usenix.org/conference/osdi22/presentation/yu), [DistServe](https://arxiv.org/abs/2401.09670)
+
+**Parallelism and precision:** inference tensor/pipeline/expert partitioning reuse some ideas from [training parallelism](#distributed-training), but decode microbatches, communication frequency, and pipeline occupancy differ. Weight quantization and KV quantization save different memory components. Profile actual kernels and communication instead of choosing device count or dtype from parameter count alone.
+
+**Measure the user-visible result:** separate queueing, prefill, and generated-token time; report time to first token (TTFT), inter-token latency, end-to-end latency, throughput, and success under stated latency objectives. Prefill is often compute-heavy and small-batch decode often bandwidth-sensitive, but sequence length, batching, architecture, and hardware determine the actual bottleneck. A token/s number without prompt/output lengths and arrival rates is not a comparable service result.
+
+**Example investigation:** a service OOMs at high concurrency while short requests miss their TTFT target. First account for active/reserved KV bytes and output-length tails; separately inspect prefill queueing and scheduling. Test a cache-allocation change, prefix reuse, and a prefill scheduling change individually, holding model, quality checks, request trace, and output policy fixed. Count rejected requests, failures, preemptions/recomputation, and draft/KV-transfer costs. A successful run at low offered load does not establish peak reliable capacity.
+
 
 <a id="evaluation-and-monitoring"></a>
 ## [To be reviewed] Evaluation and Monitoring
