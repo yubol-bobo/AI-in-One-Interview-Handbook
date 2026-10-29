@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="1296pt" height="1044pt" viewBox="0 0 1296 1044" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:description>Conceptual LLM lifecycle with three training regimes, an optional mid-training bypass, an illustrative SFT-RL-verified-data loop, cross-cutting quality/safety/evaluation/efficiency, and recurring specialization and release/serving work.</dc:description>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.7.1, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 1044
+L 1296 1044
+L 1296 0
+L 0 0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 44.64 169.2
+L 387.36 169.2
+Q 396 169.2 396 177.84
+L 396 495.36
+Q 396 504 387.36 504
+L 44.64 504
+Q 36 504 36 495.36
+L 36 177.84
+Q 36 169.2 44.64 169.2
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #fbfcfe; stroke: #cbd6e2; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 476.64 169.2
+L 819.36 169.2
+Q 828 169.2 828 177.84
+L 828 495.36
+Q 828 504 819.36 504
+L 476.64 504
+Q 468 504 468 495.36
+L 468 177.84
+Q 468 169.2 476.64 169.2
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #fbfcfe; stroke: #cbd6e2; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 908.64 169.2
+L 1251.36 169.2
+Q 1260 169.2 1260 177.84
+L 1260 495.36
+Q 1260 504 1251.36 504
+L 908.64 504
+Q 900 504 900 495.36
+L 900 177.84
+Q 900 169.2 908.64 169.2
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #fbfcfe; stroke: #cbd6e2; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 44.64 543.6
+L 1251.36 543.6
+Q 1260 543.6 1260 552.24
+L 1260 729.36
+Q 1260 738 1251.36 738
+L 44.64 738
+Q 36 738 36 729.36
+L 36 552.24
+Q 36 543.6 44.64 543.6
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #fbfcfe; stroke: #cbd6e2; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 216 169.2
+L 216 126
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke-dasharray: 6.66,2.88; stroke-dashoffset: 0; stroke: #62768b; stroke-width: 1.8"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 216 126
+L 1080 126
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke-dasharray: 6.66,2.88; stroke-dashoffset: 0; stroke: #62768b; stroke-width: 1.8"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 1080 128.00127
+Q 1080 147.601093 1080 165.188455
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke-dasharray: 6.66,2.88; stroke-dashoffset: 0; stroke: #62768b; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 1082.8 159.588455
+L 1080 165.188455
+L 1077.2 159.588455
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #62768b; stroke-dasharray: 6.66,2.88; stroke-dashoffset: 0; stroke: #62768b; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 216 347.596436
+Q 216 365.399832 216 381.190768
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 218.8 375.590768
+L 216 381.190768
+L 213.2 375.590768
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #2669a8; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 648 347.596436
+Q 648 365.399832 648 381.190768
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 650.8 375.590768
+L 648 381.190768
+L 645.2 375.590768
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #2669a8; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 397.999512 313.2
+Q 431.997857 313.2 463.983741 313.2
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 458.383741 310.4
+L 463.983741 313.2
+L 458.383741 316
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #2669a8; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 829.999512 313.2
+Q 863.997857 313.2 895.983741 313.2
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 890.383741 310.4
+L 895.983741 313.2
+L 890.383741 316
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #2669a8; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 325.999512 646.56
+Q 396.000882 646.56 463.98979 646.56
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 458.38979 643.76
+L 463.98979 646.56
+L 458.38979 649.36
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #2669a8; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 671.597314 646.56
+Q 734.399814 646.56 795.189853 646.56
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 789.589853 643.76
+L 795.189853 646.56
+L 789.589853 649.36
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #2669a8; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 1000.8 670.32
+L 1000.8 709.2
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke-dasharray: 6.66,2.88; stroke-dashoffset: 0; stroke: #a76a0b; stroke-width: 1.8"/>
+   </g>
+   <g id="line2d_4">
+    <path d="M 1000.8 709.2
+L 198 709.2
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke-dasharray: 6.66,2.88; stroke-dashoffset: 0; stroke: #a76a0b; stroke-width: 1.8"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 198 707.201895
+Q 198 689.762683 198 674.335933
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke-dasharray: 6.66,2.88; stroke-dashoffset: 0; stroke: #a76a0b; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 195.2 679.935933
+L 198 674.335933
+L 200.8 679.935933
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #a76a0b; stroke-dasharray: 6.66,2.88; stroke-dashoffset: 0; stroke: #a76a0b; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 1080 505.996436
+Q 1080 523.799832 1080 539.590768
+" clip-path="url(#pd6a6195b91)" style="fill: none; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+    <path d="M 1082.8 533.990768
+L 1080 539.590768
+L 1077.2 533.990768
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #2669a8; stroke: #2669a8; stroke-width: 1.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 69.84 259.2
+L 362.16 259.2
+Q 370.8 259.2 370.8 267.84
+L 370.8 336.96
+Q 370.8 345.6 362.16 345.6
+L 69.84 345.6
+Q 61.2 345.6 61.2 336.96
+L 61.2 267.84
+Q 61.2 259.2 69.84 259.2
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #edf5fc; stroke: #2669a8; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 69.84 385.2
+L 362.16 385.2
+Q 370.8 385.2 370.8 393.84
+L 370.8 441.36
+Q 370.8 450 362.16 450
+L 69.84 450
+Q 61.2 450 61.2 441.36
+L 61.2 393.84
+Q 61.2 385.2 69.84 385.2
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #e9f5ef; stroke: #21856d; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 501.84 259.2
+L 794.16 259.2
+Q 802.8 259.2 802.8 267.84
+L 802.8 336.96
+Q 802.8 345.6 794.16 345.6
+L 501.84 345.6
+Q 493.2 345.6 493.2 336.96
+L 493.2 267.84
+Q 493.2 259.2 501.84 259.2
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #edf5fc; stroke: #2669a8; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 501.84 385.2
+L 794.16 385.2
+Q 802.8 385.2 802.8 393.84
+L 802.8 441.36
+Q 802.8 450 794.16 450
+L 501.84 450
+Q 493.2 450 493.2 441.36
+L 493.2 393.84
+Q 493.2 385.2 501.84 385.2
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #e9f5ef; stroke: #21856d; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 930.24 248.4
+L 1229.76 248.4
+Q 1238.4 248.4 1238.4 257.04
+L 1238.4 280.08
+Q 1238.4 288.72 1229.76 288.72
+L 930.24 288.72
+Q 921.6 288.72 921.6 280.08
+L 921.6 257.04
+Q 921.6 248.4 930.24 248.4
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #edf5fc; stroke: #2669a8; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 930.24 302.4
+L 1229.76 302.4
+Q 1238.4 302.4 1238.4 311.04
+L 1238.4 334.08
+Q 1238.4 342.72 1229.76 342.72
+L 930.24 342.72
+Q 921.6 342.72 921.6 334.08
+L 921.6 311.04
+Q 921.6 302.4 930.24 302.4
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #edf5fc; stroke: #2669a8; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 930.24 356.4
+L 1229.76 356.4
+Q 1238.4 356.4 1238.4 365.04
+L 1238.4 388.08
+Q 1238.4 396.72 1229.76 396.72
+L 930.24 396.72
+Q 921.6 396.72 921.6 388.08
+L 921.6 365.04
+Q 921.6 356.4 930.24 356.4
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #edf5fc; stroke: #2669a8; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 930.24 410.4
+L 1229.76 410.4
+Q 1238.4 410.4 1238.4 419.04
+L 1238.4 442.08
+Q 1238.4 450.72 1229.76 450.72
+L 930.24 450.72
+Q 921.6 450.72 921.6 442.08
+L 921.6 419.04
+Q 921.6 410.4 930.24 410.4
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #f0eafb; stroke: #7953a6; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 80.64 622.8
+L 315.36 622.8
+Q 324 622.8 324 631.44
+L 324 661.68
+Q 324 670.32 315.36 670.32
+L 80.64 670.32
+Q 72 670.32 72 661.68
+L 72 631.44
+Q 72 622.8 80.64 622.8
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #edf5fc; stroke: #2669a8; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 476.64 622.8
+L 660.96 622.8
+Q 669.6 622.8 669.6 631.44
+L 669.6 661.68
+Q 669.6 670.32 660.96 670.32
+L 476.64 670.32
+Q 468 670.32 468 661.68
+L 468 631.44
+Q 468 622.8 476.64 622.8
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #e9f5ef; stroke: #21856d; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 807.84 622.8
+L 1193.76 622.8
+Q 1202.4 622.8 1202.4 631.44
+L 1202.4 661.68
+Q 1202.4 670.32 1193.76 670.32
+L 807.84 670.32
+Q 799.2 670.32 799.2 661.68
+L 799.2 631.44
+Q 799.2 622.8 807.84 622.8
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #fff3d9; stroke: #a76a0b; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 44.64 770.4
+L 1251.36 770.4
+Q 1260 770.4 1260 779.04
+L 1260 830.16
+Q 1260 838.8 1251.36 838.8
+L 44.64 838.8
+Q 36 838.8 36 830.16
+L 36 779.04
+Q 36 770.4 44.64 770.4
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #eef1f5; stroke: #62768b; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_27">
+    <path d="M 44.64 871.2
+L 1251.36 871.2
+Q 1260 871.2 1260 879.84
+L 1260 974.16
+Q 1260 982.8 1251.36 982.8
+L 44.64 982.8
+Q 36 982.8 36 974.16
+L 36 879.84
+Q 36 871.2 44.64 871.2
+z
+" clip-path="url(#pd6a6195b91)" style="fill: #f0eafb; stroke: #7953a6; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="fill: #172b4d; font: 700 27px 'DejaVu Sans'; text-anchor: start" x="43.2" y="41.904844" transform="rotate(-0 43.2 41.904844)">LLM training: regimes within an iterative development lifecycle</text>
+   </g>
+   <g id="text_2">
+    <text style="fill: #52657a; font: 14px 'DejaVu Sans'; text-anchor: start" x="43.2" y="70.103125" transform="rotate(-0 43.2 70.103125)">[To be reviewed]  Conceptual map; reports name boundaries differently. Paths and loops are optional.</text>
+   </g>
+   <g id="text_3">
+    <text style="fill: #52657a; font: 14px 'DejaVu Sans'; text-anchor: middle" x="648" y="110.423125" transform="rotate(-0 648 110.423125)">A distinct mid-training run may be skipped</text>
+   </g>
+   <g id="text_4">
+    <text style="fill: #172b4d; font: 700 20px 'DejaVu Sans'; text-anchor: start" x="51.84" y="199.19875" transform="rotate(-0 51.84 199.19875)">1  BROAD PRE-TRAINING</text>
+   </g>
+   <g id="text_5">
+    <text style="fill: #52657a; font: 13px 'DejaVu Sans'; text-anchor: start" x="51.84" y="224.627188" transform="rotate(-0 51.84 224.627188)">Broad language, knowledge, code and reasoning</text>
+   </g>
+   <g id="text_6">
+    <text style="fill: #172b4d; font: 700 20px 'DejaVu Sans'; text-anchor: start" x="483.84" y="199.19875" transform="rotate(-0 483.84 199.19875)">2  CONTINUED TRAINING</text>
+   </g>
+   <g id="text_7">
+    <text style="fill: #52657a; font: 13px 'DejaVu Sans'; text-anchor: start" x="483.84" y="224.627188" transform="rotate(-0 483.84 224.627188)">Optional mid-training / late pre-training</text>
+   </g>
+   <g id="text_8">
+    <text style="fill: #172b4d; font: 700 20px 'DejaVu Sans'; text-anchor: start" x="915.84" y="199.19875" transform="rotate(-0 915.84 199.19875)">3  POST-TRAINING</text>
+   </g>
+   <g id="text_9">
+    <text style="fill: #52657a; font: 13px 'DejaVu Sans'; text-anchor: start" x="915.84" y="224.627188" transform="rotate(-0 915.84 224.627188)">Shape behavior / responses / actions</text>
+   </g>
+   <g id="text_10">
+    <text style="fill: #172b4d; font: 15px 'DejaVu Sans'" transform="translate(138.333984 287.462813)">Large mixed corpora</text>
+    <text style="fill: #172b4d; font: 15px 'DejaVu Sans'" transform="translate(105.965625 306.539063)">Usually next-token prediction</text>
+    <text style="fill: #172b4d; font: 15px 'DejaVu Sans'" transform="translate(86.782031 325.615313)">FIM / auxiliary targets may coexist</text>
+   </g>
+   <g id="text_11">
+    <text style="fill: #172b4d; font: 14px 'DejaVu Sans'" transform="translate(135.976875 412.560875)">Broad base checkpoint</text>
+    <text style="fill: #172b4d; font: 14px 'DejaVu Sans'" transform="translate(69.497656 430.365375)">Quality and mixture matter from the start</text>
+   </g>
+   <g id="text_12">
+    <text style="fill: #172b4d; font: 15px 'DejaVu Sans'" transform="translate(536.823047 287.462813)">Domain / capability emphasis</text>
+    <text style="fill: #172b4d; font: 15px 'DejaVu Sans'" transform="translate(573.041016 306.539063)">Reasoning-rich data</text>
+    <text style="fill: #172b4d; font: 15px 'DejaVu Sans'" transform="translate(555.873047 325.615313)">Long-context adaptation</text>
+   </g>
+   <g id="text_13">
+    <text style="fill: #172b4d; font: 14px 'DejaVu Sans'" transform="translate(563.644531 412.560875)">Often continued LM loss</text>
+    <text style="fill: #172b4d; font: 14px 'DejaVu Sans'" transform="translate(521.084531 430.365375)">Defined by purpose / data transition</text>
+   </g>
+   <g id="text_14">
+    <text style="fill: #172b4d; font: 13px 'DejaVu Sans'; text-anchor: middle" x="1080" y="272.147188" transform="rotate(-0 1080 272.147188)">SFT: instruction / CoT / tool-agent targets</text>
+   </g>
+   <g id="text_15">
+    <text style="fill: #172b4d; font: 13px 'DejaVu Sans'; text-anchor: middle" x="1080" y="326.147188" transform="rotate(-0 1080 326.147188)">Direct preferences: e.g. offline DPO</text>
+   </g>
+   <g id="text_16">
+    <text style="fill: #172b4d; font: 13px 'DejaVu Sans'; text-anchor: middle" x="1080" y="380.147188" transform="rotate(-0 1080 380.147188)">Rollout RL: feedback + chosen update rule</text>
+   </g>
+   <g id="text_17">
+    <text style="fill: #172b4d; font: 13px 'DejaVu Sans'; text-anchor: middle" x="1080" y="434.147188" transform="rotate(-0 1080 434.147188)">Teacher feedback: offline / OPD / OPSD</text>
+   </g>
+   <g id="text_18">
+    <text style="fill: #52657a; font: 13px 'DejaVu Sans'; text-anchor: middle" x="1080" y="480.947188" transform="rotate(-0 1080 480.947188)">Compatible routes; not four required steps</text>
+   </g>
+   <g id="text_19">
+    <text style="fill: #172b4d; font: 700 20px 'DejaVu Sans'; text-anchor: start" x="51.84" y="573.59875" transform="rotate(-0 51.84 573.59875)">EXAMPLE POST-TRAINING LOOP</text>
+   </g>
+   <g id="text_20">
+    <text style="fill: #52657a; font: 13px 'DejaVu Sans'; text-anchor: start" x="51.84" y="599.027188" transform="rotate(-0 51.84 599.027188)">SFT can follow RL again; direct preferences and teacher feedback can enter at different points.</text>
+   </g>
+   <g id="text_21">
+    <text style="fill: #172b4d; font: 17px 'DejaVu Sans'; text-anchor: middle" x="198" y="651.250938" transform="rotate(-0 198 651.250938)">SFT / refreshed checkpoint</text>
+   </g>
+   <g id="text_22">
+    <text style="fill: #172b4d; font: 19px 'DejaVu Sans'; text-anchor: middle" x="568.8" y="651.802813" transform="rotate(-0 568.8 651.802813)">RL</text>
+   </g>
+   <g id="text_23">
+    <text style="fill: #172b4d; font: 16px 'DejaVu Sans'; text-anchor: middle" x="1000.8" y="650.975" transform="rotate(-0 1000.8 650.975)">Generate / collect + verify new training data</text>
+   </g>
+   <g id="text_24">
+    <text style="fill: #a76a0b; font: 13px 'DejaVu Sans'; text-anchor: middle" x="597.6" y="696.947188" transform="rotate(-0 597.6 696.947188)">New verified demonstrations / targets feed a later SFT round</text>
+   </g>
+   <g id="text_25">
+    <text style="fill: #172b4d; font: 16px 'DejaVu Sans'" transform="translate(442.21125 798.841)">CROSS-CUTTING TRACKS THROUGH DEVELOPMENT</text>
+    <text style="fill: #172b4d; font: 16px 'DejaVu Sans'" transform="translate(199.72625 819.189)">Data quality / decontamination  ·  Safety behavior  ·  Independent evaluation / retention  ·  Compute / efficiency</text>
+   </g>
+   <g id="text_26">
+    <text style="fill: #7953a6; font: 700 20px 'DejaVu Sans'; text-anchor: middle" x="648" y="901.840625" transform="rotate(-0 648 901.840625)">RECURRING WORKSTREAM: specialized adaptation + release / serving</text>
+   </g>
+   <g id="text_27">
+    <text style="fill: #172b4d; font: 15px 'DejaVu Sans'; text-anchor: middle" x="648" y="934.379063" transform="rotate(-0 648 934.379063)">Domain/tool adaptation, compact students and behavioral hardening reuse the training routes above.</text>
+   </g>
+   <g id="text_28">
+    <text style="fill: #172b4d; font: 14px 'DejaVu Sans'; text-anchor: middle" x="648" y="963.623125" transform="rotate(-0 648 963.623125)">Runtime kernels, cache layouts and serving are execution choices; observed failures can inform later training.</text>
+   </g>
+   <g id="text_29">
+    <text style="fill: #52657a; font: 14px 'DejaVu Sans'; text-anchor: start" x="43.2" y="1019.063125" transform="rotate(-0 43.2 1019.063125)">This workstream is not a mandatory fourth training objective. Deployment does not automatically update model weights.</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pd6a6195b91">
+   <rect x="0" y="0" width="1296" height="1044"/>
+  </clipPath>
+ </defs>
+</svg>

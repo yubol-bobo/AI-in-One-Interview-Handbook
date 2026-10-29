@@ -222,3 +222,5 @@ Measure **task success, effect correctness, policy adherence, recovery, repeatab
 Use [BFCL, tau-bench, SWE-bench, WebArena, OSWorld, and related suites](benchmarking-and-evaluation.md#eval-agent-benchmarks) according to the intended interface/task. Compare model-only, fixed workflow, single-agent, and multi-agent variants with controlled access and budgets. Include held-out tools/tasks, stale-memory tests, ambiguous tool outcomes, and interrupted-run recovery.
 
 For a claimed improvement, identify whether the changed object was the model, tool interface, planner, memory, orchestration, or runtime. Factorial ablations and complete configuration lineage make that attribution reviewable. For systems that modify those components themselves, continue to [RSI & Harness](rsi-and-harness.md#rsi-evidence).
+
+[To be reviewed] For placement in model development, [tool/agent SFT and RL are post-training routes](large-language-models.md#post-training-loop); later specialization and release work can reuse them. They do not define a universally separate fourth training objective. See the [lifecycle map](large-language-models.md#stages).

@@ -9,7 +9,11 @@
     - [Representations: Token States and Retrieval Vectors](#embedding)
     - [Interpretability: Features / Patching / Steering / SAE](llm-interpretability.md#llm-interpretability)
     - [Tokenization](#tokenization)
-- [Training Overview: Three Stages](#stages)
+- [Training Lifecycle: Regimes and Adaptation/Deployment](#stages)
+    - [Conceptual Lifecycle Diagram](#llm-training-lifecycle-diagram)
+    - [Boundaries: CPT / Mid-training / Target Masks](#training-boundaries)
+    - [Iterative Post-training and Supervision Axes](#post-training-loop)
+    - [Published Recipe Comparisons](#training-recipe-examples)
 - [Pre-training](#pre-training)
     - [Objective Families and Loss](#to-be-reviewed-objective-families-and-loss)
     - [Causal Next-token Loss Example](#causal-loss-example)
@@ -49,6 +53,7 @@
         - [OPSD: Self-Distillation with Privileged Solutions](#opd-opsd)
     - [Synthetic Data, Rejection Sampling, and Iterative Recipes](#to-be-reviewed-synthetic-data-rejection-sampling-and-iterative-recipes)
     - [Stage Gates and Reproducible Comparisons](#to-be-reviewed-stage-gates-and-reproducible-comparisons)
+- [Specialized Adaptation and Deployment](#specialized-adaptation)
 - [Shared Training Systems](#llm-engineering)
     - [Mixed Precision](#mixed-precision)
     - [Distributed Training](#distributed-training)
@@ -113,17 +118,57 @@ For paired queries and positive passages, a contrastive retrieval objective can 
 <a id="stages"></a>
 <a id="llm-training-lifecycle"></a>
 <a id="stage-map"></a>
-## [To be reviewed] Training Overview: Three Stages
+<a id="to-be-reviewed-training-overview-three-stages"></a>
+## [To be reviewed] Training Lifecycle: Three Regimes and a Recurring Adaptation/Deployment Workstream
 
-The main progression is **pre-training → mid-training → post-training**. Boundaries are conventions: late data annealing or context extension may be called continued pre-training in one report and mid-training in another. Identify the **starting checkpoint, data distribution, objective, trainable parameters, and evaluation target** before assigning a name. A model can revisit an earlier kind of training and then restore its downstream behavior. [Qwen3 stages](https://arxiv.org/html/2505.09388v1), [adaptation/restoration case study](https://thinkingmachines.ai/blog/on-policy-distillation/)
+For a modern autoregressive LLM, a useful conceptual map is **broad pre-training → optional continued capability/domain training → behavioral post-training**, followed by release and serving, with adaptation and evaluation feeding back into training. These are organizing regimes, not universally separate runs or a mandatory order. Some reports use only the broad labels **pre-training / post-training**, placing what this handbook calls mid-training inside late pre-training. Closed or partially disclosed recipes do not establish one universal frontier-lab pipeline.
 
-| Stage | Primary question | Typical supervision | Stage-specific evidence |
+The map combines the three-regime training view with a full model-development lifecycle. **Specialized adaptation and deployment are a recurring workstream, not a fourth mutually exclusive training objective.** Distillation, safety work, agent learning, and efficiency changes can occur in several regimes. Record the **starting checkpoint, data/target masks, objective and feedback, trainable parameters, and evaluation target** before assigning a stage name.
+
+<a id="llm-training-lifecycle-diagram"></a>
+
+**[To be reviewed] Conceptual lifecycle diagram — optional boundaries, iterative post-training, and cross-cutting work.**
+
+![LLM lifecycle: broad pre-training, optional continued training, iterative post-training, and recurring adaptation or deployment](../figs/llm-training-lifecycle.png)
+
+[Editable SVG](../figs/llm-training-lifecycle.svg). Arrows show possible transitions; the displayed SFT/RL/data-refresh cycle is an example, not a required recipe. The four post-training boxes identify compatible routes, not four mandatory consecutive steps.
+
+| Regime / workstream | Primary purpose | Typical data and update | Boundary and evidence to record |
 | --- | --- | --- | --- |
-| Pre-training | What broad representations and capabilities can be learned from the chosen corpus and compute budget? | Causal, masked, denoising, FIM, or auxiliary token-prediction targets | Domain/language loss, capability tests, contamination controls, optimization stability |
-| Mid-training | How should an existing model adapt to a domain, capability emphasis, modality, or context regime? | Often continued LM learning on a changed mixture; transition-specific objectives can differ | Target gain versus matched additional training, general retention, length/position sweeps |
-| Post-training | How should the model behave or choose actions/responses for the intended tasks? | Demonstrations, preference labels, rewards, teacher feedback | Independent task success, generalization, retention, feedback validity, total cost |
+| **Broad pre-training** | Develop broad language, knowledge, code, and reasoning capabilities | Large mixed corpora; usually causal next-token prediction (NTP) for a decoder LM, possibly FIM/auxiliary targets | Corpus/mixture, token and compute budget, general capability/contamination checks; high-quality data also matters here |
+| **Mid-training / selected continued pre-training** | Change capability emphasis, domain, or context regime of an existing checkpoint | Reweighted high-quality/reasoning-rich corpora, domain text, long sequences; often continued LM loss | May be a late pre-training subphase; compare target gains, general retention, and long-context behavior against matched extra training |
+| **Post-training** | Shape responses/actions using task-specific supervision or feedback | Instruction/CoT/tool-agent SFT; direct preferences; rollout-based RL; teacher-guided training | Specify supervision provenance, policy/data distribution, objective, update rule, independent task success, and total cost |
+| **Recurring specialization + release/serving workstream** | Adapt a model family or make a particular product/version usable | Reuse the training routes above; select/distill students, harden behavior, optimize execution, release and monitor | Some activities update weights; others change runtime only. Recheck quality, retention, safety behavior, and latency/cost after each change |
 
-There is one detailed home for each topic below. [Pre-training](#pre-training) owns corpus preparation and the base LM objective; [mid-training](#mid-training) owns adaptation/retention; [post-training](#post-training) owns SFT, RL, preferences, and OPD. [Shared training systems](#llm-engineering) owns PEFT, precision, sharding, accumulation, and checkpoint execution; these controls can apply in several stages. [Inference](#llm-inference), [RAG](rag.md#rag), and [evaluation](#evaluation-and-monitoring) support deployment and measurement rather than defining additional training stages.
+<a id="training-boundaries"></a>
+### [To be reviewed] Boundaries: Continued Pre-training, Data Quality, and Target Masks
+
+**Continued pre-training (CPT) describes resuming a pre-training-style objective; mid-training describes a position/purpose in a recipe.** They overlap but are not exact synonyms. Ordinary continuation may retain the same mixture, and an instruction-tuned model can undergo domain CPT later, potentially requiring behavior restoration. A distinct mid-training phase is optional, and no universal token count or learning-rate threshold defines it. [Adaptation/restoration example](https://thinkingmachines.ai/blog/on-policy-distillation/)
+
+“High-quality NTP” is a useful recipe description, not a defining difference from pre-training. Reasoning-rich documents can enter broad or later LM training. If verified reasoning answers instead serve as masked assistant-response demonstrations, that is CoT SFT under this map. Both can use autoregressive cross-entropy: the **conditioning, data distribution, target mask, and intended behavior** distinguish them, not simply the name of the loss. Long-context adaptation can include continued LM training and later long-context SFT/RL; changing a context-length setting alone is not training evidence.
+
+<a id="post-training-loop"></a>
+### [To be reviewed] Post-training Is an Iterative Graph, Not One Fixed Sequence
+
+- **Supervised imitation:** instruction SFT, CoT SFT, and tool/agent trajectory SFT train on provided targets. Offline teacher traces can supply those targets.
+- **Direct preference optimization:** DPO trains on preferred/rejected pairs under its stated formulation. Basic offline DPO does not require an online rollout/reward-model/PPO loop. [DPO](https://arxiv.org/abs/2305.18290)
+- **Rollout-based RL:** feedback may come from learned preference rewards or verifiable outcomes. **RLHF/RLAIF describe feedback/pipeline provenance; RLVR describes verifiable rewards; PPO/GRPO/DAPO/GSPO are update recipes.** These are different axes, not sibling mandatory stages. See the [feedback comparison](#rl-feedback-comparison) and [update comparison](#rl-method-comparison).
+- **Teacher-guided transfer:** offline distillation, OPD, and OPSD describe different teacher/state-access arrangements. They can initialize, specialize, compress, or restore behavior; an on-policy teacher loss is not automatically outcome-reward RL. See [SFT/RL/OPD](#sft-rl-opd-comparison) and [distillation](#distillation-and-opd).
+
+An illustrative loop is **SFT → RL → generate/collect and verify new data → SFT → RL**; preferences and teacher feedback may enter at different iterations. Data generation/verification and reward-model fitting are supporting steps, not necessarily actor updates. Rejection-sampling SFT remains SFT once the retained dataset is fixed. SFT need not precede every RL run: the R1-Zero experiment starts RL from a base model. The applicable question is which initialization, feedback, and update work for the specified task and budget.
+
+<a id="training-recipe-examples"></a>
+### [To be reviewed] How Published Recipes Map onto These Names
+
+| Public recipe | What it reports | What the comparison establishes |
+| --- | --- | --- |
+| [Qwen3, Sections 3.2 and 4](https://arxiv.org/html/2505.09388v1) | General, reasoning-emphasis, and long-context **pre-training** subphases; flagship post-training includes long-CoT cold start, reasoning RL, thinking-mode-fusion SFT, and general RL; lightweight models use a strong-to-weak distillation route | Mid-training-like work need not be named a separate top-level stage; distillation can be a post-training route rather than an additional final phase |
+| [Llama 3, Sections 3.4 and 4.1](https://arxiv.org/html/2407.21783v3) | Initial, long-context, and annealing **pre-training**; iterative post-training with SFT, preference/reward-data work, and DPO | Context extension/annealing can belong to pre-training; preference learning does not require PPO/GRPO |
+| [DeepSeek-R1, Sections 2.2–2.4](https://arxiv.org/html/2501.12948v1) | R1-Zero RL from the base model; R1 cold-start SFT → reasoning RL → rejection-sampling/general SFT → broader RL; separate distilled students trained by SFT in that report | There is no universal SFT-first rule; teacher and student branches need separate checkpoint lineages |
+
+These examples are scoped to their published revisions, not claims about every subsequent release or an undisclosed lab's full process. The handbook uses the three regimes for detailed teaching while preserving each report's own labels.
+
+For details, follow [pre-training](#pre-training), [mid-training](#mid-training), [post-training](#post-training), and [specialized adaptation/deployment](#specialized-adaptation). [Shared training systems](#llm-engineering) covers execution choices across regimes; [inference](#llm-inference), [RAG](rag.md#rag), and [evaluation](#evaluation-and-monitoring) cover runtime and measurement rather than an additional actor-training objective.
 
 <a id="pre-training"></a>
 ## [To be reviewed] Pre-training
@@ -576,6 +621,24 @@ At each transition, save a checkpoint and evaluate **target capability, general 
 
 **Ablation plan:** (a) original checkpoint, (b) additional tokens at the old mixture, (c) mid-training at the new mixture, (d) behavior-restoring SFT, (e) OPD, and (f) RL when justified by the task. Match the budgets appropriate to the causal question: fixed tokens for a data-mixture comparison, and total compute/cost for a practical pipeline comparison. An equal number of gradient steps is insufficient when sequence lengths, teacher inference, or rollout multiplicities differ.
 
+
+<a id="specialized-adaptation"></a>
+## [To be reviewed] Specialized Adaptation and Deployment: A Recurring Workstream
+
+Specialization identifies a target use case or model variant; deployment identifies a system lifecycle step. Neither determines a unique learning objective. A team may schedule a final release-hardening phase operationally, but its activities can also occur earlier or recur after a deployment.
+
+| Activity often placed in “Stage 4” | More precise placement / mechanism | Canonical detail |
+| --- | --- | --- |
+| Domain or task specialization | Domain CPT, SFT, preferences, RL, or teacher supervision according to data/targets; PEFT versus full tuning specifies trainable parameters | [Mid-training](#mid-training), [parameter updates](#fine-tuning) |
+| Distillation / compact variants | A teacher–student transfer route; offline targets may train via SFT, while OPD queries teacher feedback at student states | [Distillation / OPD / OPSD](#distillation-and-opd) |
+| Tool / Agent RL | Post-training RL on tool/environment trajectories, often interleaved with agent SFT and new data collection | [Agent training](agents.md#agent-training), [credit assignment](#rl-credit-assignment) |
+| Safety hardening | Data curation and training-time behavioral feedback, plus evaluation and system-level safeguards; deployment controls are not themselves actor learning | [Preference/feedback](#rl-feedback-comparison), [harness boundaries](rsi-and-harness.md#harness-runtime) |
+| Efficiency optimization | Architecture/precision/parallelism choices can enter training; post-training quantization, kernels, paging, batching, and serving change deployment execution. Quantization-aware training explicitly trains for quantization; PTQ starts from trained weights and may use calibration or reconstruction optimization | [Training systems](#llm-engineering), [quantization](#llm-quantization), [serving](#llm-serving-systems) |
+| Release and monitoring | Select/version a model-system configuration; test independent quality and service behavior; use new evidence to design later training data/experiments | [Evaluation protocol](benchmarking-and-evaluation.md#eval-protocol), [harness improvement loop](rsi-and-harness.md#rsi-and-harness) |
+
+**Cross-cutting tracks:** data quality/decontamination, capability/retention evaluation, safety behavior, and compute/efficiency accounting run throughout development. Safety work is not solely a final fine-tune; the Llama 3 report separately describes safety pre-training, finetuning, and system-level mitigations. A safety task can use SFT, preference objectives, or RL, just as a tool task can. [Llama 3 safety discussion, Section 5.4](https://arxiv.org/html/2407.21783v3#S5.SS4)
+
+**Feedback loop:** a deployed model can be adapted again, but a serving-time user interaction does not automatically update weights. Version the training dataset, actor checkpoint, teacher/verifier, tools, and runtime separately. Keep held-out evaluation independent when turning observed failures into training examples; otherwise a lifecycle loop can silently become benchmark-specific optimization.
 
 <a id="llm-infra"></a>
 <a id="llm-engineering"></a>
