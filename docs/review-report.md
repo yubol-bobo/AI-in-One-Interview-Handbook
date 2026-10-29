@@ -152,3 +152,13 @@ Replaced the simple [three-stage overview](large-language-models.md#stages) with
 The comparison incorporates the proposed full-lifecycle view while correcting mixed classification axes. CPT is not defined as exactly synonymous with mid-training; high-quality data and reasoning/context adaptation are not exclusive to one stage. DPO, feedback provenance (RLHF/RLAIF/RLVR), RL updates, and teacher-guided transfer are separated. Distillation, safety, agent RL, and efficiency work are not restricted to a mandatory final phase. Published Qwen3, Llama 3, and DeepSeek-R1 recipes anchor the naming/iteration distinctions; report-specific teacher/student branches are preserved.
 
 Added an original conceptual PNG/SVG lifecycle schematic and reproducible generator, updated README/chapter navigation, and linked Agent training to the map. Checked primary-source identities and links, local fragments and review markers, the unchanged detailed method content, and rendered diagram/formula/Markdown output. Earlier numeric/formula audit counts remain historical snapshots.
+
+## Sandbox execution follow-up — 2026-10-29
+
+Added a marked [Sandbox execution boundary](rsi-and-harness.md#harness-sandbox) under Runtime/Evaluation Harness, preserving the chapter's ten numbered sections. The six detailed subsections compare process/container/application-kernel/VM/Wasm isolation, explain filesystem/network/credential/resource policies, cover lifecycle/reset and external effects, separate actor and grader environments, and provide a worked coding episode plus interview questions. An original marked PNG/SVG boundary diagram and reproducible generator accompany the section.
+
+The addition distinguishes isolation from semantic authorization and grading correctness. Seccomp is described as syscall-surface control, cgroups as resource organization/control, and ordinary Linux containers as sharing the host kernel. Credentials, egress, persistent residue, descendant cleanup, and candidate-influenced evaluation remain explicit design concerns. Resource numbers are illustrative, not a deployable security configuration; no live sandbox deployment or containment test is claimed.
+
+Updated README, Agent tool-use, and LLM reward-hacking references. Checked primary runtime/kernel documentation, new local/source links, retained text/review markers, image/SVG integrity, generator reproducibility, formula rendering, and published previews. Earlier chapter audit snapshots remain historical.
+
+For this addition, nine new source URLs returned HTTP 200 in direct checks. The Docker security page was independently retrieved through web browsing; direct-script connections reset, so that transport failure is not classified as a dead link.

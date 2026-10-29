@@ -435,6 +435,8 @@ Reward hacking occurs when optimization exploits a mismatch between the implemen
 
 **Mitigations are complementary:** improve reward coverage, audit on-policy failures, use independent evaluation, isolate grading from mutable agent state, and limit unsupported distributional drift. A stronger reward model, KL regularization, ensembles, or early stopping may help, but none repairs an incorrect specification by definition. RLVR removes the need for a learned reward model in its pure form; it still optimizes acceptance by a finite checker. See [feedback-source limitations](#rl-feedback-comparison) and [grader validity](benchmarking-and-evaluation.md#eval-graders).
 
+[To be reviewed] The [sandbox and evaluator design](rsi-and-harness.md#sandbox-evaluation) makes this boundary concrete: isolate candidate execution and authoritative scoring, version/reset the environment, distinguish runtime failures from verifier outcomes, and include isolation/setup cost in RL comparisons. Host isolation does not repair an incomplete reward specification.
+
 <a id="rl-reward-design"></a>
 #### [To be reviewed] Outcome Rewards, Process Rewards, and Reward Shaping
 

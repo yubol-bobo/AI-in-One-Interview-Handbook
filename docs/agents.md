@@ -74,6 +74,8 @@ The model should not invent this record from its intention. The executor supplie
 
 **Schemas solve only part of the problem.** Structurally valid arguments can name the wrong account, file, or unit. The host enforces configured authorization, argument semantics, execution boundaries, and resource policies. Tool outputs and retrieved documents remain observations with provenance; their text does not automatically become control instructions. This distinction is central to [AgentDojo-style robustness evaluation](benchmarking-and-evaluation.md#eval-graders).
 
+[To be reviewed] For code/tool execution, see the [sandbox execution boundary](rsi-and-harness.md#harness-sandbox): [containers, gVisor, microVMs and Wasm](rsi-and-harness.md#sandbox-mechanisms), filesystem/network/credential/resource policy, episode reset, and independent grading. Sandboxing constrains execution; the broker must still enforce the requested operation's semantic authorization.
+
 Tool protocols can standardize discovery and invocation. For example, the **2025-06-18 MCP tools specification** describes named tools and schemas; it does not, by itself, implement every server's domain semantics or an application's authorization decisions. Pin the protocol/implementation version when reproducing behavior. [MCP tools specification](https://modelcontextprotocol.io/specification/2025-06-18/server/tools)
 
 The interface itself can affect capability: SWE-agent studies an agent-computer interface tailored to repository work. Compare interfaces with a fixed model and budget before attributing every gain to better planning or training. [SWE-agent](https://arxiv.org/abs/2405.15793)

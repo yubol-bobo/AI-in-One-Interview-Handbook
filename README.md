@@ -269,6 +269,8 @@ This README is the handbook index. Each chapter has its own contents and chapter
 - [RSI & Harness](docs/rsi-and-harness.md#rsi-and-harness)
     - [Self-Improvement and Recursion](docs/rsi-and-harness.md#rsi-definitions)
     - [Runtime and Evaluation Harnesses](docs/rsi-and-harness.md#harness-runtime)
+        - [Sandbox: Execution Boundaries / Isolation Choices](docs/rsi-and-harness.md#harness-sandbox)
+        - [Sandbox Policy / Lifecycle / Independent Graders](docs/rsi-and-harness.md#sandbox-policy)
     - [State Persistence and Recovery](docs/rsi-and-harness.md#harness-state)
     - [Bounded Improvement Loops](docs/rsi-and-harness.md#rsi-loop)
     - [Research Map: DGM / SICA / GEPA / AIDE²](docs/rsi-and-harness.md#rsi-literature)

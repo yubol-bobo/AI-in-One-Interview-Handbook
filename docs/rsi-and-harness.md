@@ -7,6 +7,13 @@
 
 - [What changes in self-improvement?](#rsi-definitions)
 - [Runtime versus evaluation harness](#harness-runtime)
+    - [Sandbox execution boundaries](#harness-sandbox)
+        - [Isolation mechanisms and trade-offs](#sandbox-mechanisms)
+        - [Filesystem / network / credential / resource policy](#sandbox-policy)
+        - [Lifecycle, reset, and external effects](#sandbox-lifecycle)
+        - [Independent graders and RL environments](#sandbox-evaluation)
+        - [Worked coding-agent example](#sandbox-example)
+        - [Interview questions](#sandbox-interview)
 - [State, persistence, and recovery](#harness-state)
 - [Context and long-running work](#harness-context)
 - [A bounded improvement loop](#rsi-loop)
@@ -54,6 +61,94 @@ The model chooses from an interface implemented by the harness. Changing file-re
 **Separation matters for improvement experiments.** Candidate code can legitimately change a planner or context policy within the experimental search space. The evaluator and final task-access policy must remain an independently specified reference. If candidates can redefine “passed,” remove failing tasks, or change their accounting denominator, the measured score no longer represents the same comparison.
 
 An ordinary library that sends model requests can be part of a harness, but a long-running system also needs state/effect handling. An evaluation framework can run agent tasks without being the agent's production runtime. See the [evaluation protocol](benchmarking-and-evaluation.md#eval-protocol) for the artifacts required to reproduce both sides.
+
+<a id="harness-sandbox"></a>
+### [To be reviewed] Sandbox: An Execution Boundary for Agent Tools
+
+A **sandbox** executes a workload with constrained access to surrounding resources. In an agent harness, generated programs, repository tests, build scripts, and downloaded dependencies can all be untrusted workloads. Define the protected assets first: host files/processes, credentials, other tasks, network services, and the evaluator. The model and its proposed tool arguments do not enforce this boundary; the trusted executor and underlying isolation mechanisms do.
+
+Separate **isolation**, **authorization**, and **grading**. Isolation limits what running code can reach; authorization determines which requested business operation is permitted; grading measures the actual artifact/outcome. A sandboxed process with an unrestricted service token can still perform unwanted allowed API calls. Likewise, prompt injection can cause a harmful action through a legitimate tool without any sandbox escape. Tool schemas and model instructions are not substitutes for executor-side policy. [gVisor security model](https://gvisor.dev/docs/architecture_guide/security/)
+
+**[To be reviewed] Execution-boundary diagram.**
+
+![Agent tool execution through a trusted broker into a constrained worker, with separate isolated grading and bounded observations](../figs/agent-sandbox-boundary.png)
+
+[Editable SVG](../figs/agent-sandbox-boundary.svg). The worker cannot redefine its policy or the score. Candidate artifacts cross into a separate evaluation environment; candidate code remains untrusted there too. External services, when needed, are reached through explicitly scoped interfaces rather than automatically inheriting host credentials.
+
+<a id="sandbox-mechanisms"></a>
+#### [To be reviewed] Isolation Mechanisms and Trade-offs
+
+“Sandbox” names a role, not one implementation. The following mechanisms have different trust boundaries; combining them can provide defense in depth.
+
+| Mechanism | Boundary / relevant primitives | Trade-off and limit |
+| --- | --- | --- |
+| Separate process or language environment | Distinct process; interpreter/virtual environment selects dependencies | A subprocess, Python venv, or working-directory change alone does not isolate host filesystem/network authority |
+| Linux OS containers | Namespaces separate resource views; capabilities/LSMs/seccomp restrict authority; cgroups control resources | Lightweight and compatible, but ordinary Linux containers share the host kernel; privileged settings, broad mounts, and runtime-control sockets can defeat intended confinement |
+| gVisor-style application kernel | A userspace kernel mediates much of the workload's system interface, reducing direct host-kernel exposure | Different compatibility/performance characteristics from native execution; host integration and runtime configuration still matter |
+| VM / microVM, e.g. Firecracker | A guest kernel behind a virtualization boundary; a VMM and host-side confinement remain trusted | Image/boot/snapshot and networking operations add cost; a microVM is not an automatic solution to credentials, egress, or evaluator integrity |
+| WebAssembly runtime, e.g. Wasmtime | Guest memory and execution are constrained; host functionality is exposed through imports/interfaces | Useful for compatible modules; imported host functions remain powerful, and arbitrary native toolchains are not automatically supported |
+
+These are architectural comparisons, not measured speed/security rankings. See [Docker security](https://docs.docker.com/engine/security/), [gVisor architecture](https://gvisor.dev/docs/architecture_guide/intro/), [Firecracker design](https://github.com/firecracker-microvm/firecracker/blob/main/docs/design.md), and [Wasmtime security](https://docs.wasmtime.dev/security.html). Windows uses different primitives: [Windows Sandbox](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/) is a disposable, hypervisor-isolated desktop environment, not a synonym for a Python environment or a Linux container.
+
+**Primitives are complementary.** Namespaces change visibility; cgroups organize/resource-control processes; seccomp filters syscall numbers/arguments; capabilities and LSM policies constrain additional authority. Seccomp is not a complete sandbox and is not a general pathname/domain authorization engine: its BPF filters cannot dereference arbitrary pointer arguments to inspect path strings. Rootless execution reduces some privileges without removing all shared-kernel or configuration risks. [Kernel seccomp documentation](https://docs.kernel.org/userspace-api/seccomp_filter.html), [Linux security constraints](https://kubernetes.io/docs/concepts/security/linux-kernel-security-constraints/)
+
+<a id="sandbox-policy"></a>
+#### [To be reviewed] Filesystem, Network, Credentials, and Resource Policy
+
+State the execution policy independently of the selected runtime. An illustrative coding workload might need a read-only source snapshot plus a writable overlay, dependencies prepared in advance, and no general outbound network access. Other tasks legitimately need different access.
+
+| Surface | Policy question / implementation responsibility | Failure to test |
+| --- | --- | --- |
+| Filesystem | Which inputs are read-only, where writes persist, and which artifacts may leave? Enforce actual object access, not just a string path prefix | Broad host mounts, symlink/path traversal, unbounded temporary storage, or stale writable state across tasks |
+| Processes / devices | Which identity, capabilities, syscalls, IPC, and devices are necessary? Keep privileged control sockets outside the workload | A low-privilege command can still inherit a powerful socket, descriptor, device, or service account |
+| Network | Is egress disabled, endpoint-scoped, or brokered? Enforce the declared destination policy at the real connection boundary | A separate network namespace alone does not mean no internet; DNS/redirects and private/metadata endpoints need explicit treatment |
+| Credentials / remote tools | Prefer narrowly scoped broker operations and short-lived authority; keep unrelated host secrets out of worker state | Reading a secret or executing an authorized remote write needs no kernel escape |
+| CPU / memory / process count | Define quotas and limits for the entire workload, including descendants | CPU bandwidth is not a wall-clock deadline; limiting one parent process does not necessarily stop its children |
+| Disk / output / I/O | Bound writable bytes, artifact count, stdout/stderr, and transfer work separately | A memory limit does not imply a disk quota; huge output can exhaust the harness or model context |
+| Result channel | Use typed status, bounded text, artifact references, and trusted execution metadata | Candidate stdout saying “all tests passed” is not a trusted exit status or grade |
+
+For Linux resource accounting, [cgroup v2](https://docs.kernel.org/admin-guide/cgroup-v2.html) distinguishes controllers such as CPU, memory, and process counts. A wall-clock deadline needs an external supervisor. Kubernetes network policies require a supporting enforcement implementation; declaring an object without enforcement is not isolation. [Network policy semantics](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+
+<a id="sandbox-lifecycle"></a>
+#### [To be reviewed] Lifecycle, Reset, Snapshots, and External Effects
+
+A typical attempt is **allocate a versioned environment → attach scoped inputs → execute under limits → collect bounded observations/artifacts → terminate the workload and release resources**. Track environment/run IDs, base image and dependency versions, policy, input snapshot, child jobs, exit reason, and cleanup outcome. Distinguish timeout, OOM, denied access, invalid output, and ordinary task failure.
+
+Choose lifetime deliberately: per-call reset suits pure computations; a multi-step coding episode may need a persistent workspace until that episode ends. Persistent state across independent attempts can leak answers or change difficulty. Warm pools and snapshots can reduce startup overhead, but must reset writable files, processes, credentials, and task-specific caches. A filesystem snapshot alone does not rewind remote services, clocks, randomness, or all process/device state.
+
+**Rollback has a boundary.** Deleting a local sandbox cannot unsend an email, reverse a database write, or erase a remote artifact. Broker those effects with explicit authorization and durable operation identity, or use task-specific simulators/test accounts during training. An ambiguous remote timeout needs state reconciliation before a retry; “restart the sandbox” is not deduplication. See [state/effect recovery](#harness-state).
+
+<a id="sandbox-evaluation"></a>
+#### [To be reviewed] Independent Graders and RL Environment Integrity
+
+The actor's writable environment and the authoritative grader are different trust zones. For a code task, collect a declared artifact and evaluate it in a fresh, constrained worker using the appropriate fixed inputs/tests. Keep scoring logic and authoritative records outside actor control. A read-only test file inside the actor environment prevents modification but not reading; if the protocol requires hidden tests, do not expose them there. Candidate code also needs isolation inside the grader, and grader results must not simply trust candidate-produced files.
+
+This reduces [reward-channel tampering](large-language-models.md#rl-reward-hacking), but does not fix an incomplete verifier: a patch can pass narrow tests without modifying the reward channel. Code-under-test may also try to influence its own test runner, so test-process/protocol separation and trusted result collection matter in addition to host isolation. Define the allowed interaction model for the benchmark rather than claiming that one container proves grading integrity.
+
+For [agent RL](agents.md#agent-training), the environment image, tool permissions, reset semantics, feedback visibility, and resource budget help define the decision problem. Changing egress or available tests between training and evaluation changes that problem. Record setup/queueing/execution/cleanup cost, cache/pool policy, and environment failures. Report success and violations under a declared denominator; silently discarding OOMs/timeouts can make a method look better. Isolation improves experimental control but does not guarantee deterministic replay or justify unlimited retries.
+
+<a id="sandbox-example"></a>
+#### [To be reviewed] Worked Example: A Repository-Repair Episode
+
+**Illustrative specification:** give the actor a clean repository snapshot with a writable patch workspace, a pinned dependency image, no host home-directory mount, and no general network. Permit needed tooling under an explicit runtime policy. Example budgets might be two CPU cores, 2 GiB memory, 64 tasks/threads, 256 MiB writable scratch, a 60-second wall deadline, and 1 MiB captured output. These are chosen example values, not suitable defaults for every repository or a runnable security configuration.
+
+The broker validates workspace scope and starts the episode. The actor may inspect code and run public tests; an edited source artifact is collected with provenance. A separate constrained evaluation worker applies the artifact to a fresh base and runs the final protocol. Trusted infrastructure returns grade plus bounded diagnostics; it does not execute submitted code in the privileged controller. Afterward, clean both workers and preserve the declared audit artifacts.
+
+**Compare three failures:** exceeding the memory limit is an environment outcome; printing fake success is untrusted output; changing a visible test to pass is an artifact/protocol issue. They require different status handling and grading. If the task needs package download or external APIs, revise the environment contract explicitly—prefer prepared dependencies or scoped access rather than assuming that all useful tasks are offline.
+
+<a id="sandbox-interview"></a>
+#### [To be reviewed] Interview Questions and Validation
+
+| Question | Strong answer / concrete check |
+| --- | --- |
+| Is Docker automatically a secure sandbox? | Describe the host-kernel/configuration boundary, mounts, identity, capabilities, network, and runtime socket; compare with the declared threat model. |
+| Are seccomp and cgroups interchangeable? | No. One filters syscall surface, the other controls/account resources; neither decides full business authorization. |
+| Does a microVM stop prompt injection? | It adds an execution boundary; an injected instruction can still misuse permitted tools. Test semantic authorization separately. |
+| Does a timeout cancel all work? | Verify descendant termination and status; remote operations may have completed and need reconciliation. |
+| Can a snapshot reset an RL episode? | Only the state captured/restored by that snapshot. Identify external state, credentials, randomness, and reset leakage. |
+| Is an isolated grader necessarily correct? | It can still have weak tests, a candidate-influenced protocol, or biased metrics. Validate the grading contract independently. |
+
+Validate with controlled boundary tests appropriate to the implementation: unauthorized read/write and egress attempts, resource exhaustion, child-process cleanup, output truncation, task-to-task residue, and grader/result-channel separation. Benchmark cold/warm startup and syscall/I/O-heavy workloads alongside task success. Runtime selection is a security/compatibility/cost trade-off under a particular deployment, not a universal ordering of products.
 
 <a id="harness-state"></a>
 ## [To be reviewed] 3. State, Persistence, and Recovery
